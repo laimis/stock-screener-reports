@@ -1,5 +1,10 @@
 namespace FinvizScraper
 
+type ScreenerInput = {
+    name:string;
+    url:string
+}
+
 type ScreenerResult = {
     ticker:string;
     company:string;
