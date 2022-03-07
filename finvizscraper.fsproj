@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Giraffe.ViewEngine" Version="1.4.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.42" />
     <PackageReference Include="ScrapySharp" Version="3.0.0" />
   </ItemGroup>

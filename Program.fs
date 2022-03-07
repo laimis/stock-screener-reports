@@ -61,5 +61,61 @@ let tickers =
     |> Seq.skip 2                           // skip what looks like text element and a header row
     |> Seq.map processScreenerRow
 
+let toHtml (a:ScreenerResult) =
+    printf "%s" a.company
+    Giraffe.ViewEngine.HtmlElements.tr [] [
+        Giraffe.ViewEngine.HtmlElements.td [] [
+            Giraffe.ViewEngine.HtmlElements.str a.ticker
+        ]
+
+        Giraffe.ViewEngine.HtmlElements.td [] [
+            Giraffe.ViewEngine.HtmlElements.str a.company
+        ]
+
+        Giraffe.ViewEngine.HtmlElements.td [] [
+            Giraffe.ViewEngine.HtmlElements.str a.sector
+        ]
+
+        Giraffe.ViewEngine.HtmlElements.td [] [
+            Giraffe.ViewEngine.HtmlElements.str a.industry
+        ]
+
+        Giraffe.ViewEngine.HtmlElements.td [] [
+            Giraffe.ViewEngine.HtmlElements.str a.country
+        ]
+
+        Giraffe.ViewEngine.HtmlElements.td [] [
+            Giraffe.ViewEngine.HtmlElements.str a.marketCap
+        ]
+
+        Giraffe.ViewEngine.HtmlElements.td [] [
+            Giraffe.ViewEngine.HtmlElements.str a.price
+        ]
+
+        Giraffe.ViewEngine.HtmlElements.td [] [
+            Giraffe.ViewEngine.HtmlElements.str a.change
+        ]
+
+        Giraffe.ViewEngine.HtmlElements.td [] [
+            Giraffe.ViewEngine.HtmlElements.str a.volume
+        ]
+    ]
+
 tickers |> Seq.iter (fun t -> Console.WriteLine(t.ticker))
 
+let tickerRows = tickers |> Seq.map toHtml |> Seq.toList
+
+let view =
+    Giraffe.ViewEngine.HtmlElements.html [] [
+        Giraffe.ViewEngine.HtmlElements.head [] [ 
+            Giraffe.ViewEngine.HtmlElements.title [] [
+                Giraffe.ViewEngine.HtmlElements.str "Giraffe" ]
+        ]
+        Giraffe.ViewEngine.HtmlElements.body [] [
+            Giraffe.ViewEngine.HtmlElements.table [] tickerRows
+        ]
+    ]
+
+let document = Giraffe.ViewEngine.RenderView.AsString.htmlDocument view
+
+System.IO.File.WriteAllText("index.html", document)
