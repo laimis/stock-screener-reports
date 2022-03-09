@@ -10,8 +10,19 @@ let screenerResults =
     |> FinvizClient.fetchScreenerHtml
     |> FinvizClient.parseScreenerHtml
 
+let resultBreakdownHelper groupBy =
+    Processing.resultBreakdown groupBy
+
+let sectors = resultBreakdownHelper (fun a -> a.sector) screenerResults
+let industries = resultBreakdownHelper (fun a -> a.industry) screenerResults
+let countries = resultBreakdownHelper (fun a -> a.country) screenerResults
+
 let html =
     screenerResults
-    |> Rendering.renderScreenerResultsAsHtml screener.name
+    |> Rendering.renderScreenerResultsAsHtml 
+        screener.name
+        sectors
+        industries
+        countries
 
 System.IO.File.WriteAllText("index.html", html)

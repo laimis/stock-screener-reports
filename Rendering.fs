@@ -2,6 +2,8 @@ namespace FinvizScraper
 
 module Rendering =
 
+    let tableAttributes = Giraffe.ViewEngine.Attributes._class "table is-fullwidth"
+
     let screenerResultToTr (a:ScreenerResult) =
         
         let toTd input =
@@ -34,7 +36,7 @@ module Rendering =
             toTdWithHref $"https://tradingview.com/chart/kQn4rgoA/?symbol={a.ticker}"
         ]
 
-    let getHeaderRow =
+    let headerRow =
         let headers = [ 
             "Ticker"; "Company"; "Sector"; "Industry"; "Country"; 
             "Market Cap"; "Price"; "Change"; "Volume"; "Link"
@@ -49,13 +51,39 @@ module Rendering =
 
         Giraffe.ViewEngine.HtmlElements.tr [] headerCells
 
-    let renderScreenerResultsAsHtml title (screenerResults:seq<ScreenerResult>) =
+    let toBreakdownTable (breakdown:seq<string * list<ScreenerResult>>) =
+        // row with headers for each column and another row with length
+        let headerCells = 
+            breakdown
+            |> Seq.map (fun a -> fst(a))
+            |> Seq.map (fun a -> Giraffe.ViewEngine.HtmlElements.th [] [Giraffe.ViewEngine.HtmlElements.str a])
+            |> Seq.toList
+
+        let valueCells =
+            breakdown
+            |> Seq.map (fun a -> snd(a))
+            |> Seq.map (fun a -> Giraffe.ViewEngine.HtmlElements.td [] [Giraffe.ViewEngine.HtmlElements.str (string a.Length)])
+            |> Seq.toList
         
-        let headerRow = getHeaderRow
-            
+        Giraffe.ViewEngine.HtmlElements.table [ tableAttributes ] [
+            Giraffe.ViewEngine.HtmlElements.tr [] headerCells
+            Giraffe.ViewEngine.HtmlElements.tr [] valueCells
+        ]
+
+    let renderScreenerResultsAsHtml 
+        title
+        sectorBreakdown
+        industryBreakdown
+        countryBreakdown
+        (screenerResults:seq<ScreenerResult>) =
+
+        let sectorTable = toBreakdownTable sectorBreakdown
+        let industryTable = toBreakdownTable industryBreakdown
+        let countryTable = toBreakdownTable countryBreakdown
+        
         let tickerRows = screenerResults |> Seq.map screenerResultToTr |> Seq.toList
 
-        let tableHtml = Giraffe.ViewEngine.HtmlElements.table [] (headerRow::tickerRows)
+        let resultTable = Giraffe.ViewEngine.HtmlElements.table [tableAttributes] (headerRow::tickerRows)
 
         let copyForTradeView = Giraffe.ViewEngine.HtmlElements.div [] [
             Giraffe.ViewEngine.HtmlElements.str (
@@ -69,9 +97,20 @@ module Rendering =
                     Giraffe.ViewEngine.HtmlElements.title [] [
                         Giraffe.ViewEngine.HtmlElements.str ("Screener Result for " + title)
                     ]
+                    Giraffe.ViewEngine.HtmlElements.link [
+                        Giraffe.ViewEngine.Attributes._rel "stylesheet"
+                        Giraffe.ViewEngine.Attributes._href "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css"
+                    ]
                 ]
                 Giraffe.ViewEngine.HtmlElements.body [] [
-                    tableHtml
+                    sectorTable
+                    Giraffe.ViewEngine.HtmlElements.br []
+                    industryTable
+                    Giraffe.ViewEngine.HtmlElements.br []
+                    countryTable
+                    Giraffe.ViewEngine.HtmlElements.br []
+                    resultTable
+                    Giraffe.ViewEngine.HtmlElements.br []
                     copyForTradeView
                 ]
             ]

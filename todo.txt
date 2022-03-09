@@ -1,12 +1,11 @@
 The goal is to generate a report for the markets
 
 Currently it will involve running a list of screeners
-    - for each screener there is 
 
-- for each screener
-    - break down by sector
-    - industry
-    - country
++ for each screener
+    + break down by sector
+    + industry
+    + country
 
-- links to each ticker where I can quickly click on - if it's coming off the base and going into all time highs,
++ links to each ticker where I can quickly click on - if it's coming off the base and going into all time highs,
 consider getting in
