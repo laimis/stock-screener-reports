@@ -74,15 +74,15 @@ module Rendering =
 
     let renderScreenerResultsAsHtml 
         pageTitle
-        sectorBreakdown
-        industryBreakdown
-        countryBreakdown
+        breakdowns
         (screenerResults:seq<ScreenerResult>) =
 
-        let sectorTable = toBreakdownTable "Sectors" sectorBreakdown
-        let industryTable = toBreakdownTable "Industries" industryBreakdown
-        let countryTable = toBreakdownTable "Countries" countryBreakdown
-        
+        let breakdownDivs = 
+            breakdowns
+            |> Seq.map (fun a -> toBreakdownTable (fst(a)) (snd(a)))
+            |> Seq.map (fun a -> div [_class "column"] [a])
+            |> Seq.toList
+
         let tickerRows = screenerResults |> Seq.map screenerResultToTr |> Seq.toList
 
         let resultTable = table [tableAttributes] (headerRow::tickerRows)
@@ -113,17 +113,9 @@ module Rendering =
                             str ("Total Results: " + (Seq.length screenerResults).ToString())
                         ]
                     ]
-                    div [_class "columns"] [
-                        div [_class "column"] [sectorTable]
-                        div [_class "column"] [industryTable]
-                        div [_class "column"] [countryTable]
-                    ]
-                    div [_class "block"] [
-                        resultTable
-                    ]
-                    div [_class "block"] [
-                        copyForTradeView
-                    ]
+                    div [_class "columns"] breakdownDivs
+                    div [_class "block"] [resultTable]
+                    div [_class "block"] [copyForTradeView]
                 ]
             ]
 

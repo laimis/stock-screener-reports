@@ -16,3 +16,8 @@ type ScreenerResult = {
     change:string;
     volume:string;
 }
+
+type ScreenerBreakdown = {
+    name:string;
+    breakdown:(ScreenerResult) -> string
+}
