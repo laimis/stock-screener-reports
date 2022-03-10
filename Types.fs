@@ -2,7 +2,8 @@ namespace FinvizScraper
 
 type ScreenerInput = {
     name:string;
-    url:string
+    url:string;
+    filename:string;
 }
 
 type ScreenerResult = {

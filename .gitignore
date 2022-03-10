@@ -4,3 +4,5 @@ cache/
 
 .ionide/
 .fake
+
+output-*.html
