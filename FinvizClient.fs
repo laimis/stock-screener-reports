@@ -9,6 +9,19 @@ module FinvizClient =
 
         web.Load(url)
 
+    // // total is within a td cell, starts with Total:
+    // // after that read anything up to </td>
+    // // trim new lines, whitespace
+    // // and convert to int
+    // let parseTotalCount (html:string) =
+    //     let textTotalIndex = html.IndexOf("Total:")
+    //     let endOfTdIndex = html.IndexOf("</td>", textTotalIndex)
+    //     let totalSubstring = html.Substring(textTotalIndex + 6,  endOfTdIndex - textTotalIndex - 6)
+    //     // at this point totalSubstring is something like this: " </b>4 #1"
+    //     let bStartIndex = totalSubstring.IndexOf("</b")
+    //     let spaceIndex = totalSubstring.LastIndexOf(" ")
+    //     let total = int(totalSubstring.Substring(bStartIndex + 4, spaceIndex - bStartIndex - 4))
+    //     total
 
     let parseScreenerHtml (doc:HtmlAgilityPack.HtmlDocument) =
 
@@ -57,3 +70,19 @@ module FinvizClient =
             |> Seq.collect (fun n -> n.ChildNodes)  // this should be all tr nodes
             |> Seq.skip 2                           // skip what looks like text element and a header row
             |> Seq.map processScreenerRow
+
+    let getResults url =
+        let rec whileFetch offset results =
+            let urlToFetch = url + "&r=" + offset.ToString()
+            let htmlDoc = fetchScreenerHtml urlToFetch
+            
+            let page = 
+                htmlDoc
+                |> parseScreenerHtml
+                |> Seq.toList
+
+            match page with 
+                | c when c.Length = 20 -> whileFetch (offset + 20) (List.append results page)
+                | _ -> (List.append results page)
+
+        whileFetch 1 []

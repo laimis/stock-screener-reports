@@ -1,11 +1,11 @@
-The goal is to generate a report for the markets
+- support multiple scanners
+    - see which tickers repeat across
+- detect and show how many show up in the signal
 
-Currently it will involve running a list of screeners
 
-+ for each screener
-    + break down by sector
-    + industry
-    + country
+- store the results for a given day
+    - that way we can load them and see who is doing what
 
-+ links to each ticker where I can quickly click on - if it's coming off the base and going into all time highs,
-consider getting in
+- scanners to add:
+    - new low signal - who has been hitting that, which countries
+    - under 10

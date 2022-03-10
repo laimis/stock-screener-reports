@@ -1,39 +1,41 @@
 namespace FinvizScraper
 
 module Rendering =
+    open Giraffe.ViewEngine.HtmlElements
+    open Giraffe.ViewEngine.Attributes
 
-    let tableAttributes = Giraffe.ViewEngine.Attributes._class "table is-fullwidth"
+    let tableAttributes = _class "table is-fullwidth"
 
-    let screenerResultToTr (a:ScreenerResult) =
+    let screenerResultToTr (result:ScreenerResult) =
         
         let toTd input =
-            Giraffe.ViewEngine.HtmlElements.td [] [
-                Giraffe.ViewEngine.HtmlElements.str input
+            td [] [
+                str input
             ]
         
         let toTdWithHref href =
-            Giraffe.ViewEngine.HtmlElements.td [] [
-                Giraffe.ViewEngine.HtmlElements.a [
-                    Giraffe.ViewEngine.Attributes._href href
-                    Giraffe.ViewEngine.Attributes._target "_blank"
+            td [] [
+                a [
+                    _href href
+                    _target "_blank"
                 ] [
-                    Giraffe.ViewEngine.HtmlElements.str "link"
+                    str "link"
                 ]
             ]
 
-        let rowAttributes = [Giraffe.ViewEngine.Attributes._height "50px"]
+        let rowAttributes = [_height "50px"]
 
-        Giraffe.ViewEngine.HtmlElements.tr rowAttributes [
-            toTd a.ticker
-            toTd a.company
-            toTd a.sector
-            toTd a.industry
-            toTd a.country
-            toTd a.marketCap
-            toTd a.price
-            toTd a.change
-            toTd a.volume
-            toTdWithHref $"https://tradingview.com/chart/kQn4rgoA/?symbol={a.ticker}"
+        tr rowAttributes [
+            toTd result.ticker
+            toTd result.company
+            toTd result.sector
+            toTd result.industry
+            toTd result.country
+            toTd result.marketCap
+            toTd result.price
+            toTd result.change
+            toTd result.volume
+            toTdWithHref $"https://tradingview.com/chart/kQn4rgoA/?symbol={result.ticker}"
         ]
 
     let headerRow =
@@ -43,75 +45,85 @@ module Rendering =
         ]
 
         let toHeader title =
-            Giraffe.ViewEngine.HtmlElements.th [] [
-                Giraffe.ViewEngine.HtmlElements.str title
-            ]
+            th [] [str title]
 
         let headerCells = headers |> List.map toHeader
 
-        Giraffe.ViewEngine.HtmlElements.tr [] headerCells
+        tr [] headerCells
 
-    let toBreakdownTable (breakdown:seq<string * list<ScreenerResult>>) =
+    let toBreakdownTable breakdownTitle (breakdown:seq<string * list<ScreenerResult>>) =
         // row with headers for each column and another row with length
-        let headerCells = 
-            breakdown
-            |> Seq.map (fun a -> fst(a))
-            |> Seq.map (fun a -> Giraffe.ViewEngine.HtmlElements.th [] [Giraffe.ViewEngine.HtmlElements.str a])
-            |> Seq.toList
+        let headerRow = tr [] [
+            th [] [str breakdownTitle]
+            th [] [str ""]
+        ] 
 
-        let valueCells =
+        let valueRows =
             breakdown
-            |> Seq.map (fun a -> snd(a))
-            |> Seq.map (fun a -> Giraffe.ViewEngine.HtmlElements.td [] [Giraffe.ViewEngine.HtmlElements.str (string a.Length)])
+            |> Seq.map (fun a ->
+                let name = fst(a) 
+                let length = snd(a).Length.ToString()
+                tr [] [
+                    td [] [str name]
+                    td [] [str length]
+                ]
+            )
             |> Seq.toList
         
-        Giraffe.ViewEngine.HtmlElements.table [ tableAttributes ] [
-            Giraffe.ViewEngine.HtmlElements.tr [] headerCells
-            Giraffe.ViewEngine.HtmlElements.tr [] valueCells
-        ]
+        table [ tableAttributes ] (headerRow::valueRows)
 
     let renderScreenerResultsAsHtml 
-        title
+        pageTitle
         sectorBreakdown
         industryBreakdown
         countryBreakdown
         (screenerResults:seq<ScreenerResult>) =
 
-        let sectorTable = toBreakdownTable sectorBreakdown
-        let industryTable = toBreakdownTable industryBreakdown
-        let countryTable = toBreakdownTable countryBreakdown
+        let sectorTable = toBreakdownTable "Sectors" sectorBreakdown
+        let industryTable = toBreakdownTable "Industries" industryBreakdown
+        let countryTable = toBreakdownTable "Countries" countryBreakdown
         
         let tickerRows = screenerResults |> Seq.map screenerResultToTr |> Seq.toList
 
-        let resultTable = Giraffe.ViewEngine.HtmlElements.table [tableAttributes] (headerRow::tickerRows)
+        let resultTable = table [tableAttributes] (headerRow::tickerRows)
 
-        let copyForTradeView = Giraffe.ViewEngine.HtmlElements.div [] [
-            Giraffe.ViewEngine.HtmlElements.str (
+        let copyForTradeView = div [] [
+            str (
                 screenerResults |> Seq.map (fun x -> x.ticker) |> String.concat ","
             )
         ]
 
         let view =
-            Giraffe.ViewEngine.HtmlElements.html [] [
-                Giraffe.ViewEngine.HtmlElements.head [] [ 
-                    Giraffe.ViewEngine.HtmlElements.title [] [
-                        Giraffe.ViewEngine.HtmlElements.str ("Screener Result for " + title)
+            html [] [
+                head [] [ 
+                    title [] [
+                        str ("Screener Result for " + pageTitle)
                     ]
-                    Giraffe.ViewEngine.HtmlElements.link [
-                        Giraffe.ViewEngine.Attributes._rel "stylesheet"
-                        Giraffe.ViewEngine.Attributes._href "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css"
+                    link [
+                        _rel "stylesheet"
+                        _href "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css"
                     ]
                 ]
-                Giraffe.ViewEngine.HtmlElements.body [] [
-                    sectorTable
-                    Giraffe.ViewEngine.HtmlElements.br []
-                    industryTable
-                    Giraffe.ViewEngine.HtmlElements.br []
-                    countryTable
-                    Giraffe.ViewEngine.HtmlElements.br []
-                    resultTable
-                    Giraffe.ViewEngine.HtmlElements.br []
-                    copyForTradeView
+                body [] [
+                    div [_class "content"] [
+                        h1 [] [
+                            str ("Screener: " + pageTitle)
+                        ]
+                        p [] [
+                            str ("Total Results: " + (Seq.length screenerResults).ToString())
+                        ]
+                    ]
+                    div [_class "columns"] [
+                        div [_class "column"] [sectorTable]
+                        div [_class "column"] [industryTable]
+                        div [_class "column"] [countryTable]
+                    ]
+                    div [_class "block"] [
+                        resultTable
+                    ]
+                    div [_class "block"] [
+                        copyForTradeView
+                    ]
                 ]
             ]
 
