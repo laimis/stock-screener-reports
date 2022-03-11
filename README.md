@@ -10,5 +10,6 @@ The code is written in F#, and the simplest way to run it is:
 
 1. Pull this repo locally
 2. Assuming you have dotnet runtime installed, run `dotnet run` via command line
+3. Once finished, open output.html file that's generated
 
-The types of screens that are run is managed in Config.fs
+The types of screens that are run is managed in config.json file. There is a default screener in there that shows an example of how to set one up and how to run it.
