@@ -18,11 +18,22 @@ let runAndSaveScreener (screener:ScreenerInput) =
 
     System.IO.File.WriteAllText(screener.filename, html)
 
-Config.screeners
-    |> List.iter runAndSaveScreener
+let args = System.Environment.GetCommandLineArgs()
+
+let defaultConfigPath = "config.json"
+let configPath =
+    match args with
+    | [||] -> defaultConfigPath
+    | [|_|] -> defaultConfigPath
+    | _ -> args[1]
+
+let screeners = Config.readConfig configPath
+
+screeners 
+    |> Seq.iter runAndSaveScreener
 
 let indexPage = 
-    Config.screeners
+    screeners
     |> Rendering.renderIndex
 
 System.IO.File.WriteAllText("output.html", indexPage)
