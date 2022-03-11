@@ -6,6 +6,11 @@ type ScreenerInput = {
     filename:string;
 }
 
+type FinvizConfig = {
+    screeners:seq<ScreenerInput>;
+    outputPath:string;
+}
+
 type ScreenerResult = {
     ticker:string;
     company:string;

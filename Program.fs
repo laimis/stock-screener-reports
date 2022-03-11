@@ -27,7 +27,9 @@ let configPath =
     | [|_|] -> defaultConfigPath
     | _ -> args[1]
 
-let screeners = Config.readConfig configPath
+let config = Config.readConfig configPath
+
+let screeners = config.screeners
 
 screeners 
     |> Seq.iter runAndSaveScreener
@@ -36,4 +38,4 @@ let indexPage =
     screeners
     |> Rendering.renderIndex
 
-System.IO.File.WriteAllText("output.html", indexPage)
+System.IO.File.WriteAllText(config.outputPath, indexPage)
