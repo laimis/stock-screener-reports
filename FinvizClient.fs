@@ -9,20 +9,6 @@ module FinvizClient =
 
         web.Load(url)
 
-    // // total is within a td cell, starts with Total:
-    // // after that read anything up to </td>
-    // // trim new lines, whitespace
-    // // and convert to int
-    // let parseTotalCount (html:string) =
-    //     let textTotalIndex = html.IndexOf("Total:")
-    //     let endOfTdIndex = html.IndexOf("</td>", textTotalIndex)
-    //     let totalSubstring = html.Substring(textTotalIndex + 6,  endOfTdIndex - textTotalIndex - 6)
-    //     // at this point totalSubstring is something like this: " </b>4 #1"
-    //     let bStartIndex = totalSubstring.IndexOf("</b")
-    //     let spaceIndex = totalSubstring.LastIndexOf(" ")
-    //     let total = int(totalSubstring.Substring(bStartIndex + 4, spaceIndex - bStartIndex - 4))
-    //     total
-
     let parseScreenerHtml (doc:HtmlAgilityPack.HtmlDocument) =
 
         let nodes = doc.DocumentNode.SelectNodes("//table[@id='screener-views-table']/tr")
@@ -75,6 +61,7 @@ module FinvizClient =
         let rec whileFetch offset results =
             let urlToFetch = url + "&r=" + offset.ToString()
             let htmlDoc = fetchScreenerHtml urlToFetch
+            
             
             let page = 
                 htmlDoc

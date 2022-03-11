@@ -72,8 +72,25 @@ module Rendering =
         
         table [ tableAttributes ] (headerRow::valueRows)
 
-    let renderScreenerResultsAsHtml 
+    let createHtmlPage
         pageTitle
+        linkAttributes
+        contents =
+
+        let view =
+            html [] [
+                head [] [ 
+                    title [] [str pageTitle]
+                    link linkAttributes
+                ]
+                body [] contents
+            ]
+
+        Giraffe.ViewEngine.RenderView.AsString.htmlDocument view
+
+
+    let renderScreenerResultsAsHtml 
+        (screenerInput:ScreenerInput)
         breakdowns
         (screenerResults:seq<ScreenerResult>) =
 
@@ -93,30 +110,49 @@ module Rendering =
             )
         ]
 
-        let view =
-            html [] [
-                head [] [ 
-                    title [] [
-                        str ("Screener Result for " + pageTitle)
-                    ]
-                    link [
-                        _rel "stylesheet"
-                        _href "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css"
-                    ]
+        let linkSection = [
+            _rel "stylesheet"
+            _href "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css"
+        ]
+
+        let content = [
+            div [_class "content"] [
+                h1 [] [
+                    str ("Screener: " + screenerInput.name)
                 ]
-                body [] [
-                    div [_class "content"] [
-                        h1 [] [
-                            str ("Screener: " + pageTitle)
-                        ]
-                        p [] [
-                            str ("Total Results: " + (Seq.length screenerResults).ToString())
-                        ]
+                div [_class "block"] [
+                    str ("Total Results: " + (Seq.length screenerResults).ToString())
+                ]
+                div [_class "block"] [
+                    a [ 
+                        _href screenerInput.url
+                        _target "_blank"
+                    ] [
+                        str "View on Finviz"
                     ]
-                    div [_class "columns"] breakdownDivs
-                    div [_class "block"] [resultTable]
-                    div [_class "block"] [copyForTradeView]
                 ]
             ]
+            div [_class "columns"] breakdownDivs
+            div [_class "block"] [resultTable]
+            div [_class "block"] [copyForTradeView]
+        ]
 
-        Giraffe.ViewEngine.RenderView.AsString.htmlDocument view
+        createHtmlPage ("Screener Result for " + screenerInput.name) linkSection content
+
+    let renderIndex inputs =
+        // just body with three divs each with an href to the file
+
+        let links = 
+            inputs 
+            |> Seq.map (fun x ->
+                div [] [
+                    a [
+                        _href x.filename
+                        _target "_blank"
+                    ] [
+                        str x.name
+                    ]
+                ]
+            )|> Seq.toList
+
+        createHtmlPage "Screener Index" [] links

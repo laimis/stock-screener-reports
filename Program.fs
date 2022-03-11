@@ -1,6 +1,9 @@
 ﻿open FinvizScraper
 
-let runAndSaveScreener screener =
+let runAndSaveScreener (screener:ScreenerInput) =
+
+    System.Console.WriteLine("Screener: " + (screener.name))
+
     let screenerResults = FinvizClient.getResults screener.url
 
     let breakdowns =
@@ -10,10 +13,16 @@ let runAndSaveScreener screener =
     let html =
         screenerResults
         |> Rendering.renderScreenerResultsAsHtml 
-            screener.name
+            screener
             breakdowns
 
     System.IO.File.WriteAllText(screener.filename, html)
 
 Config.screeners
     |> List.iter runAndSaveScreener
+
+let indexPage = 
+    Config.screeners
+    |> Rendering.renderIndex
+
+System.IO.File.WriteAllText("output.html", indexPage)
