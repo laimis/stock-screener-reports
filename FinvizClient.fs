@@ -3,10 +3,11 @@ namespace FinvizScraper
 module FinvizClient =
 
     let fetchScreenerHtml (url:string) =
+        // make sure that we sleep a bit before each request
+        System.Threading.Thread.Sleep(500)
         let web = HtmlAgilityPack.HtmlWeb()
         web.CachePath <- "cache"
         web.UsingCache <- true
-
         web.Load(url)
 
     let parseScreenerHtml (doc:HtmlAgilityPack.HtmlDocument) =
@@ -61,7 +62,6 @@ module FinvizClient =
         let rec whileFetch offset results =
             let urlToFetch = url + "&r=" + offset.ToString()
             let htmlDoc = fetchScreenerHtml urlToFetch
-            
             
             let page = 
                 htmlDoc

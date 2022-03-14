@@ -61,11 +61,10 @@ module Rendering =
         let valueRows =
             breakdown
             |> Seq.map (fun a ->
-                let name = fst(a) 
-                let length = snd(a).Length.ToString()
+                let (name, list) = a
                 tr [] [
                     td [] [str name]
-                    td [] [str length]
+                    td [] [str (list.Length.ToString())]
                 ]
             )
             |> Seq.toList

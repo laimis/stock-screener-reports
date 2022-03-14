@@ -6,7 +6,9 @@ module Processing =
         sequence
         |> Seq.groupBy groupBy
         |> Seq.sortBy (fun a -> 
-            let list = Seq.toList (snd(a))
-            list.Length * -1
+            let (_, list) = a
+            (Seq.length list) * -1
         )
-        |> Seq.map (fun a -> (fst(a).ToString(), Seq.toList (snd(a))))
+        |> Seq.map (fun a -> 
+            let (name, list) = a
+            (name, Seq.toList list))

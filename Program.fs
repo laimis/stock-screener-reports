@@ -8,7 +8,10 @@ let runAndSaveScreener (screener:ScreenerInput) =
 
     let breakdowns =
         Config.breakdowns
-        |> List.map (fun x -> (x.name, (screenerResults |> Processing.resultBreakdown x.breakdown)))
+        |> List.map (
+            fun x -> 
+                (x.name, (screenerResults |> Processing.resultBreakdown x.breakdown))
+            )
 
     let html =
         screenerResults
