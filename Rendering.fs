@@ -147,22 +147,28 @@ module Rendering =
         (screenerInput, screenerResults, html)
 
     let createIndexPage 
-        (configAndResults:list<ScreenerInput*list<ScreenerResult>>) =
+        (configAndResults:seq<ScreenerInput*list<ScreenerResult>>) =
         // just body with three divs each with an href to the file
-        let links = 
+
+        let rows = 
             configAndResults
             |> Seq.map (fun x ->
                 let (config, results) = x
-                div [] [
-                    a [
-                        _href config.filename
-                        _target "_blank"
-                    ] [
-                        str config.name
-                        str " "
-                        str $"{List.length results} results"
+                tr [] [
+                    td [] [
+                        a [
+                            _href config.filename
+                            _target "_blank"
+                        ] [
+                            str config.name
+                        ]
+                    ]
+                    td [] [
+                        str (results.Length.ToString())
                     ]
                 ]
             )|> Seq.toList
 
-        createHtmlPage "Screener Index" [] links
+        let content = table [] rows
+
+        createHtmlPage "Screener Index" [] [content]

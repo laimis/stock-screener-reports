@@ -31,8 +31,8 @@ let config = Config.readConfig configPath
 
 let screenerResults =
     config.screeners 
-    |> List.map fetchScreenerResults
-    |> List.map generateAndAppendHtml
-    |> List.map saveToFile
+    |> Seq.map fetchScreenerResults
+    |> Seq.map generateAndAppendHtml
+    |> Seq.map saveToFile
 
 saveIndex config.outputPath screenerResults
