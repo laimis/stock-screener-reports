@@ -1,28 +1,25 @@
 ﻿open FinvizScraper
+open System
 
-let runAndSaveScreener (screener:ScreenerInput) =
+let fetchScreenerResults (input:ScreenerInput) =
+    Console.WriteLine("Processing " + input.name)
+    Console.WriteLine("fetching results...")
+    let results = FinvizClient.getResults input.url
+    (input,results)
 
-    System.Console.WriteLine("Screener: " + (screener.name))
+let generateAndAppendHtml (input:ScreenerInput,results:list<ScreenerResult>) =
+    Console.WriteLine("generating html... ")
+    Rendering.renderResultsAsHtml input Config.breakdowns results
 
-    let screenerResults = FinvizClient.getResults screener.url
+let saveToFile (input,results,html) =
+    System.IO.File.WriteAllText(input.filename, html)
+    (input,results)
 
-    let breakdowns =
-        Config.breakdowns
-        |> List.map (
-            fun x -> 
-                (x.name, (screenerResults |> Processing.resultBreakdown x.breakdown))
-            )
+let saveIndex outputPath screenerResults =
+    let indexHtml = Rendering.createIndexPage screenerResults
+    System.IO.File.WriteAllText(outputPath, indexHtml)
 
-    let html =
-        screenerResults
-        |> Rendering.renderScreenerResultsAsHtml 
-            screener
-            breakdowns
-
-    System.IO.File.WriteAllText(screener.filename, html)
-
-let args = System.Environment.GetCommandLineArgs()
-
+let args = Environment.GetCommandLineArgs()
 let defaultConfigPath = "config.json"
 let configPath =
     match args with
@@ -32,13 +29,10 @@ let configPath =
 
 let config = Config.readConfig configPath
 
-let screeners = config.screeners
+let screenerResults =
+    config.screeners 
+    |> List.map fetchScreenerResults
+    |> List.map generateAndAppendHtml
+    |> List.map saveToFile
 
-screeners 
-    |> Seq.iter runAndSaveScreener
-
-let indexPage = 
-    screeners
-    |> Rendering.renderIndex
-
-System.IO.File.WriteAllText(config.outputPath, indexPage)
+saveIndex config.outputPath screenerResults

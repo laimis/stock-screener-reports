@@ -7,7 +7,7 @@ type ScreenerInput = {
 }
 
 type FinvizConfig = {
-    screeners:seq<ScreenerInput>;
+    screeners:list<ScreenerInput>;
     outputPath:string;
 }
 

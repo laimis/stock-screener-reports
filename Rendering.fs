@@ -88,11 +88,18 @@ module Rendering =
         Giraffe.ViewEngine.RenderView.AsString.htmlDocument view
 
 
-    let renderScreenerResultsAsHtml 
+    let renderResultsAsHtml 
         (screenerInput:ScreenerInput)
-        breakdowns
-        (screenerResults:seq<ScreenerResult>) =
+        breakdownConfig
+        (screenerResults:list<ScreenerResult>) =
 
+        let breakdowns =
+            breakdownConfig
+            |> List.map (
+                fun x -> 
+                    (x.name, (screenerResults |> Processing.resultBreakdown x.breakdown))
+                )
+                
         let breakdownDivs = 
             breakdowns
             |> Seq.map (fun a -> toBreakdownTable (fst(a)) (snd(a)))
@@ -136,20 +143,24 @@ module Rendering =
             div [_class "block"] [copyForTradeView]
         ]
 
-        createHtmlPage ("Screener Result for " + screenerInput.name) linkSection content
+        let html = createHtmlPage ("Screener Result for " + screenerInput.name) linkSection content
+        (screenerInput, screenerResults, html)
 
-    let renderIndex inputs =
+    let createIndexPage 
+        (configAndResults:list<ScreenerInput*list<ScreenerResult>>) =
         // just body with three divs each with an href to the file
-
         let links = 
-            inputs 
+            configAndResults
             |> Seq.map (fun x ->
+                let (config, results) = x
                 div [] [
                     a [
-                        _href x.filename
+                        _href config.filename
                         _target "_blank"
                     ] [
-                        str x.name
+                        str config.name
+                        str " "
+                        str $"{List.length results} results"
                     ]
                 ]
             )|> Seq.toList
