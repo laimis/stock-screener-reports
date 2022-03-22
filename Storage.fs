@@ -4,6 +4,8 @@ module Storage =
 
     open Npgsql
 
+    // TODO: see how F# does db code with Npgsql, and perhaps dapper
+    // TODO: move to config
     let cnnString = "Server=localhost;Port=5432;Database=finviz;User Id=finviz;Password=finviz"
 
     let getScreenerByName name = 
@@ -46,6 +48,7 @@ module Storage =
             | false ->
                 None
     
+    // TODO: should we consider types for ticker, sectory, industry, country?
     let saveStock (ticker:string) name sector industry country =
         use conn = new NpgsqlConnection(cnnString)
         conn.Open()
@@ -67,6 +70,7 @@ module Storage =
 
         (id,ticker)
 
+    // TODO: should we consider type for stockid?
     let deleteStock stockId =
         use conn = new NpgsqlConnection(cnnString)
         conn.Open()
@@ -93,14 +97,15 @@ module Storage =
 
         (id,name)
 
-    let deleteScreener id =
+    // TODO: consider type for screener id?
+    let deleteScreener screenerId =
         use conn = new NpgsqlConnection(cnnString)
         conn.Open()
 
         let sql = "DELETE FROM screeners WHERE id = :id"
 
         let cmd = new NpgsqlCommand(sql, conn)
-        let param = new NpgsqlParameter(parameterName="id", value=id)
+        let param = new NpgsqlParameter(parameterName="id", value=screenerId)
         cmd.Parameters.Add(param) |> ignore
         cmd.ExecuteNonQuery()
 
@@ -157,10 +162,6 @@ module Storage =
 
     let saveScreenerResults date (input:ScreenerInput,results:seq<ScreenerResult>) =
         
-        System.Console.WriteLine("saving to db... " + input.name)
-        System.Console.WriteLine("results " + (results |> Seq.length).ToString())
-        // for each result, we want to make sure we save and load stock id
-
         let (screenerId,_) = getOrSaveScreener input
         
         deleteScreenerResults screenerId date |> ignore
