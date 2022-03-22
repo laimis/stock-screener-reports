@@ -13,11 +13,20 @@ let generateAndAppendHtml (input:ScreenerInput,results:list<ScreenerResult>) =
 
 let saveToFile (input,results,html) =
     System.IO.File.WriteAllText(input.filename, html)
-    (input,results)
 
-let saveIndex outputPath screenerResults =
+let saveAsHtml config screenerResults =
+    screenerResults
+    |> Seq.map generateAndAppendHtml
+    |> Seq.iter saveToFile
+
     let indexHtml = Rendering.createIndexPage screenerResults
-    System.IO.File.WriteAllText(outputPath, indexHtml)
+    System.IO.File.WriteAllText(config.outputPath, indexHtml)
+
+let saveToDb (screenerResults:list<ScreenerInput * 'a>) =
+    System.Console.WriteLine("Save to db in program... " + screenerResults.Length.ToString())
+    let date = FinvizConfig.getRunDate()
+    screenerResults
+    |> Seq.iter (fun x -> Storage.saveScreenerResults date x)
 
 let args = Environment.GetCommandLineArgs()
 let defaultConfigPath = "config.json"
@@ -32,7 +41,10 @@ let config = Config.readConfig configPath
 let screenerResults =
     config.screeners 
     |> Seq.map fetchScreenerResults
-    |> Seq.map generateAndAppendHtml
-    |> Seq.map saveToFile
+    |> Seq.toList
 
-saveIndex config.outputPath screenerResults
+screenerResults
+    |> saveAsHtml config
+
+screenerResults
+    |> saveToDb

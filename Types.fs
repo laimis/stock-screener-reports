@@ -6,10 +6,14 @@ type ScreenerInput = {
     filename:string;
 }
 
-type FinvizConfig = {
-    screeners:list<ScreenerInput>;
-    outputPath:string;
-}
+type FinvizConfig =
+    {
+        screeners:list<ScreenerInput>;
+        outputPath:string;
+    }
+    static member getRunDate() =
+        let date = System.DateTime.Now
+        date.ToString("yyyy-MM-dd")
 
 type ScreenerResult = {
     ticker:string;
@@ -18,7 +22,7 @@ type ScreenerResult = {
     industry:string;
     country:string;
     marketCap:string;
-    price:string;
+    price:decimal;
     change:string;
     volume:string;
 }

@@ -25,28 +25,31 @@ module FinvizClient =
             let value = node.ChildNodes[0].InnerText
             value
 
-        let processScreenerRow (node:HtmlAgilityPack.HtmlNode) : ScreenerResult =
+        let processScreenerRow (node:HtmlAgilityPack.HtmlNode) : Option<ScreenerResult> =
             
-            let tickerNode = extractValueFromScreenerCell node.ChildNodes[2]
-            let companyNode = extractValueFromScreenerCell node.ChildNodes[3]
-            let sectorNode = extractValueFromScreenerCell node.ChildNodes[4]
-            let industryNode = extractValueFromScreenerCell node.ChildNodes[5]
-            let countryNode = extractValueFromScreenerCell node.ChildNodes[6]
-            let marketCapNode = extractValueFromScreenerCell node.ChildNodes[7]
-            let priceNode = extractValueFromScreenerCell node.ChildNodes[9]
-            let changeNode = extractValueFromScreenerCell node.ChildNodes[10]
-            let volumeNode = extractValueFromScreenerCell node.ChildNodes[11]
-            {
-                ticker=tickerNode;
-                company=companyNode;
-                sector=sectorNode; 
-                industry=industryNode;
-                country=countryNode; 
-                marketCap=marketCapNode;
-                price=priceNode;
-                change=changeNode;
-                volume=volumeNode
-            }
+            match node.ChildNodes.Count with
+            | 0 -> None
+            | _ -> 
+                let tickerNode = extractValueFromScreenerCell node.ChildNodes[2]
+                let companyNode = extractValueFromScreenerCell node.ChildNodes[3]
+                let sectorNode = extractValueFromScreenerCell node.ChildNodes[4]
+                let industryNode = extractValueFromScreenerCell node.ChildNodes[5]
+                let countryNode = extractValueFromScreenerCell node.ChildNodes[6]
+                let marketCapNode = extractValueFromScreenerCell node.ChildNodes[7]
+                let priceNode = System.Decimal.Parse(extractValueFromScreenerCell node.ChildNodes[9])
+                let changeNode = extractValueFromScreenerCell node.ChildNodes[10]
+                let volumeNode = extractValueFromScreenerCell node.ChildNodes[11]
+                Some {
+                    ticker=tickerNode;
+                    company=companyNode;
+                    sector=sectorNode; 
+                    industry=industryNode;
+                    country=countryNode; 
+                    marketCap=marketCapNode;
+                    price=priceNode;
+                    change=changeNode;
+                    volume=volumeNode
+                }
 
         nodes 
             |> skipAndTake 3 1                      // skip three tr nodes, take one that has the tickers table
@@ -57,6 +60,8 @@ module FinvizClient =
             |> Seq.collect (fun n -> n.ChildNodes)  // this should be all tr nodes
             |> Seq.skip 2                           // skip what looks like text element and a header row
             |> Seq.map processScreenerRow
+            |> Seq.filter (fun r -> r.IsSome)
+            |> Seq.map (fun r -> r.Value)
 
     let getResults url =
         let rec whileFetch offset results =
