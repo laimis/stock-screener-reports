@@ -34,7 +34,7 @@ module Rendering =
             toTd result.marketCap
             toTd (string result.price)
             toTd (string result.change)
-            toTd (string result.volume)
+            toTd (string (result.volume.ToString("N0")))
             toTdWithHref $"https://tradingview.com/chart/kQn4rgoA/?symbol={result.ticker}"
         ]
 

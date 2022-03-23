@@ -6,7 +6,7 @@ module Storage =
 
     // TODO: see how F# does db code with Npgsql, and perhaps dapper
     // TODO: move to config
-    let cnnString = "Server=localhost;Port=5432;Database=finviz;User Id=finviz;Password=finviz"
+    let cnnString = "Server=localhost;Port=5432;Database=finviz;User Id=finviz;Password=finviz;Include Error Detail=true"
 
     let getScreenerByName name = 
         let sql = "SELECT id,name,url FROM screeners WHERE name = :name"
