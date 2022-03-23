@@ -32,13 +32,8 @@ module FinvizClient =
             let toInt str =
                 System.Int32.Parse(str)
 
-            let fromPercentText str conversion =
-                String.filter (fun c -> c.Equals('%') |> not) str
-                |> conversion
-
-            let fromCommaSeperated str conversion =
-                String.filter (fun c -> c.Equals(',') |> not) str
-                |> conversion
+            let remove characterToRemove str =
+                String.filter (fun c -> c.Equals(characterToRemove) |> not) str
 
             match node.ChildNodes.Count with
             | 0 -> None
@@ -49,9 +44,9 @@ module FinvizClient =
                 let industryNode = extractValueFromScreenerCell node.ChildNodes[5]
                 let countryNode = extractValueFromScreenerCell node.ChildNodes[6]
                 let marketCapNode = extractValueFromScreenerCell node.ChildNodes[7]
-                let priceNode = toDecimal (extractValueFromScreenerCell node.ChildNodes[9])
-                let changeNode = fromPercentText (extractValueFromScreenerCell node.ChildNodes[10]) toDecimal
-                let volumeNode = fromCommaSeperated (extractValueFromScreenerCell node.ChildNodes[11]) toInt
+                let priceNode = extractValueFromScreenerCell node.ChildNodes[9] |> toDecimal
+                let changeNode = extractValueFromScreenerCell node.ChildNodes[10] |> remove '%' |> toDecimal
+                let volumeNode = extractValueFromScreenerCell node.ChildNodes[11] |> remove ',' |> toInt
                 Some {
                     ticker=tickerNode;
                     company=companyNode;
