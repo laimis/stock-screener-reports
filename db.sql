@@ -31,3 +31,6 @@ create table screenerresults (
     constraint fk_screenerresults_screenerid FOREIGN KEY(screenerid) REFERENCES screeners(id),
     constraint fk_screenerresults_stockid FOREIGN KEY(stockid) REFERENCES stocks(id)
 );
+
+alter table screenerresults add column change decimal;
+alter table screenerresults add column volume numeric;

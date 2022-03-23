@@ -23,11 +23,20 @@ type ScreenerResult = {
     country:string;
     marketCap:string;
     price:decimal;
-    change:string;
-    volume:string;
+    change:decimal;
+    volume:int;
 }
 
 type ScreenerBreakdown = {
     name:string;
     breakdown:(ScreenerResult) -> string
+}
+
+type Stock = {
+    id: int;
+    ticker: string;
+    company: string;
+    sector: string;
+    industry: string;
+    country: string;
 }
