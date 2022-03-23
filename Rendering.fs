@@ -33,8 +33,8 @@ module Rendering =
             toTd result.country
             toTd result.marketCap
             toTd (string result.price)
-            toTd result.change
-            toTd result.volume
+            toTd (string result.change)
+            toTd (string result.volume)
             toTdWithHref $"https://tradingview.com/chart/kQn4rgoA/?symbol={result.ticker}"
         ]
 

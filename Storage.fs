@@ -28,7 +28,7 @@ module Storage =
                 None
         
     let getStockByTicker ticker =
-        let sql = "SELECT id,ticker FROM stocks WHERE ticker = :ticker"
+        let sql = "SELECT id,ticker,name,sector,industry,country FROM stocks WHERE ticker = :ticker"
 
         // Connect to the SQL database
         use conn = new NpgsqlConnection(cnnString)
@@ -42,9 +42,15 @@ module Storage =
 
         match reader.Read() with
             | true ->
-                let id = reader.GetInt32(0)
-                let ticker = reader.GetString(1)
-                Some (id,ticker)
+                let stock = {
+                    id = reader.GetInt32(0);
+                    ticker = reader.GetString(1);
+                    company = reader.GetString(2);
+                    sector = reader.GetString(3);
+                    industry = reader.GetString(4);
+                    country = reader.GetString(5);
+                }
+                Some (stock)
             | false ->
                 None
     
@@ -68,7 +74,14 @@ module Storage =
         cmd.Parameters.Add(countryParam)    |> ignore
         let id = cmd.ExecuteScalar() :?> int
 
-        (id,ticker)
+        {
+            id = id;
+            ticker = ticker;
+            company = name;
+            sector = sector;
+            industry = industry;
+            country = country;
+        }
 
     // TODO: should we consider type for stockid?
     let deleteStock stockId =
@@ -122,7 +135,7 @@ module Storage =
         cmd.Parameters.Add(dateParam)    |> ignore
         cmd.ExecuteNonQuery()
 
-    let saveScreenerResult screenerId date stockId results =
+    let saveScreenerResult screenerId date stock results =
         use conn = new NpgsqlConnection(cnnString)
         conn.Open()
 
@@ -133,7 +146,7 @@ module Storage =
 
         let cmd = new NpgsqlCommand(sql, conn)
         let screenerIdParam = new NpgsqlParameter(parameterName="screenerId", value=screenerId)
-        let stockIdParam = new NpgsqlParameter(parameterName="stockId", value=stockId)
+        let stockIdParam = new NpgsqlParameter(parameterName="stockId", value=stock.id)
         let dateParam = new NpgsqlParameter(parameterName="date", value=date)
         let resultsParam = new NpgsqlParameter(parameterName="price", value=results.price)
         cmd.Parameters.Add(screenerIdParam) |> ignore
@@ -143,13 +156,10 @@ module Storage =
         cmd.ExecuteNonQuery()
 
     let getOrSaveStock ticker name sector industry country =
-        let stockOption = getStockByTicker ticker
-        match stockOption with
-            | Some (id,ticker) ->
-                (id,ticker)
-            | None ->
-                let (id,ticker) = saveStock ticker name sector industry country
-                (id,ticker)
+        let stockOrNone = getStockByTicker ticker
+        match stockOrNone with
+            | Some stock -> stock
+            | None -> saveStock ticker name sector industry country
 
     let getOrSaveScreener (input:ScreenerInput) =
         let screenerOption = getScreenerByName input.name
@@ -168,9 +178,9 @@ module Storage =
 
         results
         |> Seq.map (fun result ->
-            let (stockId,_) = getOrSaveStock result.ticker result.company result.sector result.industry result.country
-            (screenerId,stockId,result)
+            let stock = getOrSaveStock result.ticker result.company result.sector result.industry result.country
+            (screenerId,stock,result)
         )
-        |> Seq.iter (fun (screenerId,stockId,result) ->
-            saveScreenerResult screenerId date stockId result |> ignore
+        |> Seq.iter (fun (screenerId,stock,result) ->
+            saveScreenerResult screenerId date stock result |> ignore
         )

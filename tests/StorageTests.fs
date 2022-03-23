@@ -12,19 +12,28 @@ type StorageTests(output:ITestOutputHelper) =
     let generateScreener() =
         "screener" + System.Guid.NewGuid().ToString()
 
+    let saveAndReturnTestStock ticker =
+        Storage.saveStock ticker "Apple Inc." "Technology" "Computer Hardware" "United States"
+
     [<Fact>]
     let ``Getting stock works`` () =
         
         let ticker = generateTicker()
 
-        let stock = Storage.getStockByTicker ticker
-        Assert.True(stock.IsNone)
+        let stockOrNone = Storage.getStockByTicker ticker
+        Assert.True(stockOrNone.IsNone)
 
-        let (id, _)  = Storage.saveStock ticker "Apple Inc." "Technology" "Computer Hardware" "United States"
+        let stock = saveAndReturnTestStock ticker
 
-        Assert.True(id > 0)
+        Assert.True(stock.id > 0)
+        Assert.Equal(ticker, stock.ticker)
+        Assert.Equal("Apple Inc.", stock.company)
+        Assert.Equal("Technology", stock.sector)
+        Assert.Equal("Computer Hardware", stock.industry)
+        Assert.Equal("United States", stock.country)
 
-        Storage.deleteStock id |> ignore
+        let deleted = Storage.deleteStock stock.id
+        Assert.Equal(1, deleted)
 
         let subsequent = Storage.getStockByTicker ticker
 
@@ -66,24 +75,24 @@ type StorageTests(output:ITestOutputHelper) =
 
         Storage.deleteScreenerResults screenerId date |> ignore
 
-        let (stockId, _) = Storage.saveStock ticker "Apple Inc." "Technology" "Computer Hardware" "United States"
+        let stock = saveAndReturnTestStock ticker
         
         let result = {
-            ticker = ticker;
+            ticker = stock.ticker;
             company = "Apple Inc.";
             sector = "Technology";
             industry = "Computer Hardware";
             country = "United States";
             marketCap = "1,000,000,000";
             price = 100m;
-            change = "10";
-            volume = "1,000";
+            change = 10m;
+            volume = 1000;
         }
 
-        let stored = Storage.saveScreenerResult screenerId date stockId result
+        let stored = Storage.saveScreenerResult screenerId date stock result
 
         Assert.Equal(1, stored)
 
         Storage.deleteScreenerResults screenerId date |> ignore
-        Storage.deleteStock stockId |> ignore
+        Storage.deleteStock stock.id |> ignore
         Storage.deleteScreener screenerId |> ignore
