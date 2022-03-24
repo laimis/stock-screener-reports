@@ -157,7 +157,7 @@ module Rendering =
                 tr [] [
                     td [] [
                         a [
-                            _href config.filename
+                            _href (System.IO.Path.GetFileName(config.filename))
                             _target "_blank"
                         ] [
                             str config.name
