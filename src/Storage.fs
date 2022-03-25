@@ -6,56 +6,51 @@ module Storage =
     open Npgsql.FSharp
 
     // TODO: see how F# does db code with Npgsql, and perhaps dapper
+    // TODO: add logger
     // TODO: move to config
     let cnnString = "Server=localhost;Port=5432;Database=finviz;User Id=finviz;Password=finviz;Include Error Detail=true"
 
     let getStockByTicker ticker =
-        let sql = "SELECT id,ticker,name,sector,industry,country FROM stocks WHERE ticker = :ticker"
+        let sql = "SELECT id,ticker,name,sector,industry,country FROM stocks WHERE ticker = @ticker"
 
-        // Connect to the SQL database
-        use conn = new NpgsqlConnection(cnnString)
-        conn.Open()
+        let results =
+            cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters ["@ticker", Sql.string ticker]
+            |> Sql.execute ( fun reader -> {
+                        id = reader.int "id";
+                        ticker = reader.string "ticker";
+                        company = reader.string "name";
+                        sector = reader.string "sector";
+                        industry = reader.string "industry";
+                        country = reader.string "country";
+                    })
 
-        // Execute the query
-        let cmd = new NpgsqlCommand(sql, conn)
-        let param = new NpgsqlParameter(parameterName="ticker", value=ticker)
-        cmd.Parameters.Add(param) |> ignore
-        let reader = cmd.ExecuteReader()
-
-        match reader.Read() with
-            | true ->
-                let stock = {
-                    id = reader.GetInt32(0);
-                    ticker = reader.GetString(1);
-                    company = reader.GetString(2);
-                    sector = reader.GetString(3);
-                    industry = reader.GetString(4);
-                    country = reader.GetString(5);
-                }
-                Some (stock)
-            | false ->
-                None
+        match results with
+            | [] -> None
+            | [stock] -> Some stock
+            | _ -> raise (new System.Exception "Expected single result for stock")
     
     // TODO: should we consider types for ticker, sectory, industry, country?
     let saveStock (ticker:string) name sector industry country =
-        use conn = new NpgsqlConnection(cnnString)
-        conn.Open()
+        
+        let sql = @"INSERT INTO stocks (ticker,name,sector,industry,country)
+            VALUES (@ticker,@name,@sector,@industry,@country) RETURNING id"
 
-        let sql = "INSERT INTO stocks (ticker,name,sector,industry,country) VALUES (:ticker,:name,:sector,:industry,:country) RETURNING id"
-
-        let cmd = new NpgsqlCommand(sql, conn)
-        let tickerParam = new NpgsqlParameter(parameterName="ticker", value=ticker.ToUpper())
-        let nameParam = new NpgsqlParameter(parameterName="name", value=name)
-        let sectorParam = new NpgsqlParameter(parameterName="sector", value=sector)
-        let industryParam = new NpgsqlParameter(parameterName="industry", value=industry)
-        let countryParam = new NpgsqlParameter(parameterName="country", value=country)
-        cmd.Parameters.Add(tickerParam)     |> ignore
-        cmd.Parameters.Add(nameParam)       |> ignore
-        cmd.Parameters.Add(sectorParam)     |> ignore
-        cmd.Parameters.Add(industryParam)   |> ignore
-        cmd.Parameters.Add(countryParam)    |> ignore
-        let id = cmd.ExecuteScalar() :?> int
-
+        let id = 
+            cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters [
+                    "@ticker", Sql.string ticker;
+                    "@name", Sql.string name;
+                    "@sector", Sql.string sector;
+                    "@industry", Sql.string industry;
+                    "@country", Sql.string country
+                ]
+            |> Sql.executeRow (fun reader -> reader.int "id")
+            
         {
             id = id;
             ticker = ticker;
@@ -65,17 +60,14 @@ module Storage =
             country = country;
         }
 
-    // TODO: should we consider type for stockid?
-    let deleteStock stockId =
-        use conn = new NpgsqlConnection(cnnString)
-        conn.Open()
+    let deleteStock (stock:Stock) =
+        let sql = "DELETE FROM stocks WHERE id = @stockId"
 
-        let sql = "DELETE FROM stocks WHERE id = :stockId"
-
-        let cmd = new NpgsqlCommand(sql, conn)
-        let param = new NpgsqlParameter(parameterName="stockId", value=stockId)
-        cmd.Parameters.Add(param) |> ignore
-        cmd.ExecuteNonQuery()
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters ["@stockId", Sql.int stock.id]
+        |> Sql.executeNonQuery
 
     let saveScreener name url =
         let id =
@@ -121,40 +113,41 @@ module Storage =
         |> Sql.parameters [ "@id", Sql.int screener.id ]
         |> Sql.executeNonQuery
 
-    let deleteScreenerResults screenerId (date:string) =
-        use conn = new NpgsqlConnection(cnnString)
-        conn.Open()
+    let deleteScreenerResults (screener:Screener) (date:string) =
+        
+        let sql = @"DELETE FROM screenerresults
+            WHERE
+            screenerid = @screenerId
+            AND date = date(@date)"
 
-        let sql = "DELETE FROM screenerresults WHERE screenerid = :screenerId AND date = date(:date)"
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@screenerId", Sql.int screener.id;
+            "@date", Sql.string date
+        ]
+        |> Sql.executeNonQuery
 
-        let cmd = new NpgsqlCommand(sql, conn)
-        let screenerIdParam = new NpgsqlParameter(parameterName="screenerId", value=screenerId)
-        let dateParam = new NpgsqlParameter(parameterName="date", value=date)
-        cmd.Parameters.Add(screenerIdParam) |> ignore
-        cmd.Parameters.Add(dateParam)    |> ignore
-        cmd.ExecuteNonQuery()
+    let saveScreenerResult screener date stock result =
 
-    let saveScreenerResult screenerId date stock result =
-
-        System.Console.WriteLine($"db saveScreenerResult: {screenerId} {date} {stock.ticker} {result.price}")
-        use conn = new NpgsqlConnection(cnnString)
-        conn.Open()
+        System.Console.WriteLine($"db saveScreenerResult: {screener.id} {date} {stock.ticker} {result.price}")
 
         let sql = @"INSERT INTO screenerresults
             (screenerid,date,stockId,price)
             VALUES
-            (:screenerId,date(:date),:stockId,:price)"
+            (@screenerId,date(@date),@stockId,@price)"
 
-        let cmd = new NpgsqlCommand(sql, conn)
-        let screenerIdParam = new NpgsqlParameter(parameterName="screenerId", value=screenerId)
-        let stockIdParam = new NpgsqlParameter(parameterName="stockId", value=stock.id)
-        let dateParam = new NpgsqlParameter(parameterName="date", value=date)
-        let resultsParam = new NpgsqlParameter(parameterName="price", value=result.price)
-        cmd.Parameters.Add(screenerIdParam) |> ignore
-        cmd.Parameters.Add(stockIdParam)    |> ignore
-        cmd.Parameters.Add(dateParam)    |> ignore
-        cmd.Parameters.Add(resultsParam)    |> ignore
-        cmd.ExecuteNonQuery()
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@screenerId", Sql.int screener.id;
+            "@date", Sql.string date;
+            "@stockId", Sql.int stock.id;
+            "@price", Sql.decimal result.price
+        ]
+        |> Sql.executeNonQuery
 
     let getOrSaveStock ticker name sector industry country =
         let stockOrNone = getStockByTicker ticker
@@ -172,7 +165,7 @@ module Storage =
         
         let screener = getOrSaveScreener input
         
-        let deleted = deleteScreenerResults screener.id date
+        let deleted = deleteScreenerResults screener date
 
         System.Console.WriteLine($"deleted {deleted} for {screener.id} {date}")
         System.Console.WriteLine($"saving {results |> Seq.length} results for {screener.id} {date}")
@@ -180,8 +173,8 @@ module Storage =
         results
         |> Seq.map (fun result ->
             let stock = getOrSaveStock result.ticker result.company result.sector result.industry result.country
-            (screener.id,stock,result)
+            (screener,stock,result)
         )
-        |> Seq.iter (fun (screenerId,stock,result) ->
-            saveScreenerResult screenerId date stock result |> ignore
+        |> Seq.iter (fun (screener,stock,result) ->
+            saveScreenerResult screener date stock result |> ignore
         )

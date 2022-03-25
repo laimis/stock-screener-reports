@@ -34,7 +34,7 @@ type StorageTests(output:ITestOutputHelper) =
         Assert.Equal("Computer Hardware", stock.industry)
         Assert.Equal("United States", stock.country)
 
-        let deleted = Storage.deleteStock stock.id
+        let deleted = Storage.deleteStock stock
         Assert.Equal(1, deleted)
 
         let subsequent = Storage.getStockByTicker ticker
@@ -83,7 +83,7 @@ type StorageTests(output:ITestOutputHelper) =
 
         let date = FinvizConfig.getRunDate()
 
-        Storage.deleteScreenerResults screener.id date |> ignore
+        Storage.deleteScreenerResults screener date |> ignore
 
         let stock = saveAndReturnTestStock ticker
         
@@ -99,10 +99,10 @@ type StorageTests(output:ITestOutputHelper) =
             volume = 1000;
         }
 
-        let stored = Storage.saveScreenerResult screener.id date stock result
+        let stored = Storage.saveScreenerResult screener date stock result
 
         Assert.Equal(1, stored)
 
-        Storage.deleteScreenerResults screener.id date |> ignore
-        Storage.deleteStock stock.id |> ignore
+        Storage.deleteScreenerResults screener date |> ignore
+        Storage.deleteStock stock |> ignore
         Storage.deleteScreener screener |> ignore
