@@ -6,8 +6,6 @@ module FinvizClient =
         // make sure that we sleep a bit before each request
         System.Threading.Thread.Sleep(500)
         let web = HtmlAgilityPack.HtmlWeb()
-        web.CachePath <- "cache"
-        web.UsingCache <- true
         web.Load(url)
 
     let parseScreenerHtml (doc:HtmlAgilityPack.HtmlDocument) =
