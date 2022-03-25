@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\finvizscraper.fsproj" />
+    <ProjectReference Include="..\src\finvizscraper.fsproj" />
   </ItemGroup>
 
 </Project>

@@ -40,3 +40,9 @@ type Stock = {
     industry: string;
     country: string;
 }
+
+type Screener = {
+    id: int;
+    name: string;
+    url: string;
+}
