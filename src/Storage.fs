@@ -2,7 +2,6 @@ namespace FinvizScraper
 
 module Storage =
 
-    open Npgsql
     open Npgsql.FSharp
 
     // TODO: see how F# does db code with Npgsql, and perhaps dapper
