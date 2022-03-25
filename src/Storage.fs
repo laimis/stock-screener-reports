@@ -3,30 +3,12 @@ namespace FinvizScraper
 module Storage =
 
     open Npgsql
+    open Npgsql.FSharp
 
     // TODO: see how F# does db code with Npgsql, and perhaps dapper
     // TODO: move to config
     let cnnString = "Server=localhost;Port=5432;Database=finviz;User Id=finviz;Password=finviz;Include Error Detail=true"
 
-    let getScreenerByName name = 
-        let sql = "SELECT id,name,url FROM screeners WHERE name = :name"
-        use conn = new NpgsqlConnection(cnnString)
-        conn.Open()
-
-        // Execute the query
-        let cmd = new NpgsqlCommand(sql, conn)
-        let param = new NpgsqlParameter(parameterName="name", value=name)
-        cmd.Parameters.Add(param) |> ignore
-        let reader = cmd.ExecuteReader()
-
-        match reader.Read() with
-            | true ->
-                let id = reader.GetInt32(0)
-                let ticker = reader.GetString(1)
-                Some (id,ticker)
-            | false ->
-                None
-        
     let getStockByTicker ticker =
         let sql = "SELECT id,ticker,name,sector,industry,country FROM stocks WHERE ticker = :ticker"
 
@@ -96,31 +78,48 @@ module Storage =
         cmd.ExecuteNonQuery()
 
     let saveScreener name url =
-        use conn = new NpgsqlConnection(cnnString)
-        conn.Open()
+        let id =
+            cnnString
+            |> Sql.connect
+            |> Sql.query "INSERT INTO screeners (name,url) VALUES (@name,@url) RETURNING id"
+            |> Sql.parameters [
+                "@name", Sql.string name;
+                "@url", Sql.string url
+            ]
+            |> Sql.executeRow (fun reader -> reader.int("id"))
 
-        let sql = "INSERT INTO screeners (name,url) VALUES (:name,:url) RETURNING id"
+        {
+            id = id;
+            name = name;
+            url = url;
+        }
 
-        let cmd = new NpgsqlCommand(sql, conn)
-        let nameParam = new NpgsqlParameter(parameterName="name", value=name)
-        let urlParam = new NpgsqlParameter(parameterName="url", value=url)
-        cmd.Parameters.Add(nameParam)     |> ignore
-        cmd.Parameters.Add(urlParam)      |> ignore
-        let id = cmd.ExecuteScalar() :?> int
+    let getScreenerByName name = 
 
-        (id,name)
-
-    // TODO: consider type for screener id?
-    let deleteScreener screenerId =
-        use conn = new NpgsqlConnection(cnnString)
-        conn.Open()
-
-        let sql = "DELETE FROM screeners WHERE id = :id"
-
-        let cmd = new NpgsqlCommand(sql, conn)
-        let param = new NpgsqlParameter(parameterName="id", value=screenerId)
-        cmd.Parameters.Add(param) |> ignore
-        cmd.ExecuteNonQuery()
+        let results =
+            cnnString 
+            |> Sql.connect
+            |> Sql.query "SELECT id,name,url FROM screeners WHERE name = @name"
+            |> Sql.parameters [ "@name", Sql.string name ]
+            |> Sql.execute (fun reader ->
+                {
+                    id = reader.int "id";
+                    name = reader.string "name";
+                    url = reader.string "url";
+                }
+            )
+        
+        match results with
+        | [] -> None
+        | [a] -> Some a
+        | _ -> raise (new System.Exception("More than one screener with the same name"))
+        
+    let deleteScreener screener =
+        cnnString
+        |> Sql.connect
+        |> Sql.query "DELETE FROM screeners WHERE id = @id"
+        |> Sql.parameters [ "@id", Sql.int screener.id ]
+        |> Sql.executeNonQuery
 
     let deleteScreenerResults screenerId (date:string) =
         use conn = new NpgsqlConnection(cnnString)
@@ -166,25 +165,22 @@ module Storage =
     let getOrSaveScreener (input:ScreenerInput) =
         let screenerOption = getScreenerByName input.name
         match screenerOption with
-            | Some screener ->
-                screener
-            | None ->
-                let (id, name) = saveScreener input.name input.url
-                (id,name)
+            | Some screener -> screener
+            | None -> saveScreener input.name input.url
 
     let saveScreenerResults date (input:ScreenerInput,results:seq<ScreenerResult>) =
         
-        let (screenerId,_) = getOrSaveScreener input
+        let screener = getOrSaveScreener input
         
-        let deleted = deleteScreenerResults screenerId date
+        let deleted = deleteScreenerResults screener.id date
 
-        System.Console.WriteLine($"deleted {deleted} for {screenerId} {date}")
-        System.Console.WriteLine($"saving {results |> Seq.length} results for {screenerId} {date}")
+        System.Console.WriteLine($"deleted {deleted} for {screener.id} {date}")
+        System.Console.WriteLine($"saving {results |> Seq.length} results for {screener.id} {date}")
 
         results
         |> Seq.map (fun result ->
             let stock = getOrSaveStock result.ticker result.company result.sector result.industry result.country
-            (screenerId,stock,result)
+            (screener.id,stock,result)
         )
         |> Seq.iter (fun (screenerId,stock,result) ->
             saveScreenerResult screenerId date stock result |> ignore

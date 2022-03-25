@@ -90,7 +90,7 @@ module Rendering =
 
     let renderResultsAsHtml 
         (screenerInput:ScreenerInput)
-        breakdownConfig
+        (breakdownConfig:list<ScreenerBreakdown>)
         (screenerResults:list<ScreenerResult>) =
 
         let breakdowns =
