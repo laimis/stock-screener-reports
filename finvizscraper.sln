@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "finvizscraper", "finvizscraper.fsproj", "{D60700F5-75AF-4F35-AF0D-BA1544383A36}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "finvizscraper", "src\finvizscraper.fsproj", "{D60700F5-75AF-4F35-AF0D-BA1544383A36}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "tests", "tests\tests.fsproj", "{1F18A166-3D92-4043-93C0-A03F7A375AE8}"
 EndProject
