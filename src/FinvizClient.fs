@@ -70,7 +70,7 @@ module FinvizClient =
             |> Seq.map (fun r -> r.Value)
 
     let getResults url =
-        let rec whileFetch offset (results:list<ScreenerResult>) =
+        let rec fetchPage offset (results:list<ScreenerResult>) =
             let urlToFetch = url + "&r=" + offset.ToString()
             let htmlDoc = fetchScreenerHtml urlToFetch
             
@@ -90,7 +90,7 @@ module FinvizClient =
                 results
             else
                 match page with 
-                    | c when c.Length = 20 -> whileFetch (offset + 20) (List.append results page)
+                    | c when c.Length = 20 -> fetchPage (offset + 20) (List.append results page)
                     | _ -> (List.append results page)
 
-        whileFetch 1 []
+        fetchPage 1 []
