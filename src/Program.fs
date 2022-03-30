@@ -41,6 +41,13 @@ let configPath =
 
 let config = Config.readConfig configPath
 
+match config.dbConnectionString with
+    | null -> 
+        Console.Error.WriteLine("No db connection string found in config")
+        Environment.Exit(-1)
+    | value ->
+        Storage.storeCnn value
+
 let screenerResults =
     config.screeners 
     |> Seq.map fetchScreenerResults

@@ -4,10 +4,11 @@ module Storage =
 
     open Npgsql.FSharp
 
-    // TODO: see how F# does db code with Npgsql, and perhaps dapper
     // TODO: add logger
-    // TODO: move to config
-    let cnnString = "Server=localhost;Port=5432;Database=finviz;User Id=finviz;Password=finviz;Include Error Detail=true"
+    let mutable private cnnString = ""
+
+    let storeCnn str =
+        cnnString <- str
 
     let private stockMapper (reader:RowReader) =
         {
@@ -120,9 +121,9 @@ module Storage =
         System.Console.WriteLine($"db saveScreenerResult: {screener.id} {date} {stock.ticker} {result.price}")
 
         let sql = @"INSERT INTO screenerresults
-            (screenerid,date,stockId,price)
+            (screenerid,date,stockId,price,change,volume)
             VALUES
-            (@screenerId,date(@date),@stockId,@price)"
+            (@screenerId,date(@date),@stockId,@price,@change,@volume)"
 
         cnnString
         |> Sql.connect
@@ -131,7 +132,9 @@ module Storage =
             "@screenerId", Sql.int screener.id;
             "@date", Sql.string date;
             "@stockId", Sql.int stock.id;
-            "@price", Sql.decimal result.price
+            "@price", Sql.decimal result.price;
+            "@change", Sql.decimal result.change;
+            "@volume", Sql.int result.volume
         ]
         |> Sql.executeNonQuery
 

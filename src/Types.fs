@@ -10,6 +10,7 @@ type FinvizConfig =
     {
         screeners:list<ScreenerInput>;
         outputPath:string;
+        dbConnectionString:string;
     }
     static member getRunDate() =
         let date = System.DateTime.Now

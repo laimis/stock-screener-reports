@@ -6,5 +6,6 @@
             "filename": "output-topgainers.html"
         }
     ],
-    "outputPath": "output.html"
+    "outputPath": "output.html",
+    "dbConnectionString": ".... postgresql connection string ..."
 }
