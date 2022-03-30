@@ -8,7 +8,6 @@ let fetchScreenerResults (input:ScreenerInput) =
     (input,results)
 
 let generateAndAppendHtml (input:ScreenerInput,results:list<ScreenerResult>) =
-    Console.WriteLine("generating html... ")
     Rendering.renderResultsAsHtml input Config.breakdowns results
 
 let saveToFile (filepath:string) content =
@@ -18,6 +17,8 @@ let saveToFile (filepath:string) content =
 
 
 let saveAsHtml config screenerResults =
+    Console.WriteLine($"Saving {screenerResults |> Seq.length} results as html")
+    
     screenerResults
     |> Seq.map generateAndAppendHtml
     |> Seq.iter (fun (input,_,html) -> html |> saveToFile input.filename)
