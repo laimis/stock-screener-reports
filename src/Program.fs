@@ -25,11 +25,16 @@ let saveAsHtml config screenerResults =
     Rendering.createIndexPage screenerResults
     |> saveToFile config.outputPath
 
-let saveToDb (screenerResults:list<ScreenerInput * 'a>) =
-    System.Console.WriteLine("Save to db in program... " + screenerResults.Length.ToString())
-    let date = FinvizConfig.getRunDate()
-    screenerResults
-    |> Seq.iter (fun x -> Storage.saveScreenerResults date x)
+let saveToDb config (screenerResults:list<ScreenerInput * 'a>) =
+    match config.dbConnectionString with
+        | null -> 
+            Console.WriteLine("No db connection string found in config... not storing the results in db")
+        | value ->
+            Storage.storeCnn value
+            System.Console.WriteLine("Save to db in program... " + screenerResults.Length.ToString())
+            let date = FinvizConfig.getRunDate()
+            screenerResults
+            |> Seq.iter (fun x -> Storage.saveScreenerResults date x)
 
 let args = Environment.GetCommandLineArgs()
 let defaultConfigPath = "config.json"
@@ -41,13 +46,6 @@ let configPath =
 
 let config = Config.readConfig configPath
 
-match config.dbConnectionString with
-    | null -> 
-        Console.Error.WriteLine("No db connection string found in config")
-        Environment.Exit(-1)
-    | value ->
-        Storage.storeCnn value
-
 let screenerResults =
     config.screeners 
     |> Seq.map fetchScreenerResults
@@ -57,4 +55,4 @@ screenerResults
     |> saveAsHtml config
 
 screenerResults
-    |> saveToDb
+    |> saveToDb config
