@@ -4,7 +4,12 @@ open Xunit
 open Xunit.Abstractions
 open FinvizScraper
 
+let testConnectionString = "Server=localhost;Port=5432;Database=finviz;User Id=finviz;Password=finviz;Include Error Detail=true"
+let testScreenerName = "New Highs, 1.5x volume, >$10"
+
 type StorageTests(output:ITestOutputHelper) =
+    do
+        Storage.storeCnn testConnectionString
 
     let generateTicker() =
         "stock" + System.Guid.NewGuid().ToString()
