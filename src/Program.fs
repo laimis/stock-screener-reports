@@ -31,7 +31,7 @@ let saveToDb config (screenerResults:list<ScreenerInput * 'a>) =
             Console.WriteLine("No db connection string found in config... not storing the results in db")
         | value ->
             Storage.storeCnn value
-            System.Console.WriteLine("Save to db in program... " + screenerResults.Length.ToString())
+            System.Console.WriteLine("Saveing to db " + screenerResults.Length.ToString() + " screener results")
             let date = FinvizConfig.getRunDate()
             screenerResults
             |> Seq.iter (fun x -> Storage.saveScreenerResults date x)

@@ -116,9 +116,7 @@ module Storage =
         ]
         |> Sql.executeNonQuery
 
-    let saveScreenerResult screener date stock result =
-
-        System.Console.WriteLine($"db saveScreenerResult: {screener.id} {date} {stock.ticker} {result.price}")
+    let saveScreenerResult screener date (stock:Stock) result =
 
         let sql = @"INSERT INTO screenerresults
             (screenerid,date,stockId,price,change,volume)
@@ -154,10 +152,7 @@ module Storage =
         
         let screener = getOrSaveScreener input
         
-        let deleted = deleteScreenerResults screener date
-
-        System.Console.WriteLine($"deleted {deleted} for {screener.id} {date}")
-        System.Console.WriteLine($"saving {results |> Seq.length} results for {screener.id} {date}")
+        deleteScreenerResults screener date |> ignore
 
         results
         |> Seq.map (fun result ->
