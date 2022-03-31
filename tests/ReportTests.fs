@@ -1,8 +1,9 @@
 module ReportTests
 
 open Xunit
+open Xunit.Abstractions
 
-type ReportTests() =
+type ReportTests(output:ITestOutputHelper) =
     do
         FinvizScraper.Storage.Reports.configureConnectionString (System.Environment.GetEnvironmentVariable(StorageTests.dbEnvironmentVariableName))
         FinvizScraper.Storage.Storage.configureConnectionString (System.Environment.GetEnvironmentVariable(StorageTests.dbEnvironmentVariableName))
@@ -39,3 +40,24 @@ type ReportTests() =
     let ``Getting countries works`` days =
 
         topGroupingTest (fun x-> FinvizScraper.Storage.Reports.topCountries x days)
+
+    [<Fact>]
+    let ``Screener result list works``() =
+        
+        let expectedScreenerCount = 
+            FinvizScraper.Storage.Storage.getScreeners()
+            |> List.filter (fun x -> x.name.StartsWith("screener") |> not)
+            |> Seq.length
+
+        let screenerResults = FinvizScraper.Storage.Reports.getLatestScreeners()
+
+        Assert.Equal(expectedScreenerCount, screenerResults.Length)
+
+    [<Fact>]
+    let ``Particular screener results list works``() =
+
+        let (screener, _) = FinvizScraper.Storage.Reports.getLatestScreeners().Head
+
+        let results = FinvizScraper.Storage.Reports.getScreenerResults screener.id "2022-03-31"
+
+        Assert.NotEmpty(results)

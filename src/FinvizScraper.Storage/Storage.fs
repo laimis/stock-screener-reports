@@ -105,6 +105,20 @@ module Storage =
         | [] -> None
         | [a] -> Some a
         | _ -> raise (new System.Exception("More than one screener with the same name"))
+
+    let getScreenerById id = 
+
+        let results =
+            cnnString 
+            |> Sql.connect
+            |> Sql.query "SELECT id,name,url FROM screeners WHERE id = @id"
+            |> Sql.parameters [ "@id", Sql.int id ]
+            |> Sql.execute screenerMapper
+        
+        match results with
+        | [] -> None
+        | [a] -> Some a
+        | _ -> raise (new System.Exception("More than one screener with the same name"))
         
     let deleteScreener screener =
         cnnString

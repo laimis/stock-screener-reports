@@ -5,35 +5,23 @@ module Dashboard =
     open Giraffe.ViewEngine
     open FinvizScraper.Core
 
-    let private layout (content: XmlNode list) =
-        html [] [
-            head [] [
-                title []  [ encodedText "FinvizScraper.Web" ]
-                link [ _rel  "stylesheet"
-                       _type "text/css"
-                       _href "/main.css" ]
-            ]
-            body [] content
-        ]
-
-    let private partial () =
-        h1 [] [ encodedText "FinvizScraper.Web" ]
-
-    let private view (screeners:list<Screener>) =
+    let private view (screeners:list<(Screener*int)>) =
         let rows =
             screeners
-            |> List.map (fun screener -> 
+            |> List.map (fun (screener, count) -> 
                 tr [] [
-                    td [] [ encodedText screener.name ]
+                    td [] [
+                        a [ _href $"/screeners/{screener.id}/results" ] [ encodedText screener.name ] ]
+                    td [] [ str (count.ToString()) ]
                 ])
         let tbl = table [] rows
         
-        [tbl] |> layout
+        [tbl] |> Shared.mainLayout
 
     let handler()  = 
         
         // get screeners, render them in HTML
-        let screeners = FinvizScraper.Storage.Storage.getScreeners()
+        let screenerResults = FinvizScraper.Storage.Reports.getLatestScreeners()
         
-        let view      = view screeners
+        let view      = view screenerResults
         Giraffe.Core.htmlView view

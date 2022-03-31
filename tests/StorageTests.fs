@@ -5,12 +5,12 @@ open Xunit.Abstractions
 open FinvizScraper.Core
 open FinvizScraper.Storage
 
-let testScreenerName = "New Highs, 1.5x volume, >$10"
-let screenerUrl = "https://finviz.com/screener.ashx?v=111&s=ta_newhigh&f=fa_salesqoq_high,sh_avgvol_o200,sh_opt_optionshort,sh_price_o10,sh_relvol_o1.5,ta_perf_dup&ft=4&o=-volume"
-let testStockName = "Apple Inc."
-let testStockSector = "Technology"
-let testStockIndustry = "Computer Hardware"
-let testStockCountry = "United States"
+let testScreenerName    = "New Highs, 1.5x volume, >$10"
+let screenerUrl         = "https://finviz.com/screener.ashx?v=111&s=ta_newhigh&f=fa_salesqoq_high,sh_avgvol_o200,sh_opt_optionshort,sh_price_o10,sh_relvol_o1.5,ta_perf_dup&ft=4&o=-volume"
+let testStockName       = "Apple Inc."
+let testStockSector     = "Technology"
+let testStockIndustry   = "Computer Hardware"
+let testStockCountry    = "United States"
 
 let dbEnvironmentVariableName = "FINVIZ_CONNECTIONSTRING"
 
@@ -67,13 +67,24 @@ type StorageTests(output:ITestOutputHelper) =
         Assert.True(screener.id > 0)
         Assert.Equal(screenerName, screener.name)
 
-        let subsequent = Storage.getScreenerByName screenerName
-        match subsequent with
+        let byNameLookup = Storage.getScreenerByName screenerName
+        match byNameLookup with
             | Some screener ->
                 Assert.Equal(screenerName, screener.name)
                 Assert.Equal(screenerUrl, screener.url)
             | None ->
-                Assert.True(false, "Expected screener to be found")
+                Assert.True(false, "Expected screener to be found by name")
+
+        let screeners = Storage.getScreeners()
+        Assert.NotEmpty(screeners)
+
+        let byIdLookup = Storage.getScreenerById screener.id
+        match byIdLookup with
+            | Some screener ->
+                Assert.Equal(screenerName, screener.name)
+                Assert.Equal(screenerUrl, screener.url)
+            | None ->
+                Assert.True(false, "Expected screener to be found by id")
         
         let deleted = Storage.deleteScreener screener
         Assert.Equal(1, deleted)

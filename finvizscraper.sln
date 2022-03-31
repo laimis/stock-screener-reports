@@ -17,6 +17,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FinvizScraper.Console", "sr
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FinvizScraper.Web", "src\FinvizScraper.Web\FinvizScraper.Web.fsproj", "{F69A8185-76A6-451C-8B57-D733EB55FE47}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "tests", "tests\tests.fsproj", "{C6F495F6-8217-473D-A0AF-C460C9D7B1A2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,6 +52,10 @@ Global
 		{F69A8185-76A6-451C-8B57-D733EB55FE47}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F69A8185-76A6-451C-8B57-D733EB55FE47}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F69A8185-76A6-451C-8B57-D733EB55FE47}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6F495F6-8217-473D-A0AF-C460C9D7B1A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6F495F6-8217-473D-A0AF-C460C9D7B1A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6F495F6-8217-473D-A0AF-C460C9D7B1A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6F495F6-8217-473D-A0AF-C460C9D7B1A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{E4F61B3E-7DF9-4F2A-A7FF-7639B16B6091} = {A8AB1CAB-F284-4AB6-BC83-2BAD95BD5284}
