@@ -4,9 +4,16 @@ open FinvizScraper.FinvizClient
 open FinvizScraper.Rendering
 open FinvizScraper.Storage
 
-let readConfig filepath =
+let readConfig() =
+    let args = Environment.GetCommandLineArgs()
+    let defaultConfigPath = "config.json"
+    let configPath =
+        match args with
+        | [||] -> defaultConfigPath
+        | [|_|] -> defaultConfigPath
+        | _ -> args[1]
     System.Text.Json.JsonSerializer.Deserialize<FinvizConfig>(
-        System.IO.File.ReadAllText(filepath)
+        System.IO.File.ReadAllText(configPath)
     )
 
 let fetchScreenerResults (input:ScreenerInput) =
@@ -44,15 +51,7 @@ let saveToDb config (screenerResults:list<ScreenerInput * 'a>) =
             screenerResults
             |> Seq.iter (fun x -> Storage.saveScreenerResults date x)
 
-let args = Environment.GetCommandLineArgs()
-let defaultConfigPath = "config.json"
-let configPath =
-    match args with
-    | [||] -> defaultConfigPath
-    | [|_|] -> defaultConfigPath
-    | _ -> args[1]
-
-let config = readConfig configPath
+let config = readConfig()
 
 let screenerResults =
     config.screeners 
