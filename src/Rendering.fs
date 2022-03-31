@@ -88,16 +88,13 @@ module Rendering =
         Giraffe.ViewEngine.RenderView.AsString.htmlDocument view
 
     let calculateBreakdowns (screenerResults:list<ScreenerResult>) =
-        let applyBreakdown breakdown results = 
+        let applyBreakdown groupByProperty results = 
             results
-            |> Seq.groupBy breakdown
-            |> Seq.sortBy (fun a -> 
-                let (_, list) = a
-                (Seq.length list) * -1
-            )
-            |> Seq.map (fun a -> 
-                let (name, list) = a
-                (name, Seq.toList list))
+            |> List.groupBy groupByProperty
+            |> List.sortBy (fun (_, list) -> list.Length * -1)
+
+        let convertToBreakdown (name, groupByProperty) =
+            (name, (screenerResults |> applyBreakdown groupByProperty))
 
         let breakdowns = [
             ("Sectors", fun (a:ScreenerResult) -> a.sector);
@@ -105,11 +102,7 @@ module Rendering =
             ("Countries", fun a -> a.country);
         ]
         
-        breakdowns
-            |> List.map (
-                fun (breakdownName,func) -> 
-                    (breakdownName, (screenerResults |> applyBreakdown func))
-                )
+        breakdowns |> List.map convertToBreakdown
 
     let renderResultsAsHtml 
         (screenerInput:ScreenerInput)
@@ -119,9 +112,8 @@ module Rendering =
                 
         let breakdownDivs = 
             breakdowns
-            |> Seq.map (fun a -> toBreakdownTable (fst(a)) (snd(a)))
-            |> Seq.map (fun a -> div [_class "column"] [a])
-            |> Seq.toList
+            |> List.map (fun (breakdownTitle,breakdownList) -> toBreakdownTable breakdownTitle breakdownList)
+            |> List.map (fun breakdownTable -> div [_class "column"] [breakdownTable])
 
         let tickerRows = screenerResults |> Seq.map screenerResultToTr |> Seq.toList
 
