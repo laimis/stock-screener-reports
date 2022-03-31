@@ -28,11 +28,6 @@ type ScreenerResult = {
     volume:int;
 }
 
-type ScreenerBreakdown = {
-    name:string;
-    breakdown:(ScreenerResult) -> string
-}
-
 type Stock = {
     id: int;
     ticker: string;

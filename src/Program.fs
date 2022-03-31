@@ -8,7 +8,7 @@ let fetchScreenerResults (input:ScreenerInput) =
     (input,results)
 
 let generateAndAppendHtml (input:ScreenerInput,results:list<ScreenerResult>) =
-    Rendering.renderResultsAsHtml input Config.breakdowns results
+    Rendering.renderResultsAsHtml input results
 
 let saveToFile (filepath:string) content =
     let directory = IO.Path.GetDirectoryName(filepath)
