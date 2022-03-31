@@ -85,6 +85,13 @@ module Storage =
             ]
             |> Sql.executeRow screenerMapper
 
+    let getScreeners() =
+
+        cnnString
+            |> Sql.connect
+            |> Sql.query "SELECT id,name,url FROM screeners"
+            |> Sql.execute screenerMapper
+            
     let getScreenerByName name = 
 
         let results =
