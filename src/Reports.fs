@@ -39,3 +39,6 @@ module Reports =
 
     let topIndustries screener days =
         "industry" |> topGrouping screener days
+
+    let topCountries screener days =
+        "industry" |> topGrouping screener days

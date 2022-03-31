@@ -31,5 +31,11 @@ type ReportTests() =
     [<InlineData(1)>]
     [<InlineData(7)>]
     let ``Getting industry works`` days =
-
         topGroupingTest (fun x-> topIndustries x days)
+
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(7)>]
+    let ``Getting countries works`` days =
+
+        topGroupingTest (fun x-> topCountries x days)
