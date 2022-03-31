@@ -9,12 +9,15 @@ open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.DependencyInjection
 open Giraffe
+open FinvizScraper.Web.Handlers
+open FinvizScraper.Storage
+
 
 let webApp =
     choose [
         GET >=>
             choose [
-                route "/" >=> Handlers.Dashboard.handler()
+                route "/" >=> warbler (fun _ -> Dashboard.handler())
             ]
         setStatusCode 404 >=> text "Not Found" ]
 
@@ -54,6 +57,10 @@ let configureApp (app : IApplicationBuilder) =
 let configureServices (services : IServiceCollection) =
     services.AddCors()    |> ignore
     services.AddGiraffe() |> ignore
+
+    let cnnString = System.Environment.GetEnvironmentVariable("FINVIZ_CONNECTIONSTRING")
+    cnnString |> Storage.configureConnectionString
+    cnnString |> Reports.configureConnectionString
 
 let configureLogging (builder : ILoggingBuilder) =
     builder.AddConsole()

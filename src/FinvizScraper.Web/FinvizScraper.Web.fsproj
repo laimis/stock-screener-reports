@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="Handlers/Dashboard/Handler.fs" />
+    <Compile Include="Handlers/Dashboard.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
