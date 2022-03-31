@@ -7,7 +7,6 @@
     <Compile Include="Types.fs" />
     <Compile Include="Config.fs" />
     <Compile Include="FinvizClient.fs" />
-    <Compile Include="Processing.fs" />
     <Compile Include="Rendering.fs" />
     <Compile Include="Storage.fs" />
     <Compile Include="Reports.fs" />
