@@ -5,8 +5,7 @@ module Storage =
     open Npgsql.FSharp
 
 
-    let private defaultLogger (message:string) =
-        ()
+    let private defaultLogger (message:string) = ()
 
     // TODO: add logger
     let mutable private cnnString = ""
