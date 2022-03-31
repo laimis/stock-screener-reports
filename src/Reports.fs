@@ -7,7 +7,7 @@ module Reports =
 
     let mutable private cnnString = ""
 
-    let storeCnn str =
+    let configureConnectionString str =
         cnnString <- str
 
     let private topGrouping screener days grouping =

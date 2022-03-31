@@ -1,11 +1,11 @@
 module ReportTests
 
 open Xunit
-open FinvizScraper.Reports
 
 type ReportTests() =
     do
-        storeCnn StorageTests.testConnectionString
+        FinvizScraper.Reports.configureConnectionString (System.Environment.GetEnvironmentVariable(StorageTests.dbEnvironmentVariableName))
+        FinvizScraper.Storage.configureConnectionString (System.Environment.GetEnvironmentVariable(StorageTests.dbEnvironmentVariableName))
 
     let topGroupingTest resultGenerator =
         let screener = FinvizScraper.Storage.getScreenerByName StorageTests.testScreenerName
@@ -25,17 +25,17 @@ type ReportTests() =
     [<InlineData(7)>]
     let ``Getting sectors works`` days =
 
-        topGroupingTest (fun x-> topSectors x days)
+        topGroupingTest (fun x-> FinvizScraper.Reports.topSectors x days)
 
     [<Theory>]
     [<InlineData(1)>]
     [<InlineData(7)>]
     let ``Getting industry works`` days =
-        topGroupingTest (fun x-> topIndustries x days)
+        topGroupingTest (fun x-> FinvizScraper.Reports.topIndustries x days)
 
     [<Theory>]
     [<InlineData(1)>]
     [<InlineData(7)>]
     let ``Getting countries works`` days =
 
-        topGroupingTest (fun x-> topCountries x days)
+        topGroupingTest (fun x-> FinvizScraper.Reports.topCountries x days)

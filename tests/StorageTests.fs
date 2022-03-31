@@ -4,12 +4,20 @@ open Xunit
 open Xunit.Abstractions
 open FinvizScraper
 
-let testConnectionString = "Server=localhost;Port=5432;Database=finviz;User Id=finviz;Password=finviz;Include Error Detail=true"
 let testScreenerName = "New Highs, 1.5x volume, >$10"
+let screenerUrl = "https://finviz.com/screener.ashx?v=111&s=ta_newhigh&f=fa_salesqoq_high,sh_avgvol_o200,sh_opt_optionshort,sh_price_o10,sh_relvol_o1.5,ta_perf_dup&ft=4&o=-volume"
+let testStockName = "Apple Inc."
+let testStockSector = "Technology"
+let testStockIndustry = "Computer Hardware"
+let testStockCountry = "United States"
+
+let dbEnvironmentVariableName = "FINVIZ_CONNECTIONSTRING"
 
 type StorageTests(output:ITestOutputHelper) =
     do
-        Storage.configureConnectionString testConnectionString
+        let cnnString = System.Environment.GetEnvironmentVariable(dbEnvironmentVariableName)
+        output.WriteLine($"Connection string for tests: {cnnString}")
+        Storage.configureConnectionString cnnString
         Storage.configureLogger (fun message -> output.WriteLine(message))
 
     let generateTicker() =
@@ -17,11 +25,9 @@ type StorageTests(output:ITestOutputHelper) =
     
     let generateScreener() =
         "screener" + System.Guid.NewGuid().ToString()
-
-    let screenerUrl = "https://finviz.com/screener.ashx?v=111&s=ta_newhigh&f=fa_salesqoq_high,sh_avgvol_o200,sh_opt_optionshort,sh_price_o10,sh_relvol_o1.5,ta_perf_dup&ft=4&o=-volume"
         
     let saveAndReturnTestStock ticker =
-        Storage.saveStock ticker "Apple Inc." "Technology" "Computer Hardware" "United States"
+        Storage.saveStock ticker testStockName testStockSector testStockIndustry testStockCountry
 
     [<Fact>]
     let ``Getting stock works`` () =
@@ -35,10 +41,10 @@ type StorageTests(output:ITestOutputHelper) =
 
         Assert.True(stock.id > 0)
         Assert.Equal(ticker, stock.ticker)
-        Assert.Equal("Apple Inc.", stock.company)
-        Assert.Equal("Technology", stock.sector)
-        Assert.Equal("Computer Hardware", stock.industry)
-        Assert.Equal("United States", stock.country)
+        Assert.Equal(testStockName, stock.company)
+        Assert.Equal(testStockSector, stock.sector)
+        Assert.Equal(testStockIndustry, stock.industry)
+        Assert.Equal(testStockCountry, stock.country)
 
         let deleted = Storage.deleteStock stock
         Assert.Equal(1, deleted)
@@ -95,10 +101,10 @@ type StorageTests(output:ITestOutputHelper) =
         
         let result = {
             ticker = stock.ticker;
-            company = "Apple Inc.";
-            sector = "Technology";
-            industry = "Computer Hardware";
-            country = "United States";
+            company = testStockName;
+            sector = testStockSector;
+            industry = testStockIndustry;
+            country = testStockCountry;
             marketCap = "1,000,000,000";
             price = 100m;
             change = 10m;
