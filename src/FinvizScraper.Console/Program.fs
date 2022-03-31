@@ -4,6 +4,11 @@ open FinvizScraper.FinvizClient
 open FinvizScraper.Rendering
 open FinvizScraper.Storage
 
+let readConfig filepath =
+    System.Text.Json.JsonSerializer.Deserialize<FinvizConfig>(
+        System.IO.File.ReadAllText(filepath)
+    )
+
 let fetchScreenerResults (input:ScreenerInput) =
     Console.WriteLine("Processing " + input.name)
     Console.WriteLine("fetching results...")
@@ -17,7 +22,6 @@ let saveToFile (filepath:string) content =
     let directory = IO.Path.GetDirectoryName(filepath)
     IO.Directory.CreateDirectory(directory) |> ignore
     IO.File.WriteAllText(filepath,content)
-
 
 let saveAsHtml config screenerResults =
     Console.WriteLine($"Saving {screenerResults |> Seq.length} results as html")
@@ -48,7 +52,7 @@ let configPath =
     | [|_|] -> defaultConfigPath
     | _ -> args[1]
 
-let config = Config.readConfig configPath
+let config = readConfig configPath
 
 let screenerResults =
     config.screeners 

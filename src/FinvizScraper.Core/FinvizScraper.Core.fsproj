@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <Compile Include="Types.fs" />
-    <Compile Include="Config.fs" />
   </ItemGroup>
 
 </Project>
