@@ -90,11 +90,10 @@ module Rendering =
 
     let renderResultsAsHtml 
         (screenerInput:ScreenerInput)
-        (breakdownConfig:list<ScreenerBreakdown>)
         (screenerResults:list<ScreenerResult>) =
 
         let breakdowns =
-            breakdownConfig
+            Config.breakdowns
             |> List.map (
                 fun x -> 
                     (x.name, (screenerResults |> Processing.resultBreakdown x.breakdown))
