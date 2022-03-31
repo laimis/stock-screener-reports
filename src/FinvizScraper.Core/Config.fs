@@ -1,4 +1,4 @@
-namespace FinvizScraper
+namespace FinvizScraper.Core
 
 module Config =
 

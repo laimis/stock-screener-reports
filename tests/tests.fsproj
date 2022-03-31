@@ -23,6 +23,8 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\src\finvizscraper.fsproj" />
+    <ProjectReference Include="..\src\FinvizScraper.Storage\FinvizScraper.Storage.fsproj" />
+    <ProjectReference Include="..\src\FinvizScraper.Core\FinvizScraper.Core.fsproj" />
+    <ProjectReference Include="..\src\FinvizScraper.FinvizClient\FinvizScraper.FinvizClient.fsproj" />
   </ItemGroup>
 </Project>

@@ -1,7 +1,7 @@
 module FinvizClientTests
 
 open Xunit
-open FinvizScraper
+open FinvizScraper.FinvizClient
 open Xunit.Abstractions
 
 type ParsingTests(output:ITestOutputHelper) =

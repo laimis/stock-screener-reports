@@ -1,6 +1,7 @@
-namespace FinvizScraper
+namespace FinvizScraper.FinvizClient
 
 module FinvizClient =
+    open FinvizScraper.Core
 
     let fetchScreenerHtml (url:string) =
         // make sure that we sleep a bit before each request

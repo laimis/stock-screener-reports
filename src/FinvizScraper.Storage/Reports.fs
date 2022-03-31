@@ -1,9 +1,10 @@
-namespace FinvizScraper
+namespace FinvizScraper.Storage
 
 module Reports =
 
     open Npgsql.FSharp
     open System
+    open FinvizScraper.Core
 
     let mutable private cnnString = ""
 

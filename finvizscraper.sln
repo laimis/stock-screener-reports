@@ -3,9 +3,17 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "finvizscraper", "src\finvizscraper.fsproj", "{D60700F5-75AF-4F35-AF0D-BA1544383A36}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A8AB1CAB-F284-4AB6-BC83-2BAD95BD5284}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "tests", "tests\tests.fsproj", "{1F18A166-3D92-4043-93C0-A03F7A375AE8}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FinvizScraper.Core", "src\FinvizScraper.Core\FinvizScraper.Core.fsproj", "{E4F61B3E-7DF9-4F2A-A7FF-7639B16B6091}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FinvizScraper.FinvizClient", "src\FinvizScraper.FinvizClient\FinvizScraper.FinvizClient.fsproj", "{7FAC3BDE-F8D5-45B4-8E83-9140CA0EB0F7}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FinvizScraper.Rendering", "src\FinvizScraper.Rendering\FinvizScraper.Rendering.fsproj", "{418641DE-A515-4837-9976-84283A1E0A27}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FinvizScraper.Storage", "src\FinvizScraper.Storage\FinvizScraper.Storage.fsproj", "{B6E7435F-FA81-4B36-A703-5AD68CE65518}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FinvizScraper.Console", "src\FinvizScraper.Console\FinvizScraper.Console.fsproj", "{6245E333-55B0-4CAA-A19C-8E910C2FE4C9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -16,13 +24,32 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D60700F5-75AF-4F35-AF0D-BA1544383A36}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D60700F5-75AF-4F35-AF0D-BA1544383A36}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D60700F5-75AF-4F35-AF0D-BA1544383A36}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D60700F5-75AF-4F35-AF0D-BA1544383A36}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1F18A166-3D92-4043-93C0-A03F7A375AE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1F18A166-3D92-4043-93C0-A03F7A375AE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1F18A166-3D92-4043-93C0-A03F7A375AE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1F18A166-3D92-4043-93C0-A03F7A375AE8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4F61B3E-7DF9-4F2A-A7FF-7639B16B6091}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4F61B3E-7DF9-4F2A-A7FF-7639B16B6091}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4F61B3E-7DF9-4F2A-A7FF-7639B16B6091}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4F61B3E-7DF9-4F2A-A7FF-7639B16B6091}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FAC3BDE-F8D5-45B4-8E83-9140CA0EB0F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FAC3BDE-F8D5-45B4-8E83-9140CA0EB0F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FAC3BDE-F8D5-45B4-8E83-9140CA0EB0F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FAC3BDE-F8D5-45B4-8E83-9140CA0EB0F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{418641DE-A515-4837-9976-84283A1E0A27}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{418641DE-A515-4837-9976-84283A1E0A27}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{418641DE-A515-4837-9976-84283A1E0A27}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{418641DE-A515-4837-9976-84283A1E0A27}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6E7435F-FA81-4B36-A703-5AD68CE65518}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6E7435F-FA81-4B36-A703-5AD68CE65518}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6E7435F-FA81-4B36-A703-5AD68CE65518}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6E7435F-FA81-4B36-A703-5AD68CE65518}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6245E333-55B0-4CAA-A19C-8E910C2FE4C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6245E333-55B0-4CAA-A19C-8E910C2FE4C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6245E333-55B0-4CAA-A19C-8E910C2FE4C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6245E333-55B0-4CAA-A19C-8E910C2FE4C9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E4F61B3E-7DF9-4F2A-A7FF-7639B16B6091} = {A8AB1CAB-F284-4AB6-BC83-2BAD95BD5284}
+		{7FAC3BDE-F8D5-45B4-8E83-9140CA0EB0F7} = {A8AB1CAB-F284-4AB6-BC83-2BAD95BD5284}
+		{418641DE-A515-4837-9976-84283A1E0A27} = {A8AB1CAB-F284-4AB6-BC83-2BAD95BD5284}
+		{B6E7435F-FA81-4B36-A703-5AD68CE65518} = {A8AB1CAB-F284-4AB6-BC83-2BAD95BD5284}
+		{6245E333-55B0-4CAA-A19C-8E910C2FE4C9} = {A8AB1CAB-F284-4AB6-BC83-2BAD95BD5284}
 	EndGlobalSection
 EndGlobal

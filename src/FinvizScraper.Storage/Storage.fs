@@ -1,9 +1,9 @@
-namespace FinvizScraper
+namespace FinvizScraper.Storage
 
 module Storage =
 
     open Npgsql.FSharp
-
+    open FinvizScraper.Core
 
     let private defaultLogger (message:string) = ()
 

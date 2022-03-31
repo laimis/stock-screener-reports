@@ -1,8 +1,9 @@
-namespace FinvizScraper
+namespace FinvizScraper.Rendering
 
 module Rendering =
     open Giraffe.ViewEngine.HtmlElements
     open Giraffe.ViewEngine.Attributes
+    open FinvizScraper.Core
 
     let tableAttributes = _class "table is-fullwidth"
 

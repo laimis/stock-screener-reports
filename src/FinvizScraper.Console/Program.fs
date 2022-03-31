@@ -1,5 +1,8 @@
-﻿open FinvizScraper
-open System
+﻿open System
+open FinvizScraper.Core
+open FinvizScraper.FinvizClient
+open FinvizScraper.Rendering
+open FinvizScraper.Storage
 
 let fetchScreenerResults (input:ScreenerInput) =
     Console.WriteLine("Processing " + input.name)

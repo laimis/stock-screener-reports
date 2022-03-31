@@ -1,4 +1,4 @@
-namespace FinvizScraper
+namespace FinvizScraper.Core
 
 type ScreenerInput = {
     name:string;
