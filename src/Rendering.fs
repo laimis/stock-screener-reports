@@ -87,17 +87,35 @@ module Rendering =
 
         Giraffe.ViewEngine.RenderView.AsString.htmlDocument view
 
+    let calculateBreakdowns (screenerResults:list<ScreenerResult>) =
+        let applyBreakdown breakdown results = 
+            results
+            |> Seq.groupBy breakdown
+            |> Seq.sortBy (fun a -> 
+                let (_, list) = a
+                (Seq.length list) * -1
+            )
+            |> Seq.map (fun a -> 
+                let (name, list) = a
+                (name, Seq.toList list))
+
+        let breakdowns = [
+            ("Sectors", fun (a:ScreenerResult) -> a.sector);
+            ("Industries", fun a -> a.industry);
+            ("Countries", fun a -> a.country);
+        ]
+        
+        breakdowns
+            |> List.map (
+                fun (breakdownName,func) -> 
+                    (breakdownName, (screenerResults |> applyBreakdown func))
+                )
 
     let renderResultsAsHtml 
         (screenerInput:ScreenerInput)
         (screenerResults:list<ScreenerResult>) =
 
-        let breakdowns =
-            Config.breakdowns
-            |> List.map (
-                fun x -> 
-                    (x.name, (screenerResults |> Processing.resultBreakdown x.breakdown))
-                )
+        let breakdowns = calculateBreakdowns screenerResults
                 
         let breakdownDivs = 
             breakdowns
