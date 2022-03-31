@@ -84,7 +84,7 @@ module ScreenerResults =
             div [_class "block"] [resultTable]
         ]
         
-        content |> Shared.mainLayout
+        content |> Shared.mainLayout $"Screener: {screener.name}"
 
     let handler ((id:int),(date:string))  = 
         

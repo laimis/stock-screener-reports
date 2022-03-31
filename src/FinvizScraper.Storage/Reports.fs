@@ -11,6 +11,14 @@ module Reports =
     let configureConnectionString str =
         cnnString <- str
 
+    type ScreenerResultReport =
+        {
+            screenerid:int;
+            name:string;
+            url:string;
+            date:DateTime;
+            count:int
+        }
     type ScreenerResultReportItem =
         {
             stockid:int;
@@ -58,29 +66,24 @@ module Reports =
         "industry" |> topGrouping screener days
 
     let getLatestScreeners() =
-        let sql = @$"SELECT screeners.id,name,url,count(*) as count FROM screenerresults
+        let sql = @$"SELECT screenerid,name,url,date,count(*) as count FROM screenerresults
             JOIN screeners ON screenerresults.screenerid = screeners.id
             WHERE date = (SELECT MAX(date) FROM screenerresults)
-            GROUP BY screeners.id,name,url
-            ORDER BY screeners.id"
+            GROUP BY screenerid,name,url,date
+            ORDER BY screenerid"
 
-        let results =
-            cnnString
+        cnnString
             |> Sql.connect
             |> Sql.query sql
             |> Sql.execute (fun reader ->
-                (
-                    {
-                        id = (reader.int "id");
-                        name = (reader.string "name");
-                        url = (reader.string "url");
-                    },
-                    reader.int "count"
-                )
+                {
+                    screenerid = (reader.int "screenerid");
+                    name = (reader.string "name");
+                    url = (reader.string "url");
+                    date = (reader.dateTime "date");
+                    count = (reader.int "count")
+                }
             )
-
-        results
-            |> Seq.toList
 
     let getScreenerResults id date =
 

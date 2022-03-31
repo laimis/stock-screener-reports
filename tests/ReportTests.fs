@@ -56,8 +56,8 @@ type ReportTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``Particular screener results list works``() =
 
-        let (screener, _) = FinvizScraper.Storage.Reports.getLatestScreeners().Head
+        let screener = FinvizScraper.Storage.Reports.getLatestScreeners().Head
 
-        let results = FinvizScraper.Storage.Reports.getScreenerResults screener.id "2022-03-31"
+        let results = FinvizScraper.Storage.Reports.getScreenerResults screener.screenerid (screener.date.ToString("yyyy-MM-dd"))
 
         Assert.NotEmpty(results)

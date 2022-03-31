@@ -3,20 +3,20 @@ namespace FinvizScraper.Web.Handlers
 module Dashboard =
 
     open Giraffe.ViewEngine
-    open FinvizScraper.Core
 
-    let private view (screeners:list<(Screener*int)>) =
+    let private view (screeners:list<(FinvizScraper.Storage.Reports.ScreenerResultReport)>) =
         let rows =
             screeners
-            |> List.map (fun (screener, count) -> 
+            |> List.map (fun screener -> 
+                let screenerDate = screener.date.ToString("yyyy-MM-dd")
                 tr [] [
                     td [] [
-                        a [ _href $"/screeners/{screener.id}/results" ] [ encodedText screener.name ] ]
-                    td [] [ str (count.ToString()) ]
+                        a [ _href $"/screeners/{screener.screenerid}/results/{screenerDate}" ] [ encodedText screener.name ] ]
+                    td [] [ str (screener.count.ToString()) ]
                 ])
-        let tbl = table [] rows
+        let tbl = table [Shared.fullWidthTableAttributes] rows
         
-        [tbl] |> Shared.mainLayout
+        [tbl] |> Shared.mainLayout "Dashboard"
 
     let handler()  = 
         
