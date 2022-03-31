@@ -88,13 +88,9 @@ module Rendering =
         Giraffe.ViewEngine.RenderView.AsString.htmlDocument view
 
     let calculateBreakdowns (screenerResults:list<ScreenerResult>) =
-        let applyBreakdown groupByProperty results = 
-            results
-            |> List.groupBy groupByProperty
-            |> List.sortBy (fun (_, list) -> list.Length * -1)
-
+        
         let convertToBreakdown (name, groupByProperty) =
-            (name, (screenerResults |> applyBreakdown groupByProperty))
+            (name, (screenerResults |> List.groupBy groupByProperty |> List.sortByDescending (fun (_, list) -> list.Length)))
 
         let breakdowns = [
             ("Sectors", fun (a:ScreenerResult) -> a.sector);
