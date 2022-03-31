@@ -5,17 +5,15 @@ module Storage =
     open Npgsql.FSharp
 
 
-    let defaultLogger (message:string) =
+    let private defaultLogger (message:string) =
         ()
 
     // TODO: add logger
     let mutable private cnnString = ""
-
-    let mutable private logger = defaultLogger
-
     let configureConnectionString str =
         cnnString <- str
 
+    let mutable private logger = defaultLogger
     let configureLogger log =
         logger <- log
 
