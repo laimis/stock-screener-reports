@@ -4,11 +4,20 @@ module Storage =
 
     open Npgsql.FSharp
 
+
+    let defaultLogger (message:string) =
+        ()
+
     // TODO: add logger
     let mutable private cnnString = ""
 
-    let storeCnn str =
+    let mutable private logger = defaultLogger
+
+    let configureConnectionString str =
         cnnString <- str
+
+    let configureLogger log =
+        logger <- log
 
     let private stockMapper (reader:RowReader) =
         {

@@ -9,7 +9,8 @@ let testScreenerName = "New Highs, 1.5x volume, >$10"
 
 type StorageTests(output:ITestOutputHelper) =
     do
-        Storage.storeCnn testConnectionString
+        Storage.configureConnectionString testConnectionString
+        Storage.configureLogger (fun message -> output.WriteLine(message))
 
     let generateTicker() =
         "stock" + System.Guid.NewGuid().ToString()
