@@ -146,9 +146,9 @@ module Storage =
     let saveScreenerResult screener date (stock:Stock) result =
 
         let sql = @"INSERT INTO screenerresults
-            (screenerid,date,stockId,price,change,volume)
+            (screenerid,date,stockId,marketcap,price,change,volume)
             VALUES
-            (@screenerId,date(@date),@stockId,@price,@change,@volume)"
+            (@screenerId,date(@date),@stockId,@marketcap,@price,@change,@volume)"
 
         cnnString
         |> Sql.connect
@@ -157,6 +157,7 @@ module Storage =
             "@screenerId", Sql.int screener.id;
             "@date", Sql.string date;
             "@stockId", Sql.int stock.id;
+            "@marketcap", Sql.decimal result.marketCap;
             "@price", Sql.decimal result.price;
             "@change", Sql.decimal result.change;
             "@volume", Sql.int result.volume

@@ -30,7 +30,7 @@ module ScreenerResults =
             toTd result.sector
             toTd result.industry
             toTd result.country
-            // toTd result.marketCap TODO: add this back once we start storing market cap with each screener result
+            toTd (str result.marketCap)
             toTd (string result.price)
             toTd (string result.change)
             toTd (string (result.volume.ToString("N0")))

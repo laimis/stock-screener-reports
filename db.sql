@@ -34,3 +34,4 @@ create table screenerresults (
 
 alter table screenerresults add column change decimal;
 alter table screenerresults add column volume numeric;
+alter table screenerresults add column marketcap numeric;

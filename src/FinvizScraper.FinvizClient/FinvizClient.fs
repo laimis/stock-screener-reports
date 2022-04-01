@@ -28,6 +28,14 @@ module FinvizClient =
             let toDecimal str =
                 System.Decimal.Parse(str)
 
+            let fromCapToDecimal (value:string) =
+                let lastChar = value[value.Length - 1]
+                let numericPortion = value.Substring(0, value.Length - 1) |> toDecimal
+                match lastChar with
+                | 'M' -> numericPortion * 1000000m
+                | 'B' -> numericPortion * 1000000000m
+                | _   -> raise (new System.Exception("Cap to decimal conversion failed for " + value))
+
             let toInt str =
                 System.Int32.Parse(str)
 
@@ -42,7 +50,7 @@ module FinvizClient =
                 let sectorNode = extractValueFromScreenerCell node.ChildNodes[4]
                 let industryNode = extractValueFromScreenerCell node.ChildNodes[5]
                 let countryNode = extractValueFromScreenerCell node.ChildNodes[6]
-                let marketCapNode = extractValueFromScreenerCell node.ChildNodes[7]
+                let marketCapNode = extractValueFromScreenerCell node.ChildNodes[7] |> fromCapToDecimal
                 let priceNode = extractValueFromScreenerCell node.ChildNodes[9] |> toDecimal
                 let changeNode = extractValueFromScreenerCell node.ChildNodes[10] |> remove '%' |> toDecimal
                 let volumeNode = extractValueFromScreenerCell node.ChildNodes[11] |> remove ',' |> toInt

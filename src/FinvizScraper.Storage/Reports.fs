@@ -27,6 +27,7 @@ module Reports =
             sector:string;
             industry:string;
             country:string;
+            marketCap:decimal;
             price:decimal;
             change:decimal;
             volume:int;
@@ -87,7 +88,11 @@ module Reports =
 
     let getScreenerResults id date =
 
-        let sql = @$"SELECT stocks.id,ticker,name,sector,industry,country,screenerresults.price,screenerresults.change,screenerresults.volume FROM stocks
+        let sql = @$"
+            SELECT 
+                stocks.id,ticker,name,sector,industry,country,
+                screenerresults.marketcap,price,change,volume
+            FROM stocks
             JOIN screenerresults ON stocks.id = screenerresults.stockid
             WHERE 
                 screenerresults.screenerid = @screenerid
@@ -110,6 +115,10 @@ module Reports =
                     sector = (reader.string "sector");
                     industry = (reader.string "industry");
                     country = (reader.string "country");
+                    marketCap = (
+                        reader.decimalOrNone "marketcap"
+                        |> Option.defaultValue 0m
+                    );
                     price = (reader.decimal "price");
                     change = (reader.decimal "change");
                     volume = (reader.int "volume");

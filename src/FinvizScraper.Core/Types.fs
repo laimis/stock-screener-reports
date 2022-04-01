@@ -22,7 +22,7 @@ type ScreenerResult = {
     sector:string;
     industry:string;
     country:string;
-    marketCap:string;
+    marketCap:decimal;
     price:decimal;
     change:decimal;
     volume:int;
