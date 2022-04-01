@@ -30,7 +30,7 @@ module ScreenerResults =
             toTd result.sector
             toTd result.industry
             toTd result.country
-            toTd (str result.marketCap)
+            toTd (string result.marketCap)
             toTd (string result.price)
             toTd (string result.change)
             toTd (string (result.volume.ToString("N0")))

@@ -32,7 +32,7 @@ module Rendering =
             toTd result.sector
             toTd result.industry
             toTd result.country
-            toTd result.marketCap
+            toTd (string result.marketCap)
             toTd (string result.price)
             toTd (string result.change)
             toTd (string (result.volume.ToString("N0")))
