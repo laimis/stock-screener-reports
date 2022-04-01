@@ -37,6 +37,39 @@ module ScreenerResults =
             toTdWithHref $"https://tradingview.com/chart/kQn4rgoA/?symbol={result.ticker}"
         ]
 
+    let toBreakdownTable breakdownTitle (breakdown:seq<string * list<ScreenerResultReportItem>>) =
+        // row with headers for each column and another row with length
+        let headerRow = tr [] [
+            th [] [str breakdownTitle]
+            th [] [str ""]
+        ] 
+
+        let valueRows =
+            breakdown
+            |> Seq.map (fun a ->
+                let (name, list) = a
+                tr [] [
+                    td [] [str name]
+                    td [] [str (list.Length.ToString())]
+                ]
+            )
+            |> Seq.toList
+        
+        table [ Shared.fullWidthTableAttributes ] (headerRow::valueRows)
+        
+    let calculateBreakdowns screenerResults =
+        
+        let convertToBreakdown (name, groupByProperty) =
+            (name, (screenerResults |> List.groupBy groupByProperty |> List.sortByDescending (fun (_, list) -> list.Length)))
+
+        let breakdowns = [
+            ("Sectors", fun a -> a.sector);
+            ("Industries", fun a -> a.industry);
+            ("Countries", fun a -> a.country);
+        ]
+        
+        breakdowns |> List.map convertToBreakdown
+
     let headerRow =
         let headers = [ 
             "Ticker"
@@ -59,9 +92,16 @@ module ScreenerResults =
         tr [] headerCells
 
     let private view (screener:FinvizScraper.Core.Screener) (results:list<ScreenerResultReportItem>) =
-        let tickerRows = results |> List.map screenerResultToTr
 
-        let resultTable = table [Shared.fullWidthTableAttributes] (headerRow::tickerRows)
+        let screenerRows = results |> List.map screenerResultToTr
+        let screenerTable = table [Shared.fullWidthTableAttributes] (headerRow::screenerRows)
+
+        let breakdowns = calculateBreakdowns results
+                
+        let breakdownDivs = 
+            breakdowns
+            |> List.map (fun (breakdownTitle,breakdownList) -> toBreakdownTable breakdownTitle breakdownList)
+            |> List.map (fun breakdownTable -> div [_class "column"] [breakdownTable])
 
         let content = [
             div [_class "content"] [
@@ -80,8 +120,8 @@ module ScreenerResults =
                     ]
                 ]
             ]
-            // div [_class "columns"] breakdownDivs
-            div [_class "block"] [resultTable]
+            div [_class "columns"] breakdownDivs
+            div [_class "block"] [screenerTable]
         ]
         
         content |> Shared.mainLayout $"Screener: {screener.name}"
