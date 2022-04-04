@@ -18,6 +18,7 @@ let webApp =
         GET >=>
             choose [
                 route "/" >=> warbler (fun _ -> Dashboard.handler())
+                routef "/screeners/%i" ScreenerDashboard.handler
                 routef "/screeners/%i/results/%s" ScreenerResults.handler
             ]
         setStatusCode 404 >=> text "Not Found" ]

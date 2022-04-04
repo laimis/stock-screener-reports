@@ -26,3 +26,13 @@ module Shared =
                 ]
             ]
         ]
+    
+    let notFound message =
+        let view = 
+            div [_class "content"] [
+                h1 [] [
+                    str message
+                ]
+            ]
+        
+        [view] |> mainLayout message

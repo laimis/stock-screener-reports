@@ -4,6 +4,7 @@ module ScreenerResults =
 
     open Giraffe.ViewEngine
     open FinvizScraper.Storage.Reports
+    open FinvizScraper.Web.Handlers.Shared
 
     let screenerResultToTr (result:ScreenerResultReportItem) =
         
@@ -77,7 +78,7 @@ module ScreenerResults =
             "Sector"
             "Industry"
             "Country" 
-            // "Market Cap" TODO: add this back once we start storing market cap with each screener result
+            "Market Cap"
             "Price"
             "Change"
             "Volume"
@@ -112,7 +113,8 @@ module ScreenerResults =
                     str ("Total Results: " + (string results.Length))
                 ]
                 div [_class "block"] [
-                    a [ 
+                    a [
+                        _class "button is-primary" 
                         _href screener.url
                         _target "_blank"
                     ] [
@@ -134,12 +136,6 @@ module ScreenerResults =
         | Some screener -> 
             let screenerResults = getScreenerResults screener.id date
             let view      = view screener screenerResults
-            Giraffe.Core.htmlView view
+            Giraffe.Core.htmlView (mainLayout $"{screener.name} results for {date}" [view])
         | None ->
-            let view = 
-                div [_class "content"] [
-                    h1 [] [
-                        str "Screener not found"
-                    ]
-                ]
-            Giraffe.Core.htmlView view
+            Giraffe.Core.htmlView (notFound "Screener not found")

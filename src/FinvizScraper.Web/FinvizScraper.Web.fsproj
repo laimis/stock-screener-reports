@@ -13,6 +13,7 @@
     <Compile Include="Handlers\Shared.fs" />
     <Compile Include="Handlers\Dashboard.fs" />
     <Compile Include="Handlers\ScreenerResults.fs" />
+    <Compile Include="Handlers\ScreenerDashboard.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

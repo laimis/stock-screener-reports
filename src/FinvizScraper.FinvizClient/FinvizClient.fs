@@ -24,17 +24,32 @@ module FinvizClient =
             let value = node.ChildNodes[0].InnerText
             value
 
+        let (|Decimal|_|) str =
+            match System.Decimal.TryParse(str:string) with
+            | (true,dec) -> Some(dec)
+            | _ -> None
+
+
         let processScreenerRow (node:HtmlAgilityPack.HtmlNode) : Option<ScreenerResult> =
             let toDecimal str =
-                System.Decimal.Parse(str)
+                match str with
+                | Decimal dec -> dec
+                | _ -> raise (new System.Exception("toDecimal conversion failed for " + str))
 
             let fromCapToDecimal (value:string) =
-                let lastChar = value[value.Length - 1]
-                let numericPortion = value.Substring(0, value.Length - 1) |> toDecimal
-                match lastChar with
-                | 'M' -> numericPortion * 1000000m
-                | 'B' -> numericPortion * 1000000000m
-                | _   -> raise (new System.Exception("Cap to decimal conversion failed for " + value))
+                match value with
+                | "-" -> 0m // sometimes when it does know know cap, it returns -
+                | _ ->
+                    let lastChar = value[value.Length - 1]
+                    let numericPortion = 
+                        match value.Substring(0, value.Length - 1) with
+                        | Decimal dec -> dec
+                        | _ -> raise (new System.Exception("fromCap numeric conversion failed for " + value))
+
+                    match lastChar with
+                    | 'M' -> numericPortion * 1000000m
+                    | 'B' -> numericPortion * 1000000000m
+                    | _   -> raise (new System.Exception("Cap to decimal conversion failed for " + value))
 
             let toInt str =
                 System.Int32.Parse(str)
