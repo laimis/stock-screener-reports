@@ -8,38 +8,45 @@ type ReportTests(output:ITestOutputHelper) =
         FinvizScraper.Storage.Reports.configureConnectionString (System.Environment.GetEnvironmentVariable(StorageTests.dbEnvironmentVariableName))
         FinvizScraper.Storage.Storage.configureConnectionString (System.Environment.GetEnvironmentVariable(StorageTests.dbEnvironmentVariableName))
 
-    let topGroupingTest resultGenerator =
+    let topGroupingTest resultGenerator containsMember =
+
         let screener = FinvizScraper.Storage.Storage.getScreenerByName StorageTests.testScreenerName
         
         match screener with
             | Some screener ->
-                let length =
-                    screener
-                    |> resultGenerator
-                    |> Seq.length
+                let grouping = screener |> resultGenerator
+                let length = grouping |> Seq.length
                 Assert.NotEqual(0, length)
+
+                let index = Seq.tryFind (fun (name, _) -> name = containsMember) grouping
+                match index with
+                    | Some _ ->
+                        Assert.True(true)
+                    | None ->
+                        Assert.True(false, $"{containsMember} not found in {grouping}")
 
             | None -> Assert.True(false, "Expected screener to be found")
 
-    [<Theory>]
-    [<InlineData(1)>]
-    [<InlineData(7)>]
-    let ``Getting sectors works`` days =
-
-        topGroupingTest (fun x-> FinvizScraper.Storage.Reports.topSectors x days)
+    let parseDate dateString =
+        System.DateTime.ParseExact(dateString, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)
 
     [<Theory>]
-    [<InlineData(1)>]
-    [<InlineData(7)>]
-    let ``Getting industry works`` days =
-        topGroupingTest (fun x-> FinvizScraper.Storage.Reports.topIndustries x days)
+    [<InlineData("2022-04-01")>]
+    let ``Getting sectors works`` dateStr =
+        let date = parseDate dateStr
+        "Energy" |> topGroupingTest (fun x-> FinvizScraper.Storage.Reports.topSectors x.id date)
 
     [<Theory>]
-    [<InlineData(1)>]
-    [<InlineData(7)>]
-    let ``Getting countries works`` days =
+    [<InlineData("2022-04-01")>]
+    let ``Getting industry works`` dateStr =
+        let date = parseDate dateStr
+        "Telecom Services" |> topGroupingTest (fun x-> FinvizScraper.Storage.Reports.topIndustries x.id date)
 
-        topGroupingTest (fun x-> FinvizScraper.Storage.Reports.topCountries x days)
+    [<Theory>]
+    [<InlineData("2022-04-01")>]
+    let ``Getting countries works`` dateStr =
+        let date = parseDate dateStr
+        "USA" |> topGroupingTest (fun x-> FinvizScraper.Storage.Reports.topCountries x.id date)
 
     [<Fact>]
     let ``Screener result list works``() =

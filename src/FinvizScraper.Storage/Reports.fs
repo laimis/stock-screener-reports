@@ -33,12 +33,12 @@ module Reports =
             volume:int;
         }
 
-    let private topGrouping screener days grouping =
+    let private topGrouping screenerId date grouping =
         let sql = @$"SELECT {grouping},count(*) as count FROM stocks
             JOIN screenerresults ON stocks.id = screenerresults.stockid
             WHERE 
-                screenerresults.screenerid = @screenerid
-                AND screenerresults.date >= @from
+                screenerresults.screenerid = @screenerId
+                AND screenerresults.date = @date
             GROUP BY {grouping}
             ORDER BY count DESC"
 
@@ -47,8 +47,8 @@ module Reports =
             |> Sql.connect
             |> Sql.query sql
             |> Sql.parameters [
-                "@from", Sql.timestamp (DateTime.Now.Date.AddDays(-days));
-                "@screenerid", Sql.int screener.id
+                "@date", Sql.timestamp date;
+                "@screenerId", Sql.int screenerId
             ]
             |> Sql.execute (fun reader ->
                 (reader.string grouping, reader.int "count")
@@ -57,14 +57,14 @@ module Reports =
         results
             |> Seq.toList
 
-    let topSectors screener days =
-        "sector" |> topGrouping screener days
+    let topSectors screenerId date =
+        "sector" |> topGrouping screenerId date
 
-    let topIndustries screener days =
-        "industry" |> topGrouping screener days
+    let topIndustries screenerId date =
+        "industry" |> topGrouping screenerId date
 
-    let topCountries screener days =
-        "industry" |> topGrouping screener days
+    let topCountries screenerId date =
+        "country" |> topGrouping screenerId date
 
     let getLatestScreeners() =
         let sql = @$"SELECT screenerid,name,url,date,count(*) as count FROM screenerresults
