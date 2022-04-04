@@ -15,7 +15,7 @@ type FinvizConfig =
     static member getRunDate() =
         let date = System.DateTime.Now
         date.ToString("yyyy-MM-dd")
-
+    
 type ScreenerResult = {
     ticker:string;
     company:string;
