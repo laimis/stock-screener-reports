@@ -68,3 +68,15 @@ type ReportTests(output:ITestOutputHelper) =
         let results = FinvizScraper.Storage.Reports.getScreenerResults screener.screenerid (screener.date.ToString("yyyy-MM-dd"))
 
         Assert.NotEmpty(results)
+
+    [<Fact>]
+    let ``Particular screener daily counts work``() =
+
+        let screener = FinvizScraper.Storage.Storage.getScreenerByName StorageTests.testScreenerName
+
+        let results = FinvizScraper.Storage.Reports.getDailyCountsForScreener screener.Value.id 7
+
+        Assert.NotEmpty(results)
+
+        let (_,firstCount) = results.Item(0)
+        Assert.True(firstCount > 0)
