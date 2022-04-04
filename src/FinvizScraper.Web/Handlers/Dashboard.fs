@@ -41,9 +41,15 @@ module Dashboard =
         div [_class "content"] [
             h2 [] [ str screener.screener.name ]
             h5 [] [
-                a [ _class "button is-primary"
-                    _href $"/screeners/{screener.screener.screenerid}/results/{screenerDate}"] [
-                    str (screener.screener.count.ToString() + " results")
+                div [ _class "buttons"] [
+                    a [ _class "button is-primary"
+                        _href $"/screeners/{screener.screener.screenerid}/results/{screenerDate}"] [
+                        str (screener.screener.count.ToString() + " results")
+                    ]
+                    a [ _class "button is-primary"
+                        _href $"/screeners/{screener.screener.screenerid}"] [
+                        str "Screener Details"
+                    ]
                 ]
             ]
             div [_class "columns"] [
