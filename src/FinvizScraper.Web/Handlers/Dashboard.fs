@@ -17,6 +17,7 @@ module Dashboard =
         let toNameCountRows breakdownName list =
             let rows =
                 list
+                |> List.truncate 10
                 |> List.map (fun (name,count) ->
                     tr [] [
                         td [] [ str name ]
@@ -68,9 +69,7 @@ module Dashboard =
             h1 [_class "title"] [ str "Dashboard" ]
         ]
 
-        let allNodes = List.append nodes screenerRows
-
-        allNodes |> Shared.mainLayout "Dashboard"
+        List.append nodes screenerRows
 
     let handler()  = 
         
@@ -91,5 +90,5 @@ module Dashboard =
                 }
             )
 
-        let view      = view screenerResultWithBreakdowns
-        Giraffe.Core.htmlView view
+        view screenerResultWithBreakdowns
+        |> Shared.mainLayout "Dashboard"

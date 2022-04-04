@@ -104,7 +104,7 @@ module ScreenerResults =
             |> List.map (fun (breakdownTitle,breakdownList) -> toBreakdownTable breakdownTitle breakdownList)
             |> List.map (fun breakdownTable -> div [_class "column"] [breakdownTable])
 
-        let content = [
+        [
             div [_class "content"] [
                 h1 [] [
                     str ("Screener: " + screener.name)
@@ -112,6 +112,7 @@ module ScreenerResults =
                 div [_class "block"] [
                     str ("Total Results: " + (string results.Length))
                 ]
+                
                 div [_class "block"] [
                     a [
                         _class "button is-primary" 
@@ -125,8 +126,6 @@ module ScreenerResults =
             div [_class "columns"] breakdownDivs
             div [_class "block"] [screenerTable]
         ]
-        
-        content |> Shared.mainLayout $"Screener: {screener.name}"
 
     let handler ((id:int),(date:string))  = 
         
@@ -136,6 +135,6 @@ module ScreenerResults =
         | Some screener -> 
             let screenerResults = getScreenerResults screener.id date
             let view      = view screener screenerResults
-            Giraffe.Core.htmlView (mainLayout $"{screener.name} results for {date}" [view])
+            view |> mainLayout $"Screener: {screener.name}"
         | None ->
-            Giraffe.Core.htmlView (notFound "Screener not found")
+            notFound "Screener not found"
