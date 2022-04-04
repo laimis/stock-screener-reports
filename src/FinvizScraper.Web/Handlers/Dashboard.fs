@@ -14,20 +14,27 @@ module Dashboard =
         }
 
     let private generateBreakdownParts screener = 
-        let toNameCountRows list =
-            list
-            |> List.map (fun (name,count) ->
-                tr [] [
-                    td [] [ str name ]
-                    td [] [ str (count.ToString()) ]
-                ])
+        let toNameCountRows breakdownName list =
+            let rows =
+                list
+                |> List.map (fun (name,count) ->
+                    tr [] [
+                        td [] [ str name ]
+                        td [] [ str (count.ToString()) ]
+                    ])
 
-        let toTable list =
-            table [Shared.fullWidthTableAttributes] (list |> toNameCountRows)
+            let header = tr [] [
+                th [ _colspan "2"] [ str breakdownName ]
+            ]
 
-        let sectorsTable = screener.sectors |> toTable
-        let industriesTable = screener.industries |> toTable
-        let countriesTable = screener.countries |> toTable
+            header::rows
+
+        let toTable breakdownName list =
+            table [Shared.fullWidthTableAttributes] (list |> toNameCountRows breakdownName)
+
+        let sectorsTable = screener.sectors |> toTable "Sectors"
+        let industriesTable = screener.industries |> toTable "Industries"
+        let countriesTable = screener.countries |> toTable "Countries"
 
         let screenerDate = screener.screener.date.ToString("yyyy-MM-dd")
         
@@ -40,18 +47,9 @@ module Dashboard =
                 ]
             ]
             div [_class "columns"] [
-                div [_class "column"] [
-                    str "Sectors"
-                    sectorsTable
-                ]
-                div [_class "column"] [
-                    str "Industries"
-                    industriesTable
-                ]
-                div [_class "column"] [
-                    str "Countries"
-                    countriesTable
-                ]
+                div [_class "column"] [sectorsTable]
+                div [_class "column"] [industriesTable]
+                div [_class "column"] [countriesTable]
             ]
         ]
 
