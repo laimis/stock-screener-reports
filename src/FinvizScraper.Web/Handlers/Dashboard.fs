@@ -14,28 +14,10 @@ module Dashboard =
         }
 
     let private generateBreakdownParts screener = 
-        let toNameCountRows breakdownName list =
-            let rows =
-                list
-                |> List.truncate 10
-                |> List.map (fun (name,count) ->
-                    tr [] [
-                        td [] [ str name ]
-                        td [] [ str (count.ToString()) ]
-                    ])
-
-            let header = tr [] [
-                th [ _colspan "2"] [ str breakdownName ]
-            ]
-
-            header::rows
-
-        let toTable breakdownName list =
-            table [Shared.fullWidthTableAttributes] (list |> toNameCountRows breakdownName)
-
-        let sectorsTable = screener.sectors |> toTable "Sectors"
-        let industriesTable = screener.industries |> toTable "Industries"
-        let countriesTable = screener.countries |> toTable "Countries"
+        
+        let sectorsTable = screener.sectors |> Shared.toNameCountTable "Sectors"
+        let industriesTable = screener.industries |> Shared.toNameCountTable "Industries"
+        let countriesTable = screener.countries |> Shared.toNameCountTable "Countries"
 
         let screenerDate = screener.screener.date.ToString("yyyy-MM-dd")
         

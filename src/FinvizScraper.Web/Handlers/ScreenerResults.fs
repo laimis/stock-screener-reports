@@ -56,7 +56,7 @@ module ScreenerResults =
             )
             |> Seq.toList
         
-        table [ Shared.fullWidthTableAttributes ] (headerRow::valueRows)
+        table [ fullWidthTableAttributes ] (headerRow::valueRows)
         
     let calculateBreakdowns screenerResults =
         
