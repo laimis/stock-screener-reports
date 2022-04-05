@@ -2,15 +2,19 @@ module ReportTests
 
 open Xunit
 open Xunit.Abstractions
+open System
 
 type ReportTests(output:ITestOutputHelper) =
     do
         FinvizScraper.Storage.Reports.configureConnectionString (System.Environment.GetEnvironmentVariable(StorageTests.dbEnvironmentVariableName))
         FinvizScraper.Storage.Storage.configureConnectionString (System.Environment.GetEnvironmentVariable(StorageTests.dbEnvironmentVariableName))
 
+    let getTestScreener = 
+        FinvizScraper.Storage.Storage.getScreenerByName StorageTests.testScreenerName
+
     let topGroupingTest resultGenerator containsMember =
 
-        let screener = FinvizScraper.Storage.Storage.getScreenerByName StorageTests.testScreenerName
+        let screener = getTestScreener
         
         match screener with
             | Some screener ->
@@ -72,7 +76,7 @@ type ReportTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``Particular screener daily counts work``() =
 
-        let screener = FinvizScraper.Storage.Storage.getScreenerByName StorageTests.testScreenerName
+        let screener = getTestScreener
 
         let results = FinvizScraper.Storage.Reports.getDailyCountsForScreener screener.Value.id 7
 
@@ -80,3 +84,15 @@ type ReportTests(output:ITestOutputHelper) =
 
         let (_,firstCount) = results.Item(0)
         Assert.True(firstCount > 0)
+
+    [<Fact>]
+    let ``Date range sector grouping works``() =
+        "Energy" |> topGroupingTest (fun x -> FinvizScraper.Storage.Reports.topSectorsOverDays x.id (DateTime.Now.AddDays(-7)) DateTime.Now)
+
+    [<Fact>]
+    let ``Date range industry grouping works``() =
+        "Telecom Services" |> topGroupingTest (fun x -> FinvizScraper.Storage.Reports.topIndustriesOverDays x.id (DateTime.Now.AddDays(-7)) DateTime.Now)
+
+    [<Fact>]
+    let ``Date range country grouping works``() =
+        "USA" |> topGroupingTest (fun x -> FinvizScraper.Storage.Reports.topCountriesOverDays x.id (DateTime.Now.AddDays(-7)) DateTime.Now)

@@ -16,15 +16,32 @@ module ScreenerDashboard =
         let labels = data |> List.map (fun (d, _) -> d.ToString("MMM/dd"))
         let data = data |> List.map (fun (_,counts) -> counts)
 
+        let chartDiv = div [] [
+            canvas [_id canvasId] []
+        ]
+
+        let sectorsData = Reports.topSectorsOverDays screener.id (System.DateTime.Now.AddDays(-days)) System.DateTime.Now
+        let industriesData = Reports.topIndustriesOverDays screener.id (System.DateTime.Now.AddDays(-days)) System.DateTime.Now
+        let countriesData = Reports.topCountriesOverDays screener.id (System.DateTime.Now.AddDays(-days)) System.DateTime.Now
+
+        let sectorsTable = sectorsData |> toNameCountTable "Sectors"
+        let industriesTable = industriesData |> toNameCountTable "Industries"
+        let countriesTable = countriesData |> toNameCountTable "Countries"
+
+        let breadownDiv = div [_class "columns"] [
+            div [_class "column"] [sectorsTable]
+            div [_class "column"] [industriesTable]
+            div [_class "column"] [countriesTable]
+        ]
+
         [
             div [_class "content"] [
                 h1 [] [
                     str screener.name
                 ]
             ]
-            div [] [
-                canvas [_id canvasId] []
-            ]
+            chartDiv
+            breadownDiv
             script [_type "application/javascript"] [
                 generateJSForChart "Number of results" canvasId labels data
             ]

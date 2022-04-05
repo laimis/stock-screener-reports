@@ -37,6 +37,25 @@ module Shared =
             );
             """)
 
+    let private toNameCountRows breakdownName list =
+        let rows =
+            list
+            |> List.truncate 10
+            |> List.map (fun (name,count) ->
+                tr [] [
+                    td [] [ str name ]
+                    td [] [ str (count.ToString()) ]
+                ])
+
+        let header = tr [] [
+            th [ _colspan "2"] [ str breakdownName ]
+        ]
+
+        header::rows
+
+    let toNameCountTable title listOfNameCountPairs =
+        table [fullWidthTableAttributes] (listOfNameCountPairs |> toNameCountRows title)
+
     let mainLayout pageTitle (content: XmlNode list) =
         html [] [
             head [] [

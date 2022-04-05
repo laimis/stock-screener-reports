@@ -55,7 +55,31 @@ module Reports =
             )
 
         results
-            |> Seq.toList
+
+    let private topGroupingOverDays screenerId fromDate toDate grouping =
+        let sql = @$"SELECT {grouping},count(*) as count FROM stocks
+            JOIN screenerresults ON stocks.id = screenerresults.stockid
+            WHERE 
+                screenerresults.screenerid = @screenerId
+                AND screenerresults.date >= @fromDate
+                AND screenerresults.date <= @toDate
+            GROUP BY {grouping}
+            ORDER BY count DESC"
+
+        let results =
+            cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters [
+                "@fromDate", Sql.timestamp fromDate;
+                "@toDate", Sql.timestamp toDate;
+                "@screenerId", Sql.int screenerId
+            ]
+            |> Sql.execute (fun reader ->
+                (reader.string grouping, reader.int "count")
+            )
+
+        results
 
     let topSectors screenerId date =
         "sector" |> topGrouping screenerId date
@@ -65,6 +89,15 @@ module Reports =
 
     let topCountries screenerId date =
         "country" |> topGrouping screenerId date
+
+    let topSectorsOverDays scrennerId startDate endDate =
+        "sector" |> topGroupingOverDays scrennerId startDate endDate
+
+    let topIndustriesOverDays scrennerId startDate endDate =
+        "industry" |> topGroupingOverDays scrennerId startDate endDate
+
+    let topCountriesOverDays scrennerId startDate endDate =
+        "country" |> topGroupingOverDays scrennerId startDate endDate
 
     let getLatestScreeners() =
         let sql = @$"SELECT screenerid,name,url,date,count(*) as count FROM screenerresults
