@@ -9,24 +9,15 @@ module ScreenerResults =
     let screenerResultToTr (result:ScreenerResultReportItem) =
         
         let toTd input =
-            td [] [
-                str input
-            ]
-        
-        let toTdWithHref href =
-            td [] [
-                a [
-                    _href href
-                    _target "_blank"
-                ] [
-                    str "link"
-                ]
-            ]
+            td [] [ str input ]
+
+        let toTdWithNode node =
+            td [] [ node ]
 
         let rowAttributes = [_height "50px"]
 
         tr rowAttributes [
-            toTd result.ticker
+            toTdWithNode (generateTickerLink result.ticker)
             toTd result.name
             toTd result.sector
             toTd result.industry
@@ -35,7 +26,7 @@ module ScreenerResults =
             toTd (string result.price)
             toTd (string result.change)
             toTd (string (result.volume.ToString("N0")))
-            toTdWithHref $"https://tradingview.com/chart/kQn4rgoA/?symbol={result.ticker}"
+            toTdWithNode (generateHref "link" $"https://tradingview.com/chart/kQn4rgoA/?symbol={result.ticker}")
         ]
 
     let toBreakdownTable breakdownTitle (breakdown:seq<string * list<ScreenerResultReportItem>>) =
@@ -95,7 +86,7 @@ module ScreenerResults =
     let private view (screener:FinvizScraper.Core.Screener) (results:list<ScreenerResultReportItem>) =
 
         let screenerRows = results |> List.map screenerResultToTr
-        let screenerTable = table [Shared.fullWidthTableAttributes] (headerRow::screenerRows)
+        let screenerTable = table [fullWidthTableAttributes] (headerRow::screenerRows)
 
         let breakdowns = calculateBreakdowns results
                 

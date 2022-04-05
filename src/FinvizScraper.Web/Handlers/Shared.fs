@@ -6,6 +6,21 @@ module Shared =
 
     let fullWidthTableAttributes = _class "table is-fullwidth"
 
+    let generateTickerLink ticker =
+        a [
+            _href $"/stocks/{ticker}"
+        ] [
+            str ticker
+        ]
+
+    let generateHref title link =
+        a [
+            _href link
+            _target "_blank"
+        ] [
+            str title
+        ]
+
     let generateJSForChart title chartCanvasId labels data =
 
         let formattedLabels = labels |> List.map (fun l -> $"'{l}'") |> String.concat ","
