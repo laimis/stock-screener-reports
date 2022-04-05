@@ -11,15 +11,9 @@ module ScreenerDashboard =
 
     let generateLayoutForScreener (screener:FinvizScraper.Core.Screener) =
 
-        let canvasId = $"myChart{screener.id}"
         let data = Reports.getDailyCountsForScreener screener.id days
 
-        let labels = data |> List.map (fun (d, _) -> d.ToString("MMM/dd"))
-        let data = data |> List.map (fun (_,counts) -> counts)
-
-        let chartDiv = div [] [
-            canvas [_id canvasId] []
-        ]
+        let chartElements = convertNameCountsToChart screener.name data
 
         let fetchBreakdownData dataSource =
             let startDate = DateTime.Now.AddDays(-days)
@@ -35,24 +29,22 @@ module ScreenerDashboard =
         let industriesTable = industriesData |> toNameCountTable "Industries"
         let countriesTable = countriesData |> toNameCountTable "Countries"
 
-        let breadownDiv = div [_class "columns"] [
+        let breakdownDiv = div [_class "columns"] [
             div [_class "column"] [sectorsTable]
             div [_class "column"] [industriesTable]
             div [_class "column"] [countriesTable]
         ]
 
-        [
+        let header = 
             div [_class "content"] [
                 h1 [] [
                     str screener.name
                 ]
             ]
-            chartDiv
-            breadownDiv
-            script [_type "application/javascript"] [
-                generateJSForChart "Number of results" canvasId labels data
-            ]
-        ]
+
+        let headerWithCharts = header::chartElements
+
+        [breakdownDiv] |> List.append headerWithCharts
 
 
     let handler screenerId  = 
@@ -65,11 +57,3 @@ module ScreenerDashboard =
             view |> mainLayout $"Screener: {screener.name}"
         | None ->
             notFound "Screener not found"
-
-    let handlerForAllScreeners() =
-
-        let screeners = Storage.getScreeners()
-
-        let view = generateLayoutForScreener (screeners.Item(0))
-
-        view |> mainLayout "Screener Dashboard"
