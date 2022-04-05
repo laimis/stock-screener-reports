@@ -2,6 +2,7 @@ namespace FinvizScraper.Web.Handlers
 
 module Shared =
     open Giraffe.ViewEngine
+    open System
 
     let fullWidthTableAttributes = _class "table is-fullwidth"
 
@@ -10,32 +11,49 @@ module Shared =
         let formattedLabels = labels |> List.map (fun l -> $"'{l}'") |> String.concat ","
         let formattedData = data |> List.map (fun d -> $"{d}") |> String.concat ","
 
-        printf "%s" formattedData
-        printf "%s" formattedLabels
-
         rawText ("""
-            const labels = [
-                """ + formattedLabels + """
-            ];
-            const data = {
-                labels: labels,
-                datasets: [{
-                label: '""" + title + """',
-                backgroundColor: 'rgb(255, 99, 132)',
-                borderColor: 'rgb(255, 99, 132)',
-                data: [""" + formattedData + """],
-                }]
-            };
-            const config = {
+            const config""" + chartCanvasId + """ = {
                 type: 'bar',
-                data: data,
+                data: {
+                    labels: [""" + formattedLabels + """],
+                    datasets: [{
+                        label: '""" + title + """',
+                        backgroundColor: 'rgb(255, 99, 132)',
+                        borderColor: 'rgb(255, 99, 132)',
+                        data: [""" + formattedData + """],
+                    }]
+                },
                 options: {}
             };
-            const myChart = new Chart(
+            const myChart""" + chartCanvasId + """ = new Chart(
                 document.getElementById('""" + chartCanvasId + """'),
-                config
+                config""" + chartCanvasId + """
             );
             """)
+
+    
+    let generateChartElements title labels data =
+        let chartGuid = Guid.NewGuid().ToString("N")
+        let canvasId = $"chart{chartGuid}"
+
+        let chartDiv = div [] [
+            canvas [ _id canvasId ] []
+        ]
+
+        let chartScript = script [_type "application/javascript"] [
+            generateJSForChart title canvasId labels data
+        ]
+
+        [
+            chartDiv
+            chartScript
+        ]
+
+    let convertNameCountsToChart title listOfNameCountPairs =
+        let labels = listOfNameCountPairs |> List.map (fun ((name:DateTime),_) -> name.ToString("MMM/dd"))
+        let data = listOfNameCountPairs |> List.map (fun (_,count) -> count)
+
+        generateChartElements title labels data
 
     let private toNameCountRows breakdownName list =
         let rows =
