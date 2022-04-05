@@ -5,6 +5,7 @@ module ScreenerDashboard =
     open Giraffe.ViewEngine
     open FinvizScraper.Web.Handlers.Shared
     open FinvizScraper.Storage
+    open System
     
     let private days = 14
 
@@ -20,9 +21,15 @@ module ScreenerDashboard =
             canvas [_id canvasId] []
         ]
 
-        let sectorsData = Reports.topSectorsOverDays screener.id (System.DateTime.Now.AddDays(-days)) System.DateTime.Now
-        let industriesData = Reports.topIndustriesOverDays screener.id (System.DateTime.Now.AddDays(-days)) System.DateTime.Now
-        let countriesData = Reports.topCountriesOverDays screener.id (System.DateTime.Now.AddDays(-days)) System.DateTime.Now
+        let fetchBreakdownData dataSource =
+            let startDate = DateTime.Now.AddDays(-days)
+            let endDate = DateTime.Now
+
+            dataSource screener.id startDate endDate
+
+        let sectorsData = fetchBreakdownData Reports.topSectorsOverDays
+        let industriesData = fetchBreakdownData Reports.topIndustriesOverDays
+        let countriesData = fetchBreakdownData Reports.topCountriesOverDays
 
         let sectorsTable = sectorsData |> toNameCountTable "Sectors"
         let industriesTable = industriesData |> toNameCountTable "Industries"
