@@ -51,7 +51,9 @@ module Shared =
                 options: {
                     plugins: {
                         datalabels : {
-                            color: 'white'
+                            // color: 'white',
+                            anchor: 'end',
+                            align: 'end'
                         }
                     }
                 }
