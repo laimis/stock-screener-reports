@@ -25,14 +25,17 @@ module Dashboard =
             h2 [] [ str screener.screener.name ]
             h5 [] [
                 div [ _class "buttons"] [
-                    a [ _class "button is-primary"
-                        _href $"/screeners/{screener.screener.screenerid}/results/{screenerDate}"] [
-                        str (screener.screener.count.ToString() + " results")
-                    ]
-                    a [ _class "button is-primary"
-                        _href $"/screeners/{screener.screener.screenerid}"] [
-                        str "Screener Details"
-                    ]
+                    
+                    Shared.generateHrefWithAttr
+                        $"{screener.screener.count} results"
+                        $"/screeners/{screener.screener.screenerid}/results/{screenerDate}"
+                        (_class "button is-primary")
+
+                    Shared.generateHrefWithAttr
+                        "Screener Details"
+                        $"/screeners/{screener.screener.screenerid}"
+                        (_class "button is-primary")
+                        
                 ]
             ]
             div [_class "columns"] [
@@ -48,7 +51,17 @@ module Dashboard =
             |> List.map generateBreakdownParts
 
         let nodes = [
-            h1 [_class "title"] [ str "Dashboard" ]
+            div [ _class "columns" ] [
+                div [ _class "column is-four-fifths" ] [
+                    h1 [_class "title"] [ str "Dashboard" ]
+                ]
+                div [ _class "column" ] [
+                    Shared.generateHrefWithAttr
+                        "Screener Trends"
+                        "/screeners/trends" (_class "button is-primary")
+                ]
+            ]
+            
         ]
 
         List.append nodes screenerRows

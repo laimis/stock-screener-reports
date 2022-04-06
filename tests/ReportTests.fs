@@ -96,3 +96,8 @@ type ReportTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``Date range country grouping works``() =
         "USA" |> topGroupingTest (fun x -> FinvizScraper.Storage.Reports.topCountriesOverDays x.id (DateTime.Now.AddDays(-7)) DateTime.Now)
+
+    [<Fact>]
+    let ``getting screener results for ticker works``() =
+        let results = FinvizScraper.Storage.Reports.getScreenerResultsForTicker "CUTR"
+        Assert.NotEmpty(results)

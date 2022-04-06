@@ -4,7 +4,6 @@ module Reports =
 
     open Npgsql.FSharp
     open System
-    open FinvizScraper.Core
 
     let mutable private cnnString = ""
 
@@ -27,10 +26,33 @@ module Reports =
             sector:string;
             industry:string;
             country:string;
+            date:DateTime;
             marketCap:decimal;
             price:decimal;
             change:decimal;
             volume:int;
+            screenerid:int;
+            screenername:string;
+        }
+
+    let private mapScreenerResultReportItem (reader:RowReader) =
+        {
+            stockid = (reader.int "id");
+            ticker = (reader.string "ticker");
+            name = (reader.string "name");
+            sector = (reader.string "sector");
+            industry = (reader.string "industry");
+            country = (reader.string "country");
+            date = (reader.dateTime "date");
+            marketCap = (
+                reader.decimalOrNone "marketcap"
+                |> Option.defaultValue 0m
+            );
+            price = (reader.decimal "price");
+            change = (reader.decimal "change");
+            volume = (reader.int "volume");
+            screenerid = (reader.int "screenerid");
+            screenername = (reader.string "screenername");
         }
 
     let private topGrouping screenerId date grouping =
@@ -123,41 +145,25 @@ module Reports =
 
         let sql = @$"
             SELECT 
-                stocks.id,ticker,name,sector,industry,country,
-                screenerresults.marketcap,price,change,volume
+                stocks.id,ticker,stocks.name,sector,industry,country,
+                screeners.id as screenerid,screeners.name as screenername,
+                screenerresults.date,marketcap,price,change,volume
             FROM stocks
             JOIN screenerresults ON stocks.id = screenerresults.stockid
+            JOIN screeners ON screeners.id = screenerresults.screenerid
             WHERE 
                 screenerresults.screenerid = @screenerid
                 AND screenerresults.date = date(@date)
             ORDER BY screenerresults.volume DESC"
 
-        let results =
-            cnnString
+        cnnString
             |> Sql.connect
             |> Sql.query sql
             |> Sql.parameters [
                 "@date", Sql.string date;
                 "@screenerid", Sql.int id
             ]
-            |> Sql.execute (fun reader -> 
-                {
-                    stockid = (reader.int "id");
-                    ticker = (reader.string "ticker");
-                    name = (reader.string "name");
-                    sector = (reader.string "sector");
-                    industry = (reader.string "industry");
-                    country = (reader.string "country");
-                    marketCap = (
-                        reader.decimalOrNone "marketcap"
-                        |> Option.defaultValue 0m
-                    );
-                    price = (reader.decimal "price");
-                    change = (reader.decimal "change");
-                    volume = (reader.int "volume");
-                })
-
-        results
+            |> Sql.execute (fun reader -> mapScreenerResultReportItem reader)
 
     let getDailyCountsForScreener id days =
 
@@ -171,8 +177,7 @@ module Reports =
             GROUP BY date
             ORDER BY date"
 
-        let results =
-            cnnString
+        cnnString
             |> Sql.connect
             |> Sql.query sql
             |> Sql.parameters [
@@ -186,5 +191,26 @@ module Reports =
                 )
             )
 
-        results
-        
+    let getScreenerResultsForTicker ticker =
+            
+        let sql = @$"
+            SELECT 
+                stocks.id,ticker,stocks.name,sector,industry,country,
+                screeners.id as screenerid,screeners.name as screenername,
+                screenerresults.date,marketcap,price,change,volume
+            FROM stocks
+            JOIN screenerresults ON stocks.id = screenerresults.stockid
+            JOIN screeners ON screeners.id = screenerresults.screenerid
+            WHERE 
+                stocks.ticker = @ticker
+            ORDER BY screenerresults.date DESC"
+
+        cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters [
+                "@ticker", Sql.string ticker
+            ]
+            |> Sql.execute (
+                fun reader -> mapScreenerResultReportItem reader
+            )

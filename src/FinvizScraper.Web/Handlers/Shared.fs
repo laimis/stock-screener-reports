@@ -6,6 +6,30 @@ module Shared =
 
     let fullWidthTableAttributes = _class "table is-fullwidth"
 
+    let generateTickerLink ticker =
+        a [
+            _href $"/stocks/{ticker}"
+        ] [
+            str ticker
+        ]
+
+    let generateHref title link =
+        a [
+            _href link
+            _target "_blank"
+        ] [
+            str title
+        ]
+
+    let generateHrefWithAttr title link attr =
+        a [
+            _href link
+            _target "_blank"
+            attr
+        ] [
+            str title
+        ]
+
     let generateJSForChart title chartCanvasId labels data =
 
         let formattedLabels = labels |> List.map (fun l -> $"'{l}'") |> String.concat ","
@@ -23,7 +47,14 @@ module Shared =
                         data: [""" + formattedData + """],
                     }]
                 },
-                options: {}
+                plugins: [ChartDataLabels],
+                options: {
+                    plugins: {
+                        datalabels : {
+                            color: 'white'
+                        }
+                    }
+                }
             };
             const myChart""" + chartCanvasId + """ = new Chart(
                 document.getElementById('""" + chartCanvasId + """'),
@@ -87,6 +118,7 @@ module Shared =
                        _href "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css"]
 
                 script [ _src "https://cdn.jsdelivr.net/npm/chart.js" ] []
+                script [ _src "https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels" ] []
 
                 meta [
                     _name "viewport"
