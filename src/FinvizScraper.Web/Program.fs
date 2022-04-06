@@ -12,7 +12,6 @@ open Giraffe
 open FinvizScraper.Web.Handlers
 open FinvizScraper.Storage
 
-
 let webApp =
     choose [
         GET >=>
@@ -23,6 +22,7 @@ let webApp =
                 routef "/screeners/%i/results/%s" ScreenerResults.handler
                 route "/screeners/trends" >=> warbler (fun _ -> ScreenersTrends.handler())
 
+                route "/stocks/search" >=> StockSearch.redirect
                 routef "/stocks/%s" StockDashboard.handler
             ]
         setStatusCode 404 >=> text "Not Found" ]

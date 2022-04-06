@@ -52,13 +52,26 @@ module Dashboard =
 
         let nodes = [
             div [ _class "columns" ] [
-                div [ _class "column is-four-fifths" ] [
+                div [ _class "column is-half" ] [
                     h1 [_class "title"] [ str "Dashboard" ]
+                ]
+                div [ _class "column" ] [
+                    form [
+                        _action "/stocks/search"
+                        _method "GET"
+                    ] [
+                        input [
+                            _class "input"
+                            _type "text"
+                            _placeholder "Search for stock"
+                            _name "ticker"
+                        ]
+                    ]
                 ]
                 div [ _class "column" ] [
                     Shared.generateHrefWithAttr
                         "Screener Trends"
-                        "/screeners/trends" (_class "button is-primary")
+                        "/screeners/trends" (_class "button is-primary is-pulled-right")
                 ]
             ]
             

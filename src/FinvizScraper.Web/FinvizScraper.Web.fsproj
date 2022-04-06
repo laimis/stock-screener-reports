@@ -16,6 +16,7 @@
     <Compile Include="Handlers\ScreenerDashboard.fs" />
     <Compile Include="Handlers\ScreenersTrends.fs" />
     <Compile Include="Handlers\StockDashboard.fs" />
+    <Compile Include="Handlers\StockSearch.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
