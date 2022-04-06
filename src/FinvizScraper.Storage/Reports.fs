@@ -4,7 +4,6 @@ module Reports =
 
     open Npgsql.FSharp
     open System
-    open FinvizScraper.Core
 
     let mutable private cnnString = ""
 
@@ -32,6 +31,8 @@ module Reports =
             price:decimal;
             change:decimal;
             volume:int;
+            screenerid:int;
+            screenername:string;
         }
 
     let private mapScreenerResultReportItem (reader:RowReader) =
@@ -50,6 +51,8 @@ module Reports =
             price = (reader.decimal "price");
             change = (reader.decimal "change");
             volume = (reader.int "volume");
+            screenerid = (reader.int "screenerid");
+            screenername = (reader.string "screenername");
         }
 
     let private topGrouping screenerId date grouping =
@@ -142,10 +145,12 @@ module Reports =
 
         let sql = @$"
             SELECT 
-                stocks.id,ticker,name,sector,industry,country,
+                stocks.id,ticker,stocks.name,sector,industry,country,
+                screeners.id as screenerid,screeners.name as screenername,
                 screenerresults.date,marketcap,price,change,volume
             FROM stocks
             JOIN screenerresults ON stocks.id = screenerresults.stockid
+            JOIN screeners ON screeners.id = screenerresults.screenerid
             WHERE 
                 screenerresults.screenerid = @screenerid
                 AND screenerresults.date = date(@date)
@@ -190,13 +195,15 @@ module Reports =
             
         let sql = @$"
             SELECT 
-                stocks.id,ticker,name,sector,industry,country,
+                stocks.id,ticker,stocks.name,sector,industry,country,
+                screeners.id as screenerid,screeners.name as screenername,
                 screenerresults.date,marketcap,price,change,volume
             FROM stocks
             JOIN screenerresults ON stocks.id = screenerresults.stockid
+            JOIN screeners ON screeners.id = screenerresults.screenerid
             WHERE 
                 stocks.ticker = @ticker
-            ORDER BY screenerresults.volume DESC"
+            ORDER BY screenerresults.date DESC"
 
         cnnString
             |> Sql.connect

@@ -28,10 +28,10 @@ module StockDashboard =
            ]
         ]
 
-        let header =
+        let tableHeader =
             tr [] [
                 th [] [str "date"]
-                // th [] [str "screener"]
+                th [] [str "screener"]
                 th [] [str "market cap"]
                 th [] [str "price"]
                 th [] [str "change"]
@@ -42,7 +42,7 @@ module StockDashboard =
             recentScreenerResults |> List.map (fun screenerResult ->
                 tr [] [
                     td [] [str (screenerResult.date.ToString("yyyy-MM-dd"))]
-                    // td [] [str (screenerResult.)]
+                    td [] [str (screenerResult.screenername)]
                     td [] [str (screenerResult.marketCap.ToString())]
                     td [] [str (screenerResult.price.ToString())]
                     td [] [str (screenerResult.change.ToString())]
@@ -50,7 +50,7 @@ module StockDashboard =
                 ]
             )
 
-        let rows = header::results
+        let rows = tableHeader::results
 
         let tbl = table [ fullWidthTableAttributes ] rows
 
@@ -64,7 +64,7 @@ module StockDashboard =
         let stock = Storage.getStockByTicker ticker
         match stock with
         | Some stock ->
-            let recentHits = Reports.getScreenerResultsForTicker stock.ticker
+            let recentHits = getScreenerResultsForTicker stock.ticker
 
             printf "Result count %i" (recentHits.Length)
 

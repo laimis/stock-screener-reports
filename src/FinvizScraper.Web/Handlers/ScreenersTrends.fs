@@ -14,7 +14,13 @@ module ScreenersTrends =
         let canvasId = $"chart{chartGuid}"
 
         let chartDiv = div [] [
-            canvas [ _id canvasId ] []
+            canvas [
+                _id canvasId
+                attr "aria-label" $"Chart for {title}"
+                attr "role" "img"
+            ] [
+                p [] [ str $"Chart for {title}" ]
+            ]
         ]
 
         let chartScript = script [_type "application/javascript"] [
