@@ -50,13 +50,9 @@ module StockDashboard =
                 ]
             )
 
-        let rows = tableHeader::results
-
-        let tbl = table [ Views.fullWidthTableAttributes ] rows
-
         [
             header
-            tbl
+            tableHeader::results |> Views.fullWidthTable
         ]
 
 
