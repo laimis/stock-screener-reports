@@ -29,64 +29,6 @@ module Views =
             str title
         ]
 
-    let generateJSForChart title chartCanvasId labels data =
-
-        let formattedLabels = labels |> List.map (fun l -> $"'{l}'") |> String.concat ","
-        let formattedData = data |> List.map (fun d -> $"{d}") |> String.concat ","
-
-        rawText ("""
-            const config""" + chartCanvasId + """ = {
-                type: 'bar',
-                data: {
-                    labels: [""" + formattedLabels + """],
-                    datasets: [{
-                        label: '""" + title + """',
-                        backgroundColor: 'rgb(255, 99, 132)',
-                        borderColor: 'rgb(255, 99, 132)',
-                        data: [""" + formattedData + """],
-                    }]
-                },
-                plugins: [ChartDataLabels],
-                options: {
-                    plugins: {
-                        datalabels : {
-                            // color: 'white',
-                            anchor: 'end',
-                            align: 'end'
-                        }
-                    }
-                }
-            };
-            const myChart""" + chartCanvasId + """ = new Chart(
-                document.getElementById('""" + chartCanvasId + """'),
-                config""" + chartCanvasId + """
-            );
-            """)
-
-    
-    let generateChartElements title labels data =
-        let chartGuid = Guid.NewGuid().ToString("N")
-        let canvasId = $"chart{chartGuid}"
-
-        let chartDiv = div [] [
-            canvas [ _id canvasId ] []
-        ]
-
-        let chartScript = script [_type "application/javascript"] [
-            generateJSForChart title canvasId labels data
-        ]
-
-        [
-            chartDiv
-            chartScript
-        ]
-
-    let convertNameCountsToChart title listOfNameCountPairs =
-        let labels = listOfNameCountPairs |> List.map (fun ((name:DateTime),_) -> name.ToString("MMM/dd"))
-        let data = listOfNameCountPairs |> List.map (fun (_,count) -> count)
-
-        generateChartElements title labels data
-
     let private toNameCountRows breakdownName list =
         let rows =
             list
