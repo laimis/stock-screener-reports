@@ -10,6 +10,7 @@
     <PackageReference Include="Ply" Version="0.3.1" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Shared\Links.fs" />
     <Compile Include="Handlers\Shared.fs" />
     <Compile Include="Handlers\Dashboard.fs" />
     <Compile Include="Handlers\ScreenerResults.fs" />

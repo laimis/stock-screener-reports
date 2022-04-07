@@ -4,7 +4,7 @@ module Dashboard =
 
     open Giraffe.ViewEngine
     open FinvizScraper.Storage.Reports
-
+    open FinvizScraper.Web.Shared
     type DashboardViewModel =
         {
             screener:ScreenerResultReport;
@@ -28,14 +28,13 @@ module Dashboard =
                     
                     Shared.generateHrefWithAttr
                         $"{screener.screener.count} results"
-                        $"/screeners/{screener.screener.screenerid}/results/{screenerDate}"
+                        (Links.screenerResultsLink (screener.screener.screenerid) screenerDate)
                         (_class "button is-primary")
 
                     Shared.generateHrefWithAttr
                         "Screener Details"
-                        $"/screeners/{screener.screener.screenerid}"
+                        (screener.screener.screenerid |> Links.screenerLink)
                         (_class "button is-primary")
-                        
                 ]
             ]
             div [_class "columns"] [
@@ -71,7 +70,8 @@ module Dashboard =
                 div [ _class "column" ] [
                     Shared.generateHrefWithAttr
                         "Screener Trends"
-                        "/screeners/trends" (_class "button is-primary is-pulled-right")
+                        Links.screenerTrends
+                        (_class "button is-primary is-pulled-right")
                 ]
             ]
             
