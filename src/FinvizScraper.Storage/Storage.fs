@@ -26,6 +26,12 @@ module Storage =
             country = reader.string "country";
         }
 
+    let singleOrThrow message results =
+        match results with
+        | [] -> None
+        | [x] -> Some x
+        | _ -> raise (new System.Exception(message))
+
     let getStockByTicker ticker =
         let sql = "SELECT id,ticker,name,sector,industry,country FROM stocks WHERE ticker = @ticker"
 
@@ -36,10 +42,7 @@ module Storage =
             |> Sql.parameters ["@ticker", Sql.string ticker]
             |> Sql.execute stockMapper
 
-        match results with
-            | [] -> None
-            | [stock] -> Some stock
-            | _ -> raise (new System.Exception "Expected single result for stock")
+        results |> singleOrThrow "Expected single result for stock"
     
     // TODO: should we consider types for ticker, sectory, industry, country?
     let saveStock (ticker:string) name sector industry country =
@@ -60,11 +63,9 @@ module Storage =
             |> Sql.executeRow stockMapper
 
     let deleteStock (stock:Stock) =
-        let sql = "DELETE FROM stocks WHERE id = @stockId"
-
         cnnString
         |> Sql.connect
-        |> Sql.query sql
+        |> Sql.query "DELETE FROM stocks WHERE id = @stockId"
         |> Sql.parameters ["@stockId", Sql.int stock.id]
         |> Sql.executeNonQuery
 
@@ -86,40 +87,27 @@ module Storage =
             |> Sql.executeRow screenerMapper
 
     let getScreeners() =
-
         cnnString
-            |> Sql.connect
-            |> Sql.query "SELECT id,name,url FROM screeners"
-            |> Sql.execute screenerMapper
+        |> Sql.connect
+        |> Sql.query "SELECT id,name,url FROM screeners"
+        |> Sql.execute screenerMapper
             
     let getScreenerByName name = 
-
-        let results =
-            cnnString 
-            |> Sql.connect
-            |> Sql.query "SELECT id,name,url FROM screeners WHERE name = @name"
-            |> Sql.parameters [ "@name", Sql.string name ]
-            |> Sql.execute screenerMapper
-        
-        match results with
-        | [] -> None
-        | [a] -> Some a
-        | _ -> raise (new System.Exception("More than one screener with the same name"))
+        cnnString 
+        |> Sql.connect
+        |> Sql.query "SELECT id,name,url FROM screeners WHERE name = @name"
+        |> Sql.parameters [ "@name", Sql.string name ]
+        |> Sql.execute screenerMapper
+        |> singleOrThrow "More than one screener with the same name"
 
     let getScreenerById id = 
-
-        let results =
-            cnnString 
-            |> Sql.connect
-            |> Sql.query "SELECT id,name,url FROM screeners WHERE id = @id"
-            |> Sql.parameters [ "@id", Sql.int id ]
-            |> Sql.execute screenerMapper
-        
-        match results with
-        | [] -> None
-        | [a] -> Some a
-        | _ -> raise (new System.Exception("More than one screener with the same name"))
-        
+        cnnString 
+        |> Sql.connect
+        |> Sql.query "SELECT id,name,url FROM screeners WHERE id = @id"
+        |> Sql.parameters [ "@id", Sql.int id ]
+        |> Sql.execute screenerMapper
+        |> singleOrThrow "More than one screener with the same id"
+    
     let deleteScreener screener =
         cnnString
         |> Sql.connect
