@@ -35,14 +35,12 @@ module Storage =
     let getStockByTicker ticker =
         let sql = "SELECT id,ticker,name,sector,industry,country FROM stocks WHERE ticker = @ticker"
 
-        let results =
-            cnnString
+        cnnString
             |> Sql.connect
             |> Sql.query sql
             |> Sql.parameters ["@ticker", Sql.string ticker]
             |> Sql.execute stockMapper
-
-        results |> singleOrThrow "Expected single result for stock"
+            |> singleOrThrow "Expected single result for stock"
     
     // TODO: should we consider types for ticker, sectory, industry, country?
     let saveStock (ticker:string) name sector industry country =
