@@ -15,9 +15,9 @@ module Dashboard =
 
     let private generateBreakdownParts screener = 
         
-        let sectorsTable = screener.sectors |> Shared.toNameCountTable "Sectors"
-        let industriesTable = screener.industries |> Shared.toNameCountTable "Industries"
-        let countriesTable = screener.countries |> Shared.toNameCountTable "Countries"
+        let sectorsTable = screener.sectors |> Views.toNameCountTable "Sectors"
+        let industriesTable = screener.industries |> Views.toNameCountTable "Industries"
+        let countriesTable = screener.countries |> Views.toNameCountTable "Countries"
 
         let screenerDate = screener.screener.date.ToString("yyyy-MM-dd")
         
@@ -26,12 +26,12 @@ module Dashboard =
             h5 [] [
                 div [ _class "buttons"] [
                     
-                    Shared.generateHrefWithAttr
+                    Views.generateHrefWithAttr
                         $"{screener.screener.count} results"
                         (Links.screenerResultsLink (screener.screener.screenerid) screenerDate)
                         (_class "button is-primary")
 
-                    Shared.generateHrefWithAttr
+                    Views.generateHrefWithAttr
                         "Screener Details"
                         (screener.screener.screenerid |> Links.screenerLink)
                         (_class "button is-primary")
@@ -68,7 +68,7 @@ module Dashboard =
                     ]
                 ]
                 div [ _class "column" ] [
-                    Shared.generateHrefWithAttr
+                    Views.generateHrefWithAttr
                         "Screener Trends"
                         Links.screenerTrends
                         (_class "button is-primary is-pulled-right")
@@ -99,4 +99,4 @@ module Dashboard =
             )
 
         view screenerResultWithBreakdowns
-        |> Shared.mainLayout "Dashboard"
+        |> Views.mainLayout "Dashboard"

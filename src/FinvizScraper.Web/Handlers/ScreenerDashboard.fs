@@ -3,7 +3,7 @@ namespace FinvizScraper.Web.Handlers
 module ScreenerDashboard =
 
     open Giraffe.ViewEngine
-    open FinvizScraper.Web.Handlers.Shared
+    open FinvizScraper.Web.Shared
     open FinvizScraper.Storage
     open System
     
@@ -13,7 +13,7 @@ module ScreenerDashboard =
 
         let data = Reports.getDailyCountsForScreener screener.id days
 
-        let chartElements = convertNameCountsToChart screener.name data
+        let chartElements = Views.convertNameCountsToChart screener.name data
 
         let fetchBreakdownData dataSource =
             let startDate = DateTime.Now.AddDays(-days)
@@ -25,9 +25,9 @@ module ScreenerDashboard =
         let industriesData = fetchBreakdownData Reports.topIndustriesOverDays
         let countriesData = fetchBreakdownData Reports.topCountriesOverDays
 
-        let sectorsTable = sectorsData |> toNameCountTable "Sectors"
-        let industriesTable = industriesData |> toNameCountTable "Industries"
-        let countriesTable = countriesData |> toNameCountTable "Countries"
+        let sectorsTable = sectorsData |> Views.toNameCountTable "Sectors"
+        let industriesTable = industriesData |> Views.toNameCountTable "Industries"
+        let countriesTable = countriesData |> Views.toNameCountTable "Countries"
 
         let breakdownDiv = div [_class "columns"] [
             div [_class "column"] [sectorsTable]
@@ -54,6 +54,6 @@ module ScreenerDashboard =
         | Some screener -> 
 
             let view = generateLayoutForScreener screener
-            view |> mainLayout $"Screener: {screener.name}"
+            view |> Views.mainLayout $"Screener: {screener.name}"
         | None ->
-            notFound "Screener not found"
+            Views.notFound "Screener not found"

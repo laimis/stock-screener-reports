@@ -11,7 +11,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Shared\Links.fs" />
-    <Compile Include="Handlers\Shared.fs" />
+    <Compile Include="Shared\Views.fs" />
     <Compile Include="Handlers\Dashboard.fs" />
     <Compile Include="Handlers\ScreenerResults.fs" />
     <Compile Include="Handlers\ScreenerDashboard.fs" />

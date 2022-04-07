@@ -1,11 +1,9 @@
-namespace FinvizScraper.Web.Handlers
+namespace FinvizScraper.Web.Shared
 
-module Shared =
+module Views =
     open Giraffe.ViewEngine
     open System
     open FinvizScraper.Web.Shared
-
-    let fullWidthTableAttributes = _class "table is-fullwidth"
 
     let generateTickerLink ticker =
         a [
@@ -105,8 +103,11 @@ module Shared =
 
         header::rows
 
+    let fullWidthTable rows =
+        table [ _class "table is-fullwidth" ] rows
+
     let toNameCountTable title listOfNameCountPairs =
-        table [fullWidthTableAttributes] (listOfNameCountPairs |> toNameCountRows title)
+        listOfNameCountPairs |> toNameCountRows title |> fullWidthTable
 
     let mainLayout pageTitle (content: XmlNode list) =
         html [] [
