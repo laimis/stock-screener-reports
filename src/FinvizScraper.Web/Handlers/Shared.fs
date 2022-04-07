@@ -3,12 +3,13 @@ namespace FinvizScraper.Web.Handlers
 module Shared =
     open Giraffe.ViewEngine
     open System
+    open FinvizScraper.Web.Shared
 
     let fullWidthTableAttributes = _class "table is-fullwidth"
 
     let generateTickerLink ticker =
         a [
-            _href $"/stocks/{ticker}"
+            ticker |> Links.stockLink |> _href
         ] [
             str ticker
         ]
@@ -111,16 +112,14 @@ module Shared =
         html [] [
             head [] [
                 title []  [ encodedText pageTitle ]
-                
-                link [ _rel  "stylesheet"
-                       _type "text/css"
-                       _href "/main.css" ]
 
-                link [ _rel "stylesheet"
-                       _href "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css"]
+                link [
+                    _rel "stylesheet"
+                    Links.bulmaCssLink |> _href
+                ]
 
-                script [ _src "https://cdn.jsdelivr.net/npm/chart.js" ] []
-                script [ _src "https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels" ] []
+                script [ Links.chartJsLink |> _src ] []
+                script [ Links.chartJsDatalabelsLink |> _src ] []
 
                 meta [
                     _name "viewport"

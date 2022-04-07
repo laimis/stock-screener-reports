@@ -5,6 +5,7 @@ module ScreenerResults =
     open Giraffe.ViewEngine
     open FinvizScraper.Storage.Reports
     open FinvizScraper.Web.Handlers.Shared
+    open FinvizScraper.Web.Shared
 
     let screenerResultToTr (result:ScreenerResultReportItem) =
         
@@ -26,7 +27,7 @@ module ScreenerResults =
             toTd (string result.price)
             toTd (string result.change)
             toTd (string (result.volume.ToString("N0")))
-            toTdWithNode (generateHref "link" $"https://tradingview.com/chart/kQn4rgoA/?symbol={result.ticker}")
+            result.ticker |> Links.tradingViewLink |> generateHref "link" |> toTdWithNode
         ]
 
     let toBreakdownTable breakdownTitle (breakdown:seq<string * list<ScreenerResultReportItem>>) =
