@@ -13,16 +13,16 @@ module StockDashboard =
         let header = div [_class "content"] [
            h1 [] [str stock.ticker]
            div [_class "columns"] [
-               div [_class "column is-one-fifth"] [
+               div [_class "column"] [
                    str stock.company
                ]
-               div [_class "column is-one-fifth"] [
+               div [_class "column"] [
                    str stock.sector
                ]
-               div [_class "column is-one-fifth"] [
+               div [_class "column"] [
                    str stock.industry
                ]
-               div [_class "column is-one-fifth"] [
+               div [_class "column"] [
                    str stock.country
                ]
            ]
