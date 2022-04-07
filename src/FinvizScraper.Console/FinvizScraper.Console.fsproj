@@ -12,7 +12,6 @@
   <ItemGroup>
     <ProjectReference Include="..\FinvizScraper.Core\FinvizScraper.Core.fsproj" />
     <ProjectReference Include="..\FinvizScraper.FinvizClient\FinvizScraper.FinvizClient.fsproj" />
-    <ProjectReference Include="..\FinvizScraper.Rendering\FinvizScraper.Rendering.fsproj" />
     <ProjectReference Include="..\FinvizScraper.Storage\FinvizScraper.Storage.fsproj" />
   </ItemGroup>
 

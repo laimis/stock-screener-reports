@@ -1,7 +1,6 @@
 ﻿open System
 open FinvizScraper.Core
 open FinvizScraper.FinvizClient
-open FinvizScraper.Rendering
 open FinvizScraper.Storage
 
 let readConfig() =
@@ -22,23 +21,10 @@ let fetchScreenerResults (input:ScreenerInput) =
     let results = FinvizClient.getResults input.url
     (input,results)
 
-let generateAndAppendHtml (input:ScreenerInput,results:list<ScreenerResult>) =
-    Rendering.renderResultsAsHtml input results
-
 let saveToFile (filepath:string) content =
     let directory = IO.Path.GetDirectoryName(filepath)
     IO.Directory.CreateDirectory(directory) |> ignore
     IO.File.WriteAllText(filepath,content)
-
-let saveAsHtml config screenerResults =
-    Console.WriteLine($"Saving {screenerResults |> Seq.length} results as html")
-    
-    screenerResults
-    |> Seq.map generateAndAppendHtml
-    |> Seq.iter (fun (input,_,html) -> html |> saveToFile input.filename)
-
-    Rendering.createIndexPage screenerResults
-    |> saveToFile config.outputPath
 
 let saveToDb config (screenerResults:list<ScreenerInput * 'a>) =
     match config.dbConnectionString with
@@ -57,9 +43,6 @@ let screenerResults =
     config.screeners 
     |> Seq.map fetchScreenerResults
     |> Seq.toList
-
-screenerResults
-    |> saveAsHtml config
 
 screenerResults
     |> saveToDb config
