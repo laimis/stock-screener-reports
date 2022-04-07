@@ -4,7 +4,6 @@ module ScreenerResults =
 
     open Giraffe.ViewEngine
     open FinvizScraper.Storage.Reports
-    open FinvizScraper.Web.Handlers.Shared
     open FinvizScraper.Web.Shared
 
     let screenerResultToTr (result:ScreenerResultReportItem) =
@@ -18,7 +17,7 @@ module ScreenerResults =
         let rowAttributes = [_height "50px"]
 
         tr rowAttributes [
-            toTdWithNode (generateTickerLink result.ticker)
+            toTdWithNode (Views.generateTickerLink result.ticker)
             toTd result.name
             toTd result.sector
             toTd result.industry
@@ -27,7 +26,7 @@ module ScreenerResults =
             toTd (string result.price)
             toTd (string result.change)
             toTd (string (result.volume.ToString("N0")))
-            result.ticker |> Links.tradingViewLink |> generateHref "link" |> toTdWithNode
+            result.ticker |> Links.tradingViewLink |> Views.generateHref "link" |> toTdWithNode
         ]
 
     let toBreakdownTable breakdownTitle (breakdown:seq<string * list<ScreenerResultReportItem>>) =
@@ -48,7 +47,7 @@ module ScreenerResults =
             )
             |> Seq.toList
         
-        table [ fullWidthTableAttributes ] (headerRow::valueRows)
+        headerRow::valueRows |> Views.fullWidthTable
         
     let calculateBreakdowns screenerResults =
         
@@ -86,8 +85,11 @@ module ScreenerResults =
 
     let private view (screener:FinvizScraper.Core.Screener) (results:list<ScreenerResultReportItem>) =
 
-        let screenerRows = results |> List.map screenerResultToTr
-        let screenerTable = table [fullWidthTableAttributes] (headerRow::screenerRows)
+        let screenerTable =
+            results
+            |> List.map screenerResultToTr
+            |> List.append [headerRow]
+            |> Views.fullWidthTable
 
         let breakdowns = calculateBreakdowns results
                 
@@ -127,6 +129,6 @@ module ScreenerResults =
         | Some screener -> 
             let screenerResults = getScreenerResults screener.id date
             let view      = view screener screenerResults
-            view |> mainLayout $"Screener: {screener.name}"
+            view |> Views.mainLayout $"Screener: {screener.name}"
         | None ->
-            notFound "Screener not found"
+            Views.notFound "Screener not found"

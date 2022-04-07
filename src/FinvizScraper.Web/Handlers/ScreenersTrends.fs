@@ -3,7 +3,7 @@ namespace FinvizScraper.Web.Handlers
 module ScreenersTrends =
 
     open Giraffe.ViewEngine
-    open FinvizScraper.Web.Handlers.Shared
+    open FinvizScraper.Web.Shared
     open FinvizScraper.Storage
     open System
     
@@ -24,7 +24,7 @@ module ScreenersTrends =
         ]
 
         let chartScript = script [_type "application/javascript"] [
-            generateJSForChart title canvasId labels data
+            Views.generateJSForChart title canvasId labels data
         ]
 
         [
@@ -58,4 +58,4 @@ module ScreenersTrends =
                 ]
             ]::charts
 
-        view |> mainLayout "All Screener Trends"
+        view |> Views.mainLayout "All Screener Trends"

@@ -1,7 +1,7 @@
 namespace FinvizScraper.Web.Handlers
 
 module StockDashboard =
-    open FinvizScraper.Web.Handlers.Shared
+    open FinvizScraper.Web.Shared
     open Giraffe.ViewEngine.HtmlElements
     open Giraffe.ViewEngine.Attributes
     open FinvizScraper.Storage
@@ -52,7 +52,7 @@ module StockDashboard =
 
         let rows = tableHeader::results
 
-        let tbl = table [ fullWidthTableAttributes ] rows
+        let tbl = table [ Views.fullWidthTableAttributes ] rows
 
         [
             header
@@ -70,7 +70,7 @@ module StockDashboard =
 
             let nodes = view stock recentHits
 
-            nodes |> mainLayout "Stock Dashboard"
+            nodes |> Views.mainLayout "Stock Dashboard"
         | None -> 
-            notFound $"Stock with {ticker} symbol not found"
+            Views.notFound $"Stock with {ticker} symbol not found"
         
