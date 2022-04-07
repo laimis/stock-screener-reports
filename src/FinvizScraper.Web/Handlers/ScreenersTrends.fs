@@ -18,7 +18,7 @@ module ScreenersTrends =
                 let data = Reports.getDailyCountsForScreener screener.id days
 
                 data
-                |> Charts.convertNameCountsToChart screener.name (Some("80"))
+                |> Charts.convertNameCountsToChart screener.name Charts.smallChart
                 |> div [_class "block"] 
             )
 

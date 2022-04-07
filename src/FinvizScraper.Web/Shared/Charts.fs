@@ -5,6 +5,10 @@ module Charts =
     open System
     open Giraffe.ViewEngine.Attributes
 
+    type ChartHeight = ChartHeight of string
+
+    let smallChart = Some (ChartHeight "80")
+
     let generateJSForChart title chartCanvasId labels data =
 
         let formattedLabels = labels |> List.map (fun l -> $"'{l}'") |> String.concat ","
@@ -40,7 +44,7 @@ module Charts =
             """)
 
     
-    let generateChartElements title height labels data =
+    let generateChartElements title (height:option<ChartHeight>) labels data =
         let chartGuid = Guid.NewGuid().ToString("N")
         let canvasId = $"chart{chartGuid}"
 
@@ -52,7 +56,7 @@ module Charts =
         
         let attributes = 
             match height with
-            | Some h -> (attr "height" h)::standardAttributes
+            | Some (ChartHeight h) -> (attr "height" h)::standardAttributes
             | None -> standardAttributes
 
         let chartDiv = div [] [
