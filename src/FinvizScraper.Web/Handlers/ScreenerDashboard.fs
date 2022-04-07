@@ -13,7 +13,7 @@ module ScreenerDashboard =
 
         let data = Reports.getDailyCountsForScreener screener.id days
 
-        let chartElements = Views.convertNameCountsToChart screener.name data
+        let chartElements = Charts.convertNameCountsToChart screener.name None data
 
         let fetchBreakdownData dataSource =
             let startDate = DateTime.Now.AddDays(-days)
