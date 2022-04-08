@@ -99,5 +99,6 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``getting screener results for ticker works``() =
-        let results = FinvizScraper.Storage.Reports.getScreenerResultsForTicker "CUTR"
+        let ticker = FinvizScraper.Core.StockTicker.create "cutr"
+        let results = FinvizScraper.Storage.Reports.getScreenerResultsForTicker ticker
         Assert.NotEmpty(results)

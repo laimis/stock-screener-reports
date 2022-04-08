@@ -191,7 +191,7 @@ module Reports =
                 )
             )
 
-    let getScreenerResultsForTicker ticker =
+    let getScreenerResultsForTicker (ticker:FinvizScraper.Core.StockTicker.T) =
             
         let sql = @$"
             SELECT 
@@ -209,7 +209,7 @@ module Reports =
             |> Sql.connect
             |> Sql.query sql
             |> Sql.parameters [
-                "@ticker", Sql.string ticker
+                "@ticker", ticker |> FinvizScraper.Core.StockTicker.value |> Sql.string
             ]
             |> Sql.execute (
                 fun reader -> mapScreenerResultReportItem reader

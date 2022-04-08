@@ -61,7 +61,7 @@ module StockDashboard =
         let stock = Storage.getStockByTicker stockTicker
         match stock with
         | Some stock ->
-            let recentHits = stock.ticker |> StockTicker.value  |> getScreenerResultsForTicker
+            let recentHits = getScreenerResultsForTicker stockTicker
 
             printf "Result count %i" (recentHits.Length)
 
