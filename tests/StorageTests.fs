@@ -22,7 +22,7 @@ type StorageTests(output:ITestOutputHelper) =
         Storage.configureLogger (fun message -> output.WriteLine(message))
 
     let generateTicker() =
-        "stock" + System.Guid.NewGuid().ToString()
+        "stock" + System.Guid.NewGuid().ToString() |> StockTicker.create 
     
     let generateScreener() =
         "screener" + System.Guid.NewGuid().ToString()

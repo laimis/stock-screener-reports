@@ -11,7 +11,7 @@ module StockDashboard =
     let view (stock:Stock) (recentScreenerResults:list<ScreenerResultReportItem>) =
 
         let header = div [_class "content"] [
-           h1 [] [str stock.ticker]
+           h1 [] [stock.ticker |> StockTicker.value |> str]
            div [_class "columns"] [
                div [_class "column"] [
                    str stock.company
@@ -57,10 +57,11 @@ module StockDashboard =
 
 
     let handler ticker =
-        let stock = Storage.getStockByTicker ticker
+        let stockTicker = StockTicker.create ticker
+        let stock = Storage.getStockByTicker stockTicker
         match stock with
         | Some stock ->
-            let recentHits = getScreenerResultsForTicker stock.ticker
+            let recentHits = getScreenerResultsForTicker stockTicker
 
             printf "Result count %i" (recentHits.Length)
 

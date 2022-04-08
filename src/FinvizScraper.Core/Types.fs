@@ -1,5 +1,16 @@
 namespace FinvizScraper.Core
 
+module StockTicker =
+
+    type T = StockTicker of string
+
+    // wrap
+    let create (s:string) =
+        StockTicker (s.ToUpper())
+
+    // unwrap
+    let value (StockTicker e) = e
+
 type ScreenerInput = {
     name:string;
     url:string;
@@ -17,7 +28,7 @@ type FinvizConfig =
         date.ToString("yyyy-MM-dd")
     
 type ScreenerResult = {
-    ticker:string;
+    ticker:StockTicker.T;
     company:string;
     sector:string;
     industry:string;
@@ -30,7 +41,7 @@ type ScreenerResult = {
 
 type Stock = {
     id: int;
-    ticker: string;
+    ticker: StockTicker.T;
     company: string;
     sector: string;
     industry: string;
