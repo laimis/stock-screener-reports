@@ -19,7 +19,7 @@ module Storage =
     let private stockMapper (reader:RowReader) =
         {
             id = reader.int "id";
-            ticker = reader.string "ticker";
+            ticker = reader.string "ticker" |> StockTicker.create;
             company = reader.string "name";
             sector = reader.string "sector";
             industry = reader.string "industry";
@@ -32,18 +32,18 @@ module Storage =
         | [x] -> Some x
         | _ -> raise (new System.Exception(message))
 
-    let getStockByTicker ticker =
+    let getStockByTicker (ticker:StockTicker.T) =
         let sql = "SELECT id,ticker,name,sector,industry,country FROM stocks WHERE ticker = @ticker"
 
         cnnString
             |> Sql.connect
             |> Sql.query sql
-            |> Sql.parameters ["@ticker", Sql.string ticker]
+            |> Sql.parameters ["@ticker", ticker |> StockTicker.value |> Sql.string]
             |> Sql.execute stockMapper
             |> singleOrThrow "Expected single result for stock"
     
     // TODO: should we consider types for ticker, sectory, industry, country?
-    let saveStock (ticker:string) name sector industry country =
+    let saveStock (ticker:StockTicker.T) name sector industry country =
         
         let sql = @"INSERT INTO stocks (ticker,name,sector,industry,country)
             VALUES (@ticker,@name,@sector,@industry,@country) RETURNING *"
@@ -52,7 +52,7 @@ module Storage =
             |> Sql.connect
             |> Sql.query sql
             |> Sql.parameters [
-                    "@ticker", Sql.string ticker;
+                    "@ticker", ticker |> StockTicker.value |> Sql.string;
                     "@name", Sql.string name;
                     "@sector", Sql.string sector;
                     "@industry", Sql.string industry;
@@ -150,7 +150,7 @@ module Storage =
         ]
         |> Sql.executeNonQuery
 
-    let getOrSaveStock ticker name sector industry country =
+    let getOrSaveStock (ticker:StockTicker.T) name sector industry country =
         let stockOrNone = getStockByTicker ticker
         match stockOrNone with
             | Some stock -> stock

@@ -60,7 +60,7 @@ module FinvizClient =
             match node.ChildNodes.Count with
             | 0 -> None
             | _ -> 
-                let tickerNode = extractValueFromScreenerCell node.ChildNodes[2]
+                let tickerNode = node.ChildNodes[2] |> extractValueFromScreenerCell |> StockTicker.create
                 let companyNode = extractValueFromScreenerCell node.ChildNodes[3]
                 let sectorNode = extractValueFromScreenerCell node.ChildNodes[4]
                 let industryNode = extractValueFromScreenerCell node.ChildNodes[5]
