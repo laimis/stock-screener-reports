@@ -68,7 +68,7 @@ module Views =
         listOfNameCountPairs |> toNameCountRows title (fun name -> str name) |> fullWidthTable
 
     let toNameCountTableWithLinks title linkFunction listOfNameCountPairs =
-        listOfNameCountPairs |> toNameCountRows title linkFunction |> fullWidthTable
+        listOfNameCountPairs |> toNameCountRows title (fun name -> generateHref name (linkFunction name)) |> fullWidthTable
 
     let mainLayout pageTitle (content: XmlNode list) =
         html [] [
