@@ -27,5 +27,8 @@ module Links =
 
     let industryLink industryName =
         $"/industries/{industryName}"
+
+    let countryLink countryName =
+        $"/countries/{countryName}"
     
     let screenerTrends = "/screeners/trends"
