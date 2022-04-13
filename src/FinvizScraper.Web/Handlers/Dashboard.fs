@@ -15,7 +15,7 @@ module Dashboard =
 
     let private generateBreakdownParts screener = 
         
-        let sectorsTable = screener.sectors |> Views.toNameCountTable "Sectors"
+        let sectorsTable = screener.sectors |> Views.toNameCountTableWithLinks "Sectors" (fun name -> Links.sectorLink name)
         let industriesTable = screener.industries |> Views.toNameCountTable "Industries"
         let countriesTable = screener.countries |> Views.toNameCountTable "Countries"
 

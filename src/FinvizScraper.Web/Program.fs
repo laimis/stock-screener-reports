@@ -24,6 +24,8 @@ let webApp =
 
                 route "/stocks/search" >=> StockSearch.redirect
                 routef "/stocks/%s" StockDashboard.handler
+
+                routef "/sectors/%s" SectorDashboard.handler
             ]
         setStatusCode 404 >=> text "Not Found" ]
 

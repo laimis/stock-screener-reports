@@ -7,9 +7,9 @@ module ScreenerDashboard =
     open FinvizScraper.Storage
     open System
     
-    let private days = 14
-
     let generateLayoutForScreener (screener:FinvizScraper.Core.Screener) =
+
+        let days = FinvizScraper.Core.FinvizConfig.dayRange
 
         let data = Reports.getDailyCountsForScreener screener.id days
 
