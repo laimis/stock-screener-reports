@@ -1,31 +1,37 @@
 namespace FinvizScraper.Web.Handlers
 
 module StockDashboard =
-    open FinvizScraper.Web.Shared
-    open Giraffe.ViewEngine.HtmlElements
-    open Giraffe.ViewEngine.Attributes
-    open FinvizScraper.Storage
     open FinvizScraper.Core
+    open FinvizScraper.Storage
     open FinvizScraper.Storage.Reports
+    open FinvizScraper.Web.Shared
+    open FinvizScraper.Web.Shared.Views
+    open Giraffe.ViewEngine.Attributes
+    open Giraffe.ViewEngine.HtmlElements
+    open FinvizScraper.Web.Shared.Links
+
 
     let view (stock:Stock) (recentScreenerResults:list<ScreenerResultReportItem>) =
 
         let header = div [_class "content"] [
-           h1 [] [stock.ticker |> StockTicker.value |> str]
-           div [_class "columns"] [
-               div [_class "column"] [
-                   str stock.company
-               ]
-               div [_class "column"] [
-                   str stock.sector
-               ]
-               div [_class "column"] [
-                   str stock.industry
-               ]
-               div [_class "column"] [
-                   str stock.country
-               ]
+           h1 [] [
+               stock.ticker |> StockTicker.value |> str
+               " - " |> str
+               stock.company |> str
+
+               a [ 
+                   stock.ticker |> StockTicker.value |> tradingViewLink |> _href
+                   _class "is-pulled-right"
+                   _target "_blank"
+                ] [ str "Trading View" ]
            ]
+           div [_class "is-size-5" ] [
+               str stock.sector
+               str " / "
+               str stock.industry
+               str ", "
+               str stock.country
+            ]
         ]
 
         let tableHeader =
@@ -41,12 +47,12 @@ module StockDashboard =
         let results = 
             recentScreenerResults |> List.map (fun screenerResult ->
                 tr [] [
-                    td [] [str (screenerResult.date.ToString("yyyy-MM-dd"))]
-                    td [] [str (screenerResult.screenername)]
-                    td [] [str (screenerResult.marketCap.ToString())]
-                    td [] [str (screenerResult.price.ToString())]
-                    td [] [str (screenerResult.change.ToString())]
-                    td [] [str (screenerResult.volume.ToString())]
+                    td [] [ screenerResult.date.ToString("yyyy-MM-dd") |> str ]
+                    td [] [ screenerResult.screenername |> str ]
+                    td [] [ screenerResult.marketCap |> marketCapFormatted |> str ]
+                    td [] [ screenerResult.price |> dollarFormatted |> str ]
+                    td [] [ screenerResult.change |> percentFormatted |> str ]
+                    td [] [ screenerResult.volume |> volumeFormatted |> str ]
                 ]
             )
 

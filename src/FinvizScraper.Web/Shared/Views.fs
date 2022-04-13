@@ -2,8 +2,24 @@ namespace FinvizScraper.Web.Shared
 
 module Views =
     open Giraffe.ViewEngine
-    open System
     open FinvizScraper.Web.Shared
+
+    let billion = 1_000_000_000m
+    let million = 1_000_000m
+
+    let marketCapFormatted marketCap =
+        match marketCap with
+        | d when d > billion -> System.Math.Round(d / billion, 2).ToString() + " B"
+        | d -> System.Math.Round(d / million, 2).ToString() + "M"
+
+    let dollarFormatted (value:decimal) =
+        value.ToString("C")
+
+    let percentFormatted (value:decimal) =
+        $"{value} %%"
+
+    let volumeFormatted (value:int) =
+        value.ToString("N0")
 
     let generateTickerLink ticker =
         a [
