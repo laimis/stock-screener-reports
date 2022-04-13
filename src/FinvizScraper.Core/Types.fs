@@ -26,6 +26,8 @@ type FinvizConfig =
     static member getRunDate() =
         let date = System.DateTime.Now
         date.ToString("yyyy-MM-dd")
+
+    static member dayRange = 14
     
 type ScreenerResult = {
     ticker:StockTicker.T;

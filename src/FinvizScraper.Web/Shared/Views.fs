@@ -45,13 +45,13 @@ module Views =
             str title
         ]
 
-    let private toNameCountRows breakdownName list =
+    let private toNameCountRows breakdownName nameElementFunc list =
         let rows =
             list
             |> List.truncate 10
             |> List.map (fun (name,count) ->
                 tr [] [
-                    td [] [ str name ]
+                    td [] [ (nameElementFunc name) ]
                     td [] [ str (count.ToString()) ]
                 ])
 
@@ -65,7 +65,10 @@ module Views =
         table [ _class "table is-fullwidth" ] rows
 
     let toNameCountTable title listOfNameCountPairs =
-        listOfNameCountPairs |> toNameCountRows title |> fullWidthTable
+        listOfNameCountPairs |> toNameCountRows title (fun name -> str name) |> fullWidthTable
+
+    let toNameCountTableWithLinks title linkFunction listOfNameCountPairs =
+        listOfNameCountPairs |> toNameCountRows title linkFunction |> fullWidthTable
 
     let mainLayout pageTitle (content: XmlNode list) =
         html [] [

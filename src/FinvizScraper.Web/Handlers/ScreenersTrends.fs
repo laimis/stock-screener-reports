@@ -6,10 +6,10 @@ module ScreenersTrends =
     open FinvizScraper.Web.Shared
     open FinvizScraper.Storage
     
-    let private days = 14
-
     let handler() =
 
+        let days = FinvizScraper.Core.FinvizConfig.dayRange
+        
         let screeners = Storage.getScreeners()
 
         let charts = 

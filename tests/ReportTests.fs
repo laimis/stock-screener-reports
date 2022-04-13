@@ -12,6 +12,8 @@ type ReportTests(output:ITestOutputHelper) =
     let getTestScreener = 
         FinvizScraper.Storage.Storage.getScreenerByName StorageTests.testScreenerName
 
+    let getTestSector = "Energy"
+
     let topGroupingTest resultGenerator containsMember =
 
         let screener = getTestScreener
@@ -101,4 +103,13 @@ type ReportTests(output:ITestOutputHelper) =
     let ``getting screener results for ticker works``() =
         let ticker = FinvizScraper.Core.StockTicker.create "cutr"
         let results = FinvizScraper.Storage.Reports.getScreenerResultsForTicker ticker
+        Assert.NotEmpty(results)
+
+    [<Fact>]
+    let ``getting daily counts for screeners filtered by sector works``() =
+        let screener = getTestScreener
+        let sector = getTestSector
+
+        let results = FinvizScraper.Storage.Reports.getDailyCountsForScreenerAndSector screener.Value.id sector 7
+        
         Assert.NotEmpty(results)
