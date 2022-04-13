@@ -220,6 +220,35 @@ module Reports =
                 )
             )
 
+    let getDailyCountsForScreenerAndIndustry id industry days =
+
+        let sql = @$"
+            SELECT 
+                date,count(*) as count
+            FROM screenerresults
+            JOIN stocks ON stocks.id = screenerresults.stockid
+            WHERE 
+                screenerid = @screenerid
+                AND date >= current_date - @days
+                AND industry = @industry
+            GROUP BY date
+            ORDER BY date"
+
+        cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters [
+                "@screenerid", Sql.int id;
+                "@days", Sql.int days;
+                "@industry", Sql.string industry
+            ]
+            |> Sql.execute (fun reader -> 
+                (
+                    reader.dateTime "date",
+                    reader.int "count"
+                )
+            )
+
     let getScreenerResultsForTicker (ticker:FinvizScraper.Core.StockTicker.T) =
             
         let sql = @$"

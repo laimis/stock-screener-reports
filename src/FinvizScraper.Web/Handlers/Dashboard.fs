@@ -16,7 +16,7 @@ module Dashboard =
     let private generateBreakdownParts screener = 
         
         let sectorsTable = screener.sectors |> Views.toNameCountTableWithLinks "Sectors" (fun name -> Links.sectorLink name)
-        let industriesTable = screener.industries |> Views.toNameCountTable "Industries"
+        let industriesTable = screener.industries |> Views.toNameCountTableWithLinks "Industries" (fun name -> Links.industryLink name)
         let countriesTable = screener.countries |> Views.toNameCountTable "Countries"
 
         let screenerDate = screener.screener.date.ToString("yyyy-MM-dd")
