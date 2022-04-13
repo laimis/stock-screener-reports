@@ -191,8 +191,7 @@ module Reports =
                 )
             )
 
-    let getDailyCountsForScreenerAndSector id sector days =
-
+    let private getDailyCountsForScreenerAndStockFilter id filterColumn filterValue days =
         let sql = @$"
             SELECT 
                 date,count(*) as count
@@ -201,7 +200,7 @@ module Reports =
             WHERE 
                 screenerid = @screenerid
                 AND date >= current_date - @days
-                AND sector = @sector
+                AND " + filterColumn + " = @" + filterColumn + "
             GROUP BY date
             ORDER BY date"
 
@@ -211,7 +210,7 @@ module Reports =
             |> Sql.parameters [
                 "@screenerid", Sql.int id;
                 "@days", Sql.int days;
-                "@sector", Sql.string sector
+                $"@{filterColumn}", Sql.string filterValue
             ]
             |> Sql.execute (fun reader -> 
                 (
@@ -219,35 +218,12 @@ module Reports =
                     reader.int "count"
                 )
             )
+
+    let getDailyCountsForScreenerAndSector id sector days =
+        getDailyCountsForScreenerAndStockFilter id "sector" sector days
 
     let getDailyCountsForScreenerAndIndustry id industry days =
-
-        let sql = @$"
-            SELECT 
-                date,count(*) as count
-            FROM screenerresults
-            JOIN stocks ON stocks.id = screenerresults.stockid
-            WHERE 
-                screenerid = @screenerid
-                AND date >= current_date - @days
-                AND industry = @industry
-            GROUP BY date
-            ORDER BY date"
-
-        cnnString
-            |> Sql.connect
-            |> Sql.query sql
-            |> Sql.parameters [
-                "@screenerid", Sql.int id;
-                "@days", Sql.int days;
-                "@industry", Sql.string industry
-            ]
-            |> Sql.execute (fun reader -> 
-                (
-                    reader.dateTime "date",
-                    reader.int "count"
-                )
-            )
+        getDailyCountsForScreenerAndStockFilter id "industry" industry days
 
     let getScreenerResultsForTicker (ticker:FinvizScraper.Core.StockTicker.T) =
             
