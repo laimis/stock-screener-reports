@@ -27,6 +27,7 @@ let webApp =
 
                 routef "/sectors/%s" SectorDashboard.handler
                 routef "/industries/%s" IndustryDashboard.handler
+                routef "/countries/%s" CountryDashboard.handler
             ]
         setStatusCode 404 >=> text "Not Found" ]
 

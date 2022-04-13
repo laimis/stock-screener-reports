@@ -1,12 +1,12 @@
 namespace FinvizScraper.Web.Handlers
 
-module IndustryDashboard =
+module CountryDashboard =
     open FinvizScraper.Web.Shared
     open Giraffe.ViewEngine.HtmlElements
     open FinvizScraper.Storage
     open Giraffe.ViewEngine.Attributes
 
-    let handler industryName =
+    let handler countryName =
         let screeners = Storage.getScreeners()
 
         let days = FinvizScraper.Core.FinvizConfig.dayRange
@@ -16,7 +16,7 @@ module IndustryDashboard =
         let charts = 
             screeners
             |> List.map (fun screener ->
-                let data = Reports.getDailyCountsForScreenerAndIndustry screener.id industryName days
+                let data = Reports.getDailyCountsForScreenerAndCountry screener.id countryName days
 
                 let mapped = data |> Map.ofList
 
@@ -34,8 +34,8 @@ module IndustryDashboard =
         let view = 
             div [_class "content"] [
                 h1 [] [
-                    str industryName
+                    str countryName
                 ]
             ]::charts
         
-        view |> Views.mainLayout $"Industry Dashboard for {industryName}" 
+        view |> Views.mainLayout $"Country Dashboard for {countryName}" 

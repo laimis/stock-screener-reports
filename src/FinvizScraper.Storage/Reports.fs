@@ -225,6 +225,9 @@ module Reports =
     let getDailyCountsForScreenerAndIndustry id industry days =
         getDailyCountsForScreenerAndStockFilter id "industry" industry days
 
+    let getDailyCountsForScreenerAndCountry id country days =
+        getDailyCountsForScreenerAndStockFilter id "country" country days
+
     let getScreenerResultsForTicker (ticker:FinvizScraper.Core.StockTicker.T) =
             
         let sql = @$"
