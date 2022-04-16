@@ -5,6 +5,7 @@ module IndustryDashboard =
     open Giraffe.ViewEngine.HtmlElements
     open FinvizScraper.Storage
     open Giraffe.ViewEngine.Attributes
+    open FinvizScraper.Web.Shared.Views
 
     let handler industryName =
         let screeners = Storage.getScreeners()
@@ -31,11 +32,27 @@ module IndustryDashboard =
                 |> div [_class "block"] 
             )
 
+        let stocks = Storage.getStocksByIndustry industryName
+
+        let stockTable =
+            stocks
+            |> List.map (fun stock ->
+                tr [] [
+                    td [] [
+                        stock.ticker |> FinvizScraper.Core.StockTicker.value |> generateTickerLink
+                    ]
+                    td [] [str stock.company]
+                    td [] [str stock.sector]
+                    td [] [str stock.industry]
+                ]
+            )
+            |> fullWidthTable 
+
         let view = 
             div [_class "content"] [
                 h1 [] [
                     str industryName
                 ]
-            ]::charts
+            ]::charts @ [stockTable]
         
         view |> Views.mainLayout $"Industry Dashboard for {industryName}" 

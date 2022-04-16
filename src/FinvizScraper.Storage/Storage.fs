@@ -41,6 +41,24 @@ module Storage =
             |> Sql.parameters ["@ticker", ticker |> StockTicker.value |> Sql.string]
             |> Sql.execute stockMapper
             |> singleOrThrow "Expected single result for stock"
+
+    let getStocksBySector (sector:string) =
+        let sql = "SELECT id,ticker,name,sector,industry,country FROM stocks WHERE sector = @sector"
+
+        cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters ["@sector", sector |> Sql.string]
+            |> Sql.execute stockMapper
+
+    let getStocksByIndustry (industry:string) =
+        let sql = "SELECT id,ticker,name,sector,industry,country FROM stocks WHERE industry = @industry"
+
+        cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters ["@industry", industry |> Sql.string]
+            |> Sql.execute stockMapper
     
     // TODO: should we consider types for ticker, sectory, industry, country?
     let saveStock (ticker:StockTicker.T) name sector industry country =

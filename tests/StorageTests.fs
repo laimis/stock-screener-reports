@@ -130,3 +130,13 @@ type StorageTests(output:ITestOutputHelper) =
         Storage.deleteScreenerResults screener date |> ignore
         Storage.deleteStock stock |> ignore
         Storage.deleteScreener screener |> ignore
+
+    [<Fact>]
+    let ``get stocks by sector works`` () =
+        let stocks = Storage.getStocksBySector testStockSector
+        Assert.NotEmpty(stocks)
+
+    [<Fact>]
+    let ``get stocks by industry works`` () =
+        let stocks = Storage.getStocksByIndustry testStockIndustry
+        Assert.NotEmpty(stocks)

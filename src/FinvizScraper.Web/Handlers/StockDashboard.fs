@@ -26,9 +26,9 @@ module StockDashboard =
                 ] [ str "Trading View" ]
            ]
            div [_class "is-size-5" ] [
-               str stock.sector
+               generateHref stock.sector (sectorLink stock.sector)
                str " / "
-               str stock.industry
+               generateHref stock.industry (industryLink stock.industry)
                str ", "
                str stock.country
             ]
