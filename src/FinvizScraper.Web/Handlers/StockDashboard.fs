@@ -73,7 +73,9 @@ module StockDashboard =
 
             let nodes = view stock recentHits
 
-            nodes |> Views.mainLayout "Stock Dashboard"
+            let pageTitle = (stock.ticker |> StockTicker.value) + " - " + stock.company
+
+            nodes |> Views.mainLayout pageTitle
         | None -> 
             Views.notFound $"Stock with {ticker} symbol not found"
         

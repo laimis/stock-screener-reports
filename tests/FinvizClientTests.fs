@@ -7,9 +7,27 @@ open Xunit.Abstractions
 type ParsingTests(output:ITestOutputHelper) =
 
     // all time high screener
-    let url = "https://finviz.com/screener.ashx?v=111&s=ta_newhigh&f=fa_salesqoq_high,sh_avgvol_o200,sh_opt_optionshort,sh_price_o10,sh_relvol_o1.5,ta_perf_dup&ft=4&o=-volume"
-
     [<Fact>]
     let ``End to end fetch works`` () =
-        let results = FinvizClient.getResults url
+        let results =
+            StorageTests.screenerUrl
+            |> FinvizClient.getResults
+
         Assert.NotEmpty(results)
+
+    [<Fact>]
+    let ``Fetch count works`` () =
+        let count = 
+            StorageTests.screenerUrl
+            |> FinvizClient.getResultCount
+
+        Assert.True(count > 0, "Result count for test screener should be greater than 0")
+
+    [<Fact>]
+    let ``industry fetch works`` () =
+        let (above,below) =
+            StorageTests.testStockIndustry
+            |> FinvizClient.getResultCountForIndustryAboveAndBelow20 
+
+        Assert.True(above > 0)
+        Assert.True(below > 0)

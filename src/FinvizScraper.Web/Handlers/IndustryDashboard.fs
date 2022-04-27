@@ -42,11 +42,11 @@ module IndustryDashboard =
                         stock.ticker |> FinvizScraper.Core.StockTicker.value |> generateTickerLink
                     ]
                     td [] [str stock.company]
-                    td [] [str stock.sector]
-                    td [] [str stock.industry]
+                    td [] [ generateHref stock.sector (Links.sectorLink stock.sector) ]
+                    td [] [ generateHref stock.industry (Links.industryLink stock.industry) ]
                 ]
             )
-            |> fullWidthTable 
+            |> fullWidthTable
 
         let view = 
             div [_class "content"] [

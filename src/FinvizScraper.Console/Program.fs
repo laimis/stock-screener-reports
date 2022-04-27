@@ -46,3 +46,9 @@ let screenerResults =
 
 screenerResults
     |> saveToDb config
+
+let (above,below) = 
+    "airlines"
+    |> FinvizClient.getResultCountForIndustryAboveAndBelow20
+
+Console.WriteLine($"{above} / {above + below}")

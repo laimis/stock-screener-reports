@@ -3,17 +3,13 @@ namespace FinvizScraper.FinvizClient
 module FinvizClient =
     open FinvizScraper.Core
 
-    let fetchScreenerHtml (url:string) =
+    let private fetchScreenerHtml (url:string) =
         // make sure that we sleep a bit before each request
         System.Threading.Thread.Sleep(500)
         let web = HtmlAgilityPack.HtmlWeb()
         web.Load(url)
 
-    let parseScreenerHtml (doc:HtmlAgilityPack.HtmlDocument) =
-
-        let nodes = doc.DocumentNode.SelectNodes("//table[@id='screener-views-table']/tr")
-
-        // 3rd node has the tickers
+    let private parseScreenerHtml (doc:HtmlAgilityPack.HtmlDocument) =
 
         let skipAndTake skip take seq =
             seq 
@@ -81,6 +77,9 @@ module FinvizClient =
                     volume=volumeNode
                 }
 
+        let nodes = doc.DocumentNode.SelectNodes("//table[@id='screener-views-table']/tr")
+
+        // 3rd node has the tickers
         nodes 
             |> skipAndTake 3 1                      // skip three tr nodes, take one that has the tickers table
             |> Seq.collect (fun n -> n.ChildNodes)  // this should contain #text, <td>, #text
@@ -118,3 +117,35 @@ module FinvizClient =
                     | _ -> (List.append results page)
 
         fetchPage 1 []
+
+    let getResultCount url =
+        let doc = fetchScreenerHtml url
+        let nodes =
+            doc.DocumentNode.SelectNodes("//table[@id='screener-views-table']/tr")
+            |> Seq.toList
+
+        let totalText = nodes.Item(2).SelectNodes("//td[@class='count-text']").Item(0).InnerText
+
+        let removeTotalMarker (input:string) =
+            input.Replace("Total: ","")
+
+        match totalText with
+            | x when x.Contains("#") ->  // the response could be Total: 4 #1
+                let total = x.Substring(0, x.IndexOf("#"))
+                System.Int32.Parse(total |> removeTotalMarker)
+            | _ -> System.Int32.Parse(totalText |> removeTotalMarker)
+
+    let cleanIndustry (industry:string) =
+        industry.Replace("&", "").Replace(" ", "").ToLower()
+
+    let getResultCountForIndustryAboveAndBelow20 industry =
+        let cleaned = industry |> cleanIndustry
+
+        let fetchCountWithTA ta =
+            $"https://finviz.com/screener.ashx?v=111&f=ind_{cleaned},{ta}"
+            |> getResultCount
+        
+        let above20 = "ta_sma20_pa" |> fetchCountWithTA
+        let below20 = "ta_sma20_pb" |> fetchCountWithTA
+
+        (above20,below20)
