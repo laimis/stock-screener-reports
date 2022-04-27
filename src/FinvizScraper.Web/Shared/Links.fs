@@ -32,3 +32,7 @@ module Links =
         $"/countries/{countryName}"
     
     let screenerTrends = "/screeners/trends"
+
+    let industryFinvizLink (industryName:string) =
+        let value = industryName.Replace("&", "").Replace(" ", "").ToLower()
+        $"https://finviz.com/screener.ashx?v=111&f=ind_" + value

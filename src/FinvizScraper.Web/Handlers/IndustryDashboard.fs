@@ -44,6 +44,7 @@ module IndustryDashboard =
                     td [] [str stock.company]
                     td [] [ generateHref stock.sector (Links.sectorLink stock.sector) ]
                     td [] [ generateHref stock.industry (Links.industryLink stock.industry) ]
+                    td [] [ stock.ticker |> FinvizScraper.Core.StockTicker.value |> Links.tradingViewLink |> generateHref "Trading View" ]
                 ]
             )
             |> fullWidthTable

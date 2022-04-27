@@ -17,9 +17,18 @@ let readConfig() =
         System.IO.File.ReadAllText(configPath)
     )
 
-let shouldRunIndustryUpdates() =
+let containsArgument toFind =
     let args = Environment.GetCommandLineArgs()
-    args |> Array.toList |> List.tryFind (fun arg -> arg = "--update-industries")
+    let m = args |> Array.toList |> List.tryFind (fun arg -> arg = toFind)
+    match m with
+    | None -> false
+    | Some _ -> true
+
+let runIndustryUpdates() =
+    containsArgument "--industry-updates"
+
+let runScreeners() =
+    containsArgument "--screeners"
 
 let fetchScreenerResults (input:ScreenerInput) =
     Console.WriteLine("Processing " + input.name)
@@ -41,21 +50,26 @@ let saveToDb (screenerResults:list<ScreenerInput * 'a>) =
 
 let config = readConfig()
 
-// let screenerResults =
-//     config.screeners 
-//     |> Seq.map fetchScreenerResults
-//     |> Seq.toList
-
 match config.dbConnectionString with
 | null -> 
-    Console.WriteLine("No db connection string found in config... not storing the results in db")
+    Console.Error.WriteLine("No db connection string found in config...")
+    Environment.Exit(-1)
 | value -> 
     value |> Storage.configureConnectionString
-    // screenerResults
-    //     |> saveToDb config
 
-match shouldRunIndustryUpdates() with
-| Some _ ->         
+match runScreeners() with
+| true -> 
+    let screenerResults =
+        config.screeners 
+        |> Seq.map fetchScreenerResults
+        |> Seq.toList
+
+    screenerResults
+            |> saveToDb
+| false -> ()
+
+match runIndustryUpdates() with
+| true ->         
     Storage.getIndustries()
         |> List.toSeq
         |> Seq.map (fun sector -> 
@@ -65,4 +79,4 @@ match shouldRunIndustryUpdates() with
         |> Seq.iter (fun result ->  
             Storage.saveIndustryUpdates (FinvizConfig.getRunDate()) result |> ignore
         )
-| None -> ()
+| false -> ()

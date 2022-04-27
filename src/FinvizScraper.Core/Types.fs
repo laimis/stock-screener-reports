@@ -55,3 +55,10 @@ type Screener = {
     name: string;
     url: string;
 }
+
+type IndustryUpdate = {
+    industry: string;
+    date: System.DateTime;
+    above: int;
+    below: int;
+}

@@ -145,3 +145,18 @@ type StorageTests(output:ITestOutputHelper) =
     let ``get industries works`` () =
         let industries = Storage.getIndustries()
         Assert.NotEmpty(industries)
+
+    [<Fact>]
+    let ``industry updates end to end works`` () =
+        let date = "2022-04-01"
+
+        Storage.saveIndustryUpdates date ("airlines",10,50)
+        |> ignore
+
+        let updates = date |> Storage.getIndustryUpdates
+
+        Assert.NotEmpty(updates)
+
+        Assert.Equal("airlines", updates.Item(0).industry)
+        Assert.Equal(10, updates.Item(0).above)
+        Assert.Equal(50, updates.Item(0).below)

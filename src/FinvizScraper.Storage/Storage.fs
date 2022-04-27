@@ -26,6 +26,14 @@ module Storage =
             country = reader.string "country";
         }
 
+    let private industryUpdateMapper (reader:RowReader) : IndustryUpdate =
+        {
+            industry = reader.string "industry";
+            date = reader.dateTime "date";
+            above = reader.int "above";
+            below = reader.int "below";
+        }
+
     let singleOrThrow message results =
         match results with
         | [] -> None
@@ -219,4 +227,17 @@ module Storage =
             "@above", Sql.int above;
             "@below", Sql.int below;
         ]
-        |> Sql.executeNonQuery 
+        |> Sql.executeNonQuery
+
+    let getIndustryUpdates date =
+        let sql = @"
+            SELECT industry,date,above,below FROM industryupdates
+            ORDER BY (above/(below + above)) DESC"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@date", Sql.string date;
+        ]
+        |> Sql.execute industryUpdateMapper
