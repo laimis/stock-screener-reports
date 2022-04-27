@@ -35,3 +35,12 @@ create table screenerresults (
 alter table screenerresults add column change decimal;
 alter table screenerresults add column volume numeric;
 alter table screenerresults add column marketcap numeric;
+
+create table industryupdates (
+    id serial primary key,
+    industry text not null,
+    "date" timestamp not null,
+    above numeric not null,
+    below numeric not null,
+    UNIQUE(industry, "date")
+);

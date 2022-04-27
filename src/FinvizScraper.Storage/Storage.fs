@@ -194,3 +194,29 @@ module Storage =
         |> Seq.iter (fun (screener,stock,result) ->
             saveScreenerResult screener date stock result |> ignore
         )
+    
+    let getIndustries() =
+        cnnString
+        |> Sql.connect
+        |> Sql.query "SELECT DISTINCT industry FROM stocks ORDER BY industry"
+        |> Sql.execute (fun reader -> reader.string "industry")
+
+    let saveIndustryUpdates date (industry,above:int,below:int) =
+        let sql = @"
+            DELETE FROM industryupdates WHERE industry = @industry AND date = date(@date);
+
+            INSERT INTO industryupdates
+            (industry,date,above,below)
+            VALUES
+            (@industry,date(@date),@above,@below)"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@industry", Sql.string industry;
+            "@date", Sql.string date;
+            "@above", Sql.int above;
+            "@below", Sql.int below;
+        ]
+        |> Sql.executeNonQuery 

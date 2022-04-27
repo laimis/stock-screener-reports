@@ -11,9 +11,15 @@ let readConfig() =
         | [||] -> defaultConfigPath
         | [|_|] -> defaultConfigPath
         | _ -> args[1]
+
+    Console.WriteLine("Reading config from " + configPath)
     System.Text.Json.JsonSerializer.Deserialize<FinvizConfig>(
         System.IO.File.ReadAllText(configPath)
     )
+
+let shouldRunIndustryUpdates() =
+    let args = Environment.GetCommandLineArgs()
+    args |> Array.toList |> List.tryFind (fun arg -> arg = "--update-industries")
 
 let fetchScreenerResults (input:ScreenerInput) =
     Console.WriteLine("Processing " + input.name)
@@ -26,29 +32,37 @@ let saveToFile (filepath:string) content =
     IO.Directory.CreateDirectory(directory) |> ignore
     IO.File.WriteAllText(filepath,content)
 
-let saveToDb config (screenerResults:list<ScreenerInput * 'a>) =
-    match config.dbConnectionString with
-        | null -> 
-            Console.WriteLine("No db connection string found in config... not storing the results in db")
-        | value ->
-            Storage.configureConnectionString value
-            System.Console.WriteLine("Saveing to db " + screenerResults.Length.ToString() + " screener results")
-            let date = FinvizConfig.getRunDate()
-            screenerResults
-            |> Seq.iter (fun x -> Storage.saveScreenerResults date x)
+let saveToDb (screenerResults:list<ScreenerInput * 'a>) =
+
+    System.Console.WriteLine("Saveing to db " + screenerResults.Length.ToString() + " screener results")
+    let date = FinvizConfig.getRunDate()
+    screenerResults
+    |> Seq.iter (fun x -> Storage.saveScreenerResults date x)
 
 let config = readConfig()
 
-let screenerResults =
-    config.screeners 
-    |> Seq.map fetchScreenerResults
-    |> Seq.toList
+// let screenerResults =
+//     config.screeners 
+//     |> Seq.map fetchScreenerResults
+//     |> Seq.toList
 
-screenerResults
-    |> saveToDb config
+match config.dbConnectionString with
+| null -> 
+    Console.WriteLine("No db connection string found in config... not storing the results in db")
+| value -> 
+    value |> Storage.configureConnectionString
+    // screenerResults
+    //     |> saveToDb config
 
-let (above,below) = 
-    "airlines"
-    |> FinvizClient.getResultCountForIndustryAboveAndBelow20
-
-Console.WriteLine($"{above} / {above + below}")
+match shouldRunIndustryUpdates() with
+| Some _ ->         
+    Storage.getIndustries()
+        |> List.toSeq
+        |> Seq.map (fun sector -> 
+            let (above,below) = sector |> FinvizClient.getResultCountForIndustryAboveAndBelow20
+            (sector,above,below)
+        )
+        |> Seq.iter (fun result ->  
+            Storage.saveIndustryUpdates (FinvizConfig.getRunDate()) result |> ignore
+        )
+| None -> ()

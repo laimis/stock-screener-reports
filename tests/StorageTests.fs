@@ -140,3 +140,8 @@ type StorageTests(output:ITestOutputHelper) =
     let ``get stocks by industry works`` () =
         let stocks = Storage.getStocksByIndustry testStockIndustry
         Assert.NotEmpty(stocks)
+
+    [<Fact>]
+    let ``get industries works`` () =
+        let industries = Storage.getIndustries()
+        Assert.NotEmpty(industries)
