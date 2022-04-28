@@ -12,6 +12,8 @@ module Links =
 
     let chartJsDatalabelsLink = "https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"
 
+    let finvizLogoLink = "/finviz_logo.png"
+
     // app links
     let stockLink ticker =
         $"/stocks/{ticker}"

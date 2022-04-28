@@ -26,10 +26,9 @@ let webApp =
                 routef "/stocks/%s" StockDashboard.handler
 
                 routef "/sectors/%s" SectorDashboard.handler
+                route "/industries/trends" >=> warbler (fun _ -> IndustryTrends.handler())
                 routef "/industries/%s" IndustryDashboard.handler
                 routef "/countries/%s" CountryDashboard.handler
-
-                route "/industrytrends" >=> warbler (fun _ -> IndustryTrends.handler())
             ]
         setStatusCode 404 >=> text "Not Found" ]
 

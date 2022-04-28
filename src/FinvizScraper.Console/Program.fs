@@ -73,10 +73,14 @@ match runIndustryUpdates() with
     Storage.getIndustries()
         |> List.toSeq
         |> Seq.map (fun industry -> 
-            let (above,below) = industry |> FinvizClient.getResultCountForIndustryAboveAndBelow20
-            (industry,above,below)
+            let (above20,below20) = industry |> FinvizClient.getResultCountForIndustryAboveAndBelowSMA 20
+            let (above200,below200) = industry |> FinvizClient.getResultCountForIndustryAboveAndBelowSMA 200
+            [(industry,20,above20,below20); (industry,200,above200,below200)]
         )
-        |> Seq.iter (fun result ->  
-            Storage.saveIndustryUpdates (FinvizConfig.getRunDate()) 20 result |> ignore
+        |> Seq.iter (fun result ->
+            result
+            |> List.iter(fun r ->
+                Storage.saveIndustryUpdates (FinvizConfig.getRunDate()) r |> ignore
+            )
         )
 | false -> ()

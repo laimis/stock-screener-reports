@@ -36,6 +36,14 @@ module Views =
             str title
         ]
 
+    let generateHrefWithElement element link =
+        a [
+            _href link
+            _target "_blank"
+        ] [
+            element
+        ]
+
     let generateHrefWithAttr title link attr =
         a [
             _href link

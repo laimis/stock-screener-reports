@@ -155,8 +155,8 @@ type StorageTests(output:ITestOutputHelper) =
 
         let updates = date |> Storage.getIndustryUpdates
 
-        Assert.NotEmpty(updates)
+        let update = Assert.Single(updates)
 
-        Assert.Equal("airlines", updates.Item(0).industry)
-        Assert.Equal(10, updates.Item(0).above)
-        Assert.Equal(50, updates.Item(0).below)
+        Assert.Equal("airlines", update.industry)
+        Assert.Equal(10, update.above)
+        Assert.Equal(50, update.below)

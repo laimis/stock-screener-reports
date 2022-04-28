@@ -138,14 +138,14 @@ module FinvizClient =
     let cleanIndustry (industry:string) =
         industry.Replace("&", "").Replace(" ", "").ToLower()
 
-    let getResultCountForIndustryAboveAndBelow20 industry =
+    let getResultCountForIndustryAboveAndBelowSMA days industry =
         let cleaned = industry |> cleanIndustry
 
         let fetchCountWithTA ta =
             $"https://finviz.com/screener.ashx?v=111&f=ind_{cleaned},{ta}"
             |> getResultCount
         
-        let above20 = "ta_sma20_pa" |> fetchCountWithTA
-        let below20 = "ta_sma20_pb" |> fetchCountWithTA
+        let above20 = $"ta_sma{days}_pa" |> fetchCountWithTA
+        let below20 = $"ta_sma{days}_pb" |> fetchCountWithTA
 
         (above20,below20)

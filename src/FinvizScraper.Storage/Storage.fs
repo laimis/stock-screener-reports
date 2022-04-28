@@ -210,9 +210,9 @@ module Storage =
         |> Sql.query "SELECT DISTINCT industry FROM stocks ORDER BY industry"
         |> Sql.execute (fun reader -> reader.string "industry")
 
-    let saveIndustryUpdates date days (industry,above:int,below:int) =
+    let saveIndustryUpdates date  (industry,days,above:int,below:int) =
         let sql = @"
-            DELETE FROM industryupdates WHERE industry = @industry AND date = date(@date);
+            DELETE FROM industryupdates WHERE industry = @industry AND date = date(@date) AND days = @days;
 
             INSERT INTO industryupdates
             (industry,date,days,above,below)
@@ -231,10 +231,11 @@ module Storage =
         ]
         |> Sql.executeNonQuery
 
-    let getIndustryUpdates date =
+    let getIndustryUpdates days date =
         let sql = @"
             SELECT industry,date,days,above,below FROM industryupdates
             WHERE date = date(@date)
+            AND days = @days
             ORDER BY (above/(below + above)) DESC"
 
         cnnString
@@ -242,5 +243,6 @@ module Storage =
         |> Sql.query sql
         |> Sql.parameters [
             "@date", Sql.string date;
+            "@days", Sql.int days;
         ]
         |> Sql.execute industryUpdateMapper
