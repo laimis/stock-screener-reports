@@ -32,6 +32,7 @@ module Links =
         $"/countries/{countryName}"
     
     let screenerTrends = "/screeners/trends"
+    let industryTrends = "/industries/trends"
 
     let industryFinvizLink (industryName:string) =
         let value = industryName.Replace("&", "").Replace(" ", "").ToLower()

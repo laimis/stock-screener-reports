@@ -51,27 +51,36 @@ module Dashboard =
 
         let nodes = [
             div [ _class "columns" ] [
-                div [ _class "column is-half" ] [
+                div [ _class "column" ] [
                     h1 [_class "title"] [ str "Dashboard" ]
                 ]
-                div [ _class "column" ] [
-                    form [
-                        _action "/stocks/search"
-                        _method "GET"
-                    ] [
-                        input [
-                            _class "input"
-                            _type "text"
-                            _placeholder "Search for stock"
-                            _name "ticker"
+                div [ _class "column is-three-quarters" ] [
+                    div [ _class "columns"] [
+                        div [ _class "column" ] [
+                            form [
+                                _action "/stocks/search"
+                                _method "GET"
+                            ] [
+                                input [
+                                    _class "input"
+                                    _type "text"
+                                    _placeholder "Search for stock"
+                                    _name "ticker"
+                                ]
+                            ]
+                        ]
+                        div [ _class "column" ] [
+                            Views.generateHrefWithAttr
+                                "Screener Trends"
+                                Links.screenerTrends
+                                (_class "button is-primary is-pulled-right mx-1")
+
+                            Views.generateHrefWithAttr
+                                "Industry Trends"
+                                Links.industryTrends
+                                (_class "button is-primary is-pulled-right mx-1")
                         ]
                     ]
-                ]
-                div [ _class "column" ] [
-                    Views.generateHrefWithAttr
-                        "Screener Trends"
-                        Links.screenerTrends
-                        (_class "button is-primary is-pulled-right")
                 ]
             ]
             
