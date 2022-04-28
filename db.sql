@@ -44,3 +44,7 @@ create table industryupdates (
     below numeric not null,
     UNIQUE(industry, "date")
 );
+
+alter table industryupdates add column days numeric;
+UPDATE industryupdates SET days = 20;
+alter table industryupdates alter column days set not null;

@@ -16,6 +16,9 @@ type ReportTests(output:ITestOutputHelper) =
     let getTestIndustry = "Agricultural Inputs"
     let getTestCountry = "USA"
 
+    let getTestStartDate() = DateTime.Now.AddDays(-7)
+    let getTestEndDate() = DateTime.Now
+
     let topGroupingTest resultGenerator containsMember =
 
         let screener = getTestScreener
@@ -91,11 +94,17 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``Date range sector grouping works``() =
-        "Energy" |> topGroupingTest (fun x -> FinvizScraper.Storage.Reports.topSectorsOverDays x.id (DateTime.Now.AddDays(-7)) DateTime.Now)
+        "Energy" |> topGroupingTest (
+            fun x -> 
+                FinvizScraper.Storage.Reports.topSectorsOverDays x.id (getTestStartDate()) (getTestEndDate())
+            )
 
     [<Fact>]
     let ``Date range industry grouping works``() =
-        "Telecom Services" |> topGroupingTest (fun x -> FinvizScraper.Storage.Reports.topIndustriesOverDays x.id (DateTime.Now.AddDays(-7)) DateTime.Now)
+        "Food Distribution" |> topGroupingTest (
+            fun x -> 
+                FinvizScraper.Storage.Reports.topIndustriesOverDays x.id (getTestStartDate()) (getTestEndDate())
+            )
 
     [<Fact>]
     let ``Date range country grouping works``() =
@@ -121,7 +130,7 @@ type ReportTests(output:ITestOutputHelper) =
         let screener = getTestScreener
         let industry = getTestIndustry
 
-        let results = FinvizScraper.Storage.Reports.getDailyCountsForScreenerAndIndustry screener.Value.id industry 7
+        let results = FinvizScraper.Storage.Reports.getDailyCountsForScreenerAndIndustry screener.Value.id industry 30
         
         Assert.NotEmpty(results)
 
@@ -130,6 +139,6 @@ type ReportTests(output:ITestOutputHelper) =
         let screener = getTestScreener
         let industry = getTestCountry
 
-        let results = FinvizScraper.Storage.Reports.getDailyCountsForScreenerAndCountry screener.Value.id industry 7
+        let results = FinvizScraper.Storage.Reports.getDailyCountsForScreenerAndCountry screener.Value.id industry 30
         
         Assert.NotEmpty(results)

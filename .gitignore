@@ -4,5 +4,5 @@ cache/
 
 .ionide/
 .fake
-
+.vscode/
 *secret*

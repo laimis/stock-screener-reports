@@ -59,6 +59,7 @@ type Screener = {
 type IndustryUpdate = {
     industry: string;
     date: System.DateTime;
+    days: int;
     above: int;
     below: int;
 }

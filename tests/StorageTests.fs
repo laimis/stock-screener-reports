@@ -150,7 +150,7 @@ type StorageTests(output:ITestOutputHelper) =
     let ``industry updates end to end works`` () =
         let date = "2022-04-01"
 
-        Storage.saveIndustryUpdates date ("airlines",10,50)
+        Storage.saveIndustryUpdates date 20 ("airlines",10,50)
         |> ignore
 
         let updates = date |> Storage.getIndustryUpdates
