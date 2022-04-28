@@ -161,3 +161,16 @@ type StorageTests(output:ITestOutputHelper) =
         Assert.Equal("airlines", update.industry)
         Assert.Equal(10, update.above)
         Assert.Equal(50, update.below)
+
+    
+    [<Fact>]
+    let ``latest industry update works`` () =
+        let update =
+            testStockIndustry
+            |> Storage.getMostRecentIndustryTrends 20
+
+        match update with
+            | Some update ->
+                Assert.Equal(testStockIndustry, update.industry)
+            | None ->
+                Assert.True(false, "Expected industry update to be found")

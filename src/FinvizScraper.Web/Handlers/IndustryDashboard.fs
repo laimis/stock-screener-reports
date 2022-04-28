@@ -8,6 +8,27 @@ module IndustryDashboard =
     open FinvizScraper.Web.Shared.Views
 
     let handler industryName =
+        
+        let createTrendSpan (trend:option<FinvizScraper.Core.IndustryUpdate>) =
+            let desc = 
+                match trend with
+                | None -> "No 20 SMA trends found"
+                | Some t -> 
+                    let total = t.above + t.below
+                    let pct = System.Math.Round((double t.above) * 100.0 / (double total), 2)
+                    $"<b>{pct}%%</b> ({t.above}) above {t.days} SMA"
+
+            span [ _class "mx-1"] [
+                rawText desc
+            ]
+            
+        // load industry trends
+        let trendsDiv = div [] [
+            (industryName |> Storage.getMostRecentIndustryTrends 20 |> createTrendSpan)
+            (industryName |> Storage.getMostRecentIndustryTrends 200 |> createTrendSpan)
+        ]
+        
+        // load charts for each screener
         let screeners = Storage.getScreeners()
 
         let days = FinvizScraper.Core.FinvizConfig.dayRange
@@ -54,6 +75,7 @@ module IndustryDashboard =
                 h1 [] [
                     str industryName
                 ]
+                trendsDiv
             ]::charts @ [stockTable]
         
         view |> Views.mainLayout $"Industry Dashboard for {industryName}" 
