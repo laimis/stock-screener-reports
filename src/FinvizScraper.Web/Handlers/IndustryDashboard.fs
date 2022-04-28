@@ -9,6 +9,7 @@ module IndustryDashboard =
 
     let handler industryName =
         
+        // load industry trends
         let createTrendSpan (trend:option<FinvizScraper.Core.IndustryUpdate>) =
             let desc = 
                 match trend with
@@ -22,7 +23,6 @@ module IndustryDashboard =
                 rawText desc
             ]
             
-        // load industry trends
         let trendsDiv = div [] [
             (industryName |> Storage.getMostRecentIndustryTrends 20 |> createTrendSpan)
             (industryName |> Storage.getMostRecentIndustryTrends 200 |> createTrendSpan)
@@ -53,6 +53,35 @@ module IndustryDashboard =
                 |> div [_class "block"] 
             )
 
+        let resultRows =
+            industryName
+            |> Reports.getScreenerResultsForIndustry 50
+            |> List.map (fun screenerResult ->
+                tr [] [
+                    td [] [ screenerResult.date.ToString("yyyy-MM-dd") |> str ]
+                    td [] [ screenerResult.screenername |> str ]
+                    td [] [ screenerResult.ticker |> str ]
+                    td [] [ screenerResult.marketCap |> marketCapFormatted |> str ]
+                    td [] [ screenerResult.price |> dollarFormatted |> str ]
+                    td [] [ screenerResult.change |> percentFormatted |> str ]
+                    td [] [ screenerResult.volume |> volumeFormatted |> str ]
+                ]
+            )
+
+        let tableHeader =
+            tr [] [
+                th [] [str "date"]
+                th [] [str "screener"]
+                th [] [str "ticker"]
+                th [] [str "market cap"]
+                th [] [str "price"]
+                th [] [str "change"]
+                th [] [str "volume"]
+            ]
+
+        let screenerResultsTable = tableHeader::resultRows |> Views.fullWidthTable
+        
+        // get stocks in industry
         let stocks = Storage.getStocksByIndustry industryName
 
         let stockTable =
@@ -76,6 +105,6 @@ module IndustryDashboard =
                     str industryName
                 ]
                 trendsDiv
-            ]::charts @ [stockTable]
+            ]::charts @ [screenerResultsTable; stockTable]
         
         view |> Views.mainLayout $"Industry Dashboard for {industryName}" 

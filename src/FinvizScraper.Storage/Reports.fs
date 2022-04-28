@@ -248,6 +248,28 @@ module Reports =
             |> Sql.parameters [
                 "@ticker", ticker |> FinvizScraper.Core.StockTicker.value |> Sql.string
             ]
-            |> Sql.execute (
-                fun reader -> mapScreenerResultReportItem reader
-            )
+            |> Sql.execute mapScreenerResultReportItem
+
+    let getScreenerResultsForIndustry limit industry =
+                
+            let sql = @$"
+                SELECT 
+                    stocks.id,ticker,stocks.name,sector,industry,country,
+                    screeners.id as screenerid,screeners.name as screenername,
+                    screenerresults.date,marketcap,price,change,volume
+                FROM stocks
+                JOIN screenerresults ON stocks.id = screenerresults.stockid
+                JOIN screeners ON screeners.id = screenerresults.screenerid
+                WHERE 
+                    industry = @industry
+                ORDER BY screenerresults.date DESC
+                LIMIT @limit"
+    
+            cnnString
+                |> Sql.connect
+                |> Sql.query sql
+                |> Sql.parameters [
+                    "@industry", Sql.string industry
+                    "@limit", Sql.int limit
+                ]
+                |> Sql.execute mapScreenerResultReportItem
