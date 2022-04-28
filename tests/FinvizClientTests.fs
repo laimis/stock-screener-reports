@@ -27,7 +27,7 @@ type ParsingTests(output:ITestOutputHelper) =
     let ``industry fetch works`` () =
         let (above,below) =
             StorageTests.testStockIndustry
-            |> FinvizClient.getResultCountForIndustryAboveAndBelow20 
+            |> FinvizClient.getResultCountForIndustryAboveAndBelowSMA 20 
 
         Assert.True(above > 0)
         Assert.True(below > 0)
