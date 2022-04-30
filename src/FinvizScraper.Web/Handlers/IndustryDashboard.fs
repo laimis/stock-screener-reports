@@ -17,7 +17,7 @@ module IndustryDashboard =
                 | Some t -> 
                     let total = t.above + t.below
                     let pct = System.Math.Round((double t.above) * 100.0 / (double total), 2)
-                    $"<b>{pct}%%</b> ({t.above}) above {t.days} SMA"
+                    $"<b>{pct}%%</b> ({t.above} / {total}) above {t.days} SMA"
 
             span [ _class "mx-1"] [
                 rawText desc
@@ -26,6 +26,7 @@ module IndustryDashboard =
         let trendsDiv = div [] [
             (industryName |> Storage.getMostRecentIndustryTrends 20 |> createTrendSpan)
             (industryName |> Storage.getMostRecentIndustryTrends 200 |> createTrendSpan)
+            span [ _class "mx-1"] [industryName |> Links.industryFinvizLink |> Views.generateHref "Finviz"]
         ]
         
         // load charts for each screener
@@ -60,7 +61,7 @@ module IndustryDashboard =
                 tr [] [
                     td [] [ screenerResult.date.ToString("yyyy-MM-dd") |> str ]
                     td [] [ screenerResult.screenername |> str ]
-                    td [] [ screenerResult.ticker |> str ]
+                    td [] [ screenerResult.ticker |> generateTickerLink ]
                     td [] [ screenerResult.marketCap |> marketCapFormatted |> str ]
                     td [] [ screenerResult.price |> dollarFormatted |> str ]
                     td [] [ screenerResult.change |> percentFormatted |> str ]

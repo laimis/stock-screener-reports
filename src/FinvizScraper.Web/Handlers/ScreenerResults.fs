@@ -30,7 +30,7 @@ module ScreenerResults =
             result.ticker |> Links.tradingViewLink |> generateHref "link" |> toTdWithNode
         ]
 
-    let toBreakdownTable breakdownTitle (breakdown:seq<string * list<ScreenerResultReportItem>>) =
+    let toBreakdownTable breakdownTitle linkFunction (breakdown:seq<string * list<ScreenerResultReportItem>>) =
         // row with headers for each column and another row with length
         let headerRow = tr [] [
             th [] [str breakdownTitle]
@@ -39,10 +39,11 @@ module ScreenerResults =
 
         let valueRows =
             breakdown
-            |> Seq.map (fun a ->
-                let (name, list) = a
+            |> Seq.map (fun (name, list) ->
                 tr [] [
-                    td [] [str name]
+                    td [] [
+                        a [_href (linkFunction name)] [str name]
+                    ]
                     td [] [str (list.Length.ToString())]
                 ]
             )
@@ -52,13 +53,13 @@ module ScreenerResults =
         
     let calculateBreakdowns screenerResults =
         
-        let convertToBreakdown (name, groupByProperty) =
-            (name, (screenerResults |> List.groupBy groupByProperty |> List.sortByDescending (fun (_, list) -> list.Length)))
+        let convertToBreakdown (name, linkFunction, groupByProperty) =
+            (name, linkFunction, (screenerResults |> List.groupBy groupByProperty |> List.sortByDescending (fun (_, list) -> list.Length)))
 
         let breakdowns = [
-            ("Sectors", fun a -> a.sector);
-            ("Industries", fun a -> a.industry);
-            ("Countries", fun a -> a.country);
+            ("Sectors", Links.sectorLink, fun a -> a.sector);
+            ("Industries", Links.industryLink, fun a -> a.industry);
+            ("Countries", Links.countryLink, fun a -> a.country);
         ]
         
         breakdowns |> List.map convertToBreakdown
@@ -96,8 +97,14 @@ module ScreenerResults =
                 
         let breakdownDivs = 
             breakdowns
-            |> List.map (fun (breakdownTitle,breakdownList) -> toBreakdownTable breakdownTitle breakdownList)
-            |> List.map (fun breakdownTable -> div [_class "column"] [breakdownTable])
+            |> List.map (
+                fun (breakdownTitle,linkFunction,breakdownList) ->
+                    toBreakdownTable breakdownTitle linkFunction breakdownList
+                )
+            |> List.map (
+                fun breakdownTable ->
+                    div [_class "column"] [breakdownTable]
+                )
 
         [
             div [_class "content"] [
