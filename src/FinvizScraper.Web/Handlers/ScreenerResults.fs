@@ -20,9 +20,9 @@ module ScreenerResults =
         tr rowAttributes [
             toTdWithNode (generateTickerLink result.ticker)
             toTd result.name
-            toTd result.sector
-            toTd result.industry
-            toTd result.country
+            result.sector |> Links.sectorLink |> generateHref result.sector |> toTdWithNode
+            result.industry |> Links.industryLink |> generateHref result.industry |> toTdWithNode
+            result.country |> Links.countryLink |> generateHref result.country |> toTdWithNode
             result.marketCap |> marketCapFormatted |> toTd
             result.price |> dollarFormatted |> toTd
             result.change |> percentFormatted |> toTd
@@ -91,7 +91,7 @@ module ScreenerResults =
             results
             |> List.map screenerResultToTr
             |> List.append [headerRow]
-            |> Views.fullWidthTable
+            |> fullWidthTable
 
         let breakdowns = calculateBreakdowns results
                 

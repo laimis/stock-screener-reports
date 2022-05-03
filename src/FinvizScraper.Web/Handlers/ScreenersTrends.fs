@@ -45,25 +45,23 @@ module ScreenersTrends =
 
         // make chart that is new highs - new lows for each day
 
-        let newHighsData =
-            dataByScreenerByDate.Item(
-                screeners
-                |> List.find (fun s -> s.id = FinvizScraper.Core.FinvizConfig.NewHighsScreener)
-            )
+        let findScreener screnerId =
+            screeners
+            |> List.find (fun s -> s.id = screnerId)
+
+        let newHighsDataMap =
+            dataByScreenerByDate.Item(FinvizScraper.Core.FinvizConfig.NewHighsScreener |> findScreener)
             |> Map.ofList
             
-        let newLowsData =
-            dataByScreenerByDate.Item(
-                screeners
-                |> List.find (fun s -> s.id = FinvizScraper.Core.FinvizConfig.NewLowsScreener)
-            )
+        let newLowsDataMap =
+            dataByScreenerByDate.Item(FinvizScraper.Core.FinvizConfig.NewLowsScreener |> findScreener)
             |> Map.ofList
 
         let highsMinusLowsChart =
             listOfDays
             |> List.map(fun (date,count) ->
-                let high = newHighsData.Item(date)
-                let low = newLowsData.Item(date)
+                let high = newHighsDataMap.Item(date)
+                let low = newLowsDataMap.Item(date)
 
                 (date,high - low)
             )
