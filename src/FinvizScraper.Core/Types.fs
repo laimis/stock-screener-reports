@@ -23,9 +23,12 @@ type FinvizConfig =
         outputPath:string;
         dbConnectionString:string;
     }
-    static member getRunDate() =
-        let date = System.DateTime.Now
+
+    static member formatRunDate (date:System.DateTime) =
         date.ToString("yyyy-MM-dd")
+
+    static member getRunDate() =
+        System.DateTime.Now |> FinvizConfig.formatRunDate 
 
     static member dayRange = 31
     
@@ -63,10 +66,18 @@ type Screener = {
     url: string;
 }
 
-type IndustryUpdate = {
-    industry: string;
-    date: System.DateTime;
-    days: int;
-    above: int;
-    below: int;
-}
+type IndustryUpdate =
+    {
+        industry: string;
+        date: System.DateTime;
+        days: int;
+        above: int;
+        below: int;
+    }
+
+    member this.total = this.above + this.below
+
+    member this.percentAbove =
+        match this.total with
+            | 0 -> 0.0
+            | _ -> (float this.above ) * 100.0 / (float this.total)

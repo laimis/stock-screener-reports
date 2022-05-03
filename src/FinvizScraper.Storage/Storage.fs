@@ -263,3 +263,9 @@ module Storage =
         ]
         |> Sql.execute industryUpdateMapper
         |> singleOrThrow "More than one industry trend for the same industry and days"
+
+    let getIndustryUpdatesLatestDate() =
+        cnnString
+        |> Sql.connect
+        |> Sql.query "SELECT MAX(date) as date FROM industryupdates"
+        |> Sql.executeRow (fun reader -> reader.dateTime "date")

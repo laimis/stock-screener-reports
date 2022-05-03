@@ -174,3 +174,8 @@ type StorageTests(output:ITestOutputHelper) =
                 Assert.Equal(testStockIndustry, update.industry)
             | None ->
                 Assert.True(false, "Expected industry update to be found")
+
+    [<Fact>]
+    let ``latest date works`` () =
+        let date = Storage.getIndustryUpdatesLatestDate()
+        Assert.NotEmpty(date)

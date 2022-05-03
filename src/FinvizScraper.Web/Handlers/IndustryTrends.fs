@@ -8,7 +8,7 @@ module IndustryTrends =
     open Giraffe.ViewEngine
 
     let handler()  =
-        let date = FinvizScraper.Core.FinvizConfig.getRunDate()
+        let date = Storage.getIndustryUpdatesLatestDate() |> FinvizScraper.Core.FinvizConfig.formatRunDate
 
         let getIndustryUpdatesAndTurnToMap (days:int) =
             date 
@@ -20,26 +20,20 @@ module IndustryTrends =
         let industryUpdates200 = getIndustryUpdatesAndTurnToMap 200
 
         let dataRows =
-            industryUpdates20
+            industryUpdates200
             |> Map.toList
-            |> List.map (fun (key, iu20) ->
+            |> List.sortByDescending (fun (key, update) -> update.percentAbove)
+            |> List.map (fun (key, iu) ->
 
                 let toSMACells (update:FinvizScraper.Core.IndustryUpdate) =
-                    let total = update.above + update.below
-
-                    let percentAbove =
-                        match total with
-                        | 0 -> 0.0
-                        | _ -> (float update.above ) * 100.0 / (float total)
-
                     [
                         td [] [ update.above.ToString() |> str  ]
-                        td [] [ total.ToString() |> str ]
-                        td [] [ System.String.Format("{0:N2}%", percentAbove) |> str ]
+                        td [] [ update.total.ToString() |> str ]
+                        td [] [ System.String.Format("{0:N2}%", update.percentAbove) |> str ]
                     ]
 
-                let sma20Cells = toSMACells iu20
-                let sma200Cells = toSMACells (industryUpdates200[key])
+                let sma20Cells = toSMACells (industryUpdates20[key])
+                let sma200Cells = toSMACells (iu)
 
                 let image = img [ 
                     _src Links.finvizLogoLink
@@ -47,8 +41,8 @@ module IndustryTrends =
                 ]
 
                 let commonCells = [
-                    td [] [ iu20.industry |> Links.industryFinvizLink |> generateHrefWithElement image]
-                    td [] [ iu20.industry |> Links.industryLink |> generateHref iu20.industry]
+                    td [] [ iu.industry |> Links.industryFinvizLink |> generateHrefWithElement image]
+                    td [] [ iu.industry |> Links.industryLink |> generateHref iu.industry]
                 ]
 
                 let cells = List.append (List.append commonCells sma20Cells) sma200Cells
