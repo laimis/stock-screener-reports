@@ -29,6 +29,13 @@ type FinvizConfig =
 
     static member dayRange = 31
     
+    // TODO: not sure how to make these more dynamic. We need some custom logic
+    // for certain reports that refer to screeners by id
+    static member NewHighsWithSalesScreener = 27
+    static member NewHighsScreener = 28
+    static member NewLowsScreener = 31
+
+    
 type ScreenerResult = {
     ticker:StockTicker.T;
     company:string;

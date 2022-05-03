@@ -7,19 +7,13 @@ module ScreenerDashboard =
     open FinvizScraper.Storage
     open System
     
-    let generateLayoutForScreener (screener:FinvizScraper.Core.Screener) =
 
-        let days = FinvizScraper.Core.FinvizConfig.dayRange
-
-        let data = Reports.getDailyCountsForScreener screener.id days
-
-        let chartElements = Charts.convertNameCountsToChart screener.name None data
-
+    let private generateBreakdowsElementsForDays screenerId (days:int) =
         let fetchBreakdownData dataSource =
             let startDate = DateTime.Now.AddDays(-days)
             let endDate = DateTime.Now
 
-            dataSource screener.id startDate endDate
+            dataSource screenerId startDate endDate
 
         let sectorsData = fetchBreakdownData Reports.topSectorsOverDays
         let industriesData = fetchBreakdownData Reports.topIndustriesOverDays
@@ -35,6 +29,23 @@ module ScreenerDashboard =
             div [_class "column"] [countriesTable]
         ]
 
+        let breakdownHeader = div [_class "content mt-5"] [
+            h2 [] [
+                str $"Last {days} days"
+            ]
+        ]
+
+        [
+            breakdownHeader;
+            breakdownDiv
+        ]
+
+    let generateLayoutForScreener (screener:FinvizScraper.Core.Screener) =
+
+        let days = FinvizScraper.Core.FinvizConfig.dayRange
+
+        
+
         let header = 
             div [_class "content"] [
                 h1 [] [
@@ -42,9 +53,22 @@ module ScreenerDashboard =
                 ]
             ]
 
-        let headerWithCharts = header::chartElements
+        let last30DaysChartElements =
+            days
+            |> Reports.getDailyCountsForScreener screener.id
+            |> Charts.convertNameCountsToChart screener.name None
 
-        [breakdownDiv] |> List.append headerWithCharts
+        let headerWithCharts = header::last30DaysChartElements
+
+        // final page has
+        // title, chart of 30 days, last 7, last 14, last 30
+
+        let breakdownElements = 
+            [7; 14; 30]
+            |> List.map (fun days -> days |> generateBreakdowsElementsForDays screener.id)
+            |> List.concat
+
+        breakdownElements |> List.append headerWithCharts
 
 
     let handler screenerId  = 

@@ -80,6 +80,8 @@ match runIndustryUpdates() with
         |> Seq.iter (fun result ->
             result
             |> List.iter(fun r ->
+                let (industry, days, _, _) = r
+                Console.WriteLine($"Saving industry {industry} {days} days sma")
                 Storage.saveIndustryUpdates (FinvizConfig.getRunDate()) r |> ignore
             )
         )
