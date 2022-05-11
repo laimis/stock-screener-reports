@@ -176,6 +176,12 @@ type StorageTests(output:ITestOutputHelper) =
                 Assert.True(false, "Expected industry update to be found")
 
     [<Fact>]
-    let ``latest date works`` () =
+    let ``latest industry update date works`` () =
         let date = Storage.getIndustryUpdatesLatestDate()
-        Assert.NotEmpty(date)
+        Assert.True(date > System.DateTime.MinValue)
+
+
+    [<Fact>]
+    let ``get industry trends for industry`` () =
+        let trends = testStockIndustry |> Storage.getIndustryTrends 20
+        Assert.NotEmpty(trends)

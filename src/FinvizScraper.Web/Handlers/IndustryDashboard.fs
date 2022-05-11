@@ -26,8 +26,17 @@ module IndustryDashboard =
         let trendsDiv = div [] [
             (industryName |> Storage.getMostRecentIndustryTrends 20 |> createTrendSpan)
             (industryName |> Storage.getMostRecentIndustryTrends 200 |> createTrendSpan)
-            span [ _class "mx-1"] [industryName |> Links.industryFinvizLink |> Views.generateHref "Finviz"]
+            span [ _class "mx-1"] [industryName |> Links.industryFinvizLink |> generateHref "Finviz"]
         ]
+
+        let industryTrendCharts =
+            let industryTrendChartsInternal days =
+                industryName
+                |> Storage.getIndustryTrends days
+                |> List.map (fun u -> (u.date,u.above))
+                |> Charts.convertNameCountsToChart $"{days} EMA Trend" Charts.smallChart 
+
+            (industryTrendChartsInternal 20) @ (industryTrendChartsInternal 200)
         
         // load charts for each screener
         let screeners = Storage.getScreeners()
@@ -36,7 +45,7 @@ module IndustryDashboard =
 
         let list = [for i in -days .. 0 -> (System.DateTime.UtcNow.Date.AddDays(i),0) ]
 
-        let charts = 
+        let screenerCharts = 
             screeners
             |> List.map (fun screener ->
                 let data = Reports.getDailyCountsForScreenerAndIndustry screener.id industryName days
@@ -106,6 +115,6 @@ module IndustryDashboard =
                     str industryName
                 ]
                 trendsDiv
-            ]::charts @ [screenerResultsTable; stockTable]
+            ]::industryTrendCharts @ screenerCharts @ [screenerResultsTable; stockTable]
         
-        view |> Views.mainLayout $"Industry Dashboard for {industryName}" 
+        view |> mainLayout $"Industry Dashboard for {industryName}" 

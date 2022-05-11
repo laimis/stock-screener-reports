@@ -231,6 +231,23 @@ module Storage =
         ]
         |> Sql.executeNonQuery
 
+    let getIndustryTrends days industry =
+        let sql = @"
+            SELECT industry,date,days,above,below
+            FROM industryupdates
+            WHERE industry = @industry
+            AND days = @days
+            ORDER BY date"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@industry", Sql.string industry;
+            "@days", Sql.int days;
+        ]
+        |> Sql.execute industryUpdateMapper
+
     let getIndustryUpdates days date =
         let sql = @"
             SELECT industry,date,days,above,below FROM industryupdates
