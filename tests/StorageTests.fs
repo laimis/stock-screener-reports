@@ -185,3 +185,8 @@ type StorageTests(output:ITestOutputHelper) =
     let ``get industry trends for industry`` () =
         let trends = testStockIndustry |> Storage.getIndustryTrends 20
         Assert.NotEmpty(trends)
+
+    [<Fact>]
+    let ``save job works`` () =
+        let count = Storage.saveJobStatus ScreenerJob (System.DateTime.UtcNow) Success "generated results and it was great"
+        Assert.Equal(1, count)

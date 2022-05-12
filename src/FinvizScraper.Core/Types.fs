@@ -81,3 +81,11 @@ type IndustryUpdate =
         match this.total with
             | 0 -> 0.0
             | _ -> (float this.above ) * 100.0 / (float this.total)
+
+type JobStatus =
+    | Success
+    | Failure
+
+type JobName =
+    | ScreenerJob
+    | IndustryTrendsJob

@@ -286,3 +286,31 @@ module Storage =
         |> Sql.connect
         |> Sql.query "SELECT MAX(date) as date FROM industryupdates"
         |> Sql.executeRow (fun reader -> reader.dateTime "date")
+
+    let saveJobStatus (jobName:JobName) (timestamp : System.DateTime) (status:JobStatus) message =
+        let toJobNameString jobName =
+            match jobName with
+                | ScreenerJob _ -> "screenerjob"
+                | IndustryTrendsJob _ -> "industrytrendsjob"
+
+        let toJobStatusString status =
+            match status with
+                | Success _ -> "success"
+                | Failure _ -> "failure"
+
+        let sql = @"
+            INSERT INTO jobs
+            (name,timestamp,status,message)
+            VALUES
+            (@name,@timestamp,@status,@message)"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@name", jobName |> toJobNameString |> Sql.string;
+            "@timestamp", Sql.timestamptz timestamp;
+            "@status", status |> toJobStatusString |> Sql.string;
+            "@message", Sql.string message;
+        ]
+        |> Sql.executeNonQuery

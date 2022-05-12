@@ -51,3 +51,11 @@ alter table industryupdates alter column days set not null;
 
 ALTER TABLE industryupdates DROP CONSTRAINT industryupdates_industry_date_key
 ALTER TABLE industryupdates ADD CONSTRAINT industryupdates_industry_date_key UNIQUE (industry, days, "date");
+
+create table jobs (
+    id serial primary key,
+    name text not null,
+    timestamp timestamp with time zone not null,
+    status text not null,
+    message text not null
+);
