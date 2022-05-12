@@ -35,6 +35,17 @@ module Storage =
             below = reader.int "below";
         }
 
+    let private toJobNameString jobName =
+        match jobName with
+            | ScreenerJob _ -> "screenerjob"
+            | IndustryTrendsJob _ -> "industrytrendsjob"
+            | TestJob _ -> "testjob"
+
+    let private toJobStatusString status =
+        match status with
+            | Success _ -> "success"
+            | Failure _ -> "failure"
+
     let singleOrThrow message results =
         match results with
         | [] -> None
@@ -286,3 +297,42 @@ module Storage =
         |> Sql.connect
         |> Sql.query "SELECT MAX(date) as date FROM industryupdates"
         |> Sql.executeRow (fun reader -> reader.dateTime "date")
+
+    let saveJobStatus (jobName:JobName) (timestamp : System.DateTimeOffset) (status:JobStatus) message =
+        let sql = @"
+            INSERT INTO jobs
+            (name,timestamp,status,message)
+            VALUES
+            (@name,@timestamp,@status,@message)"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@name", jobName |> toJobNameString |> Sql.string;
+            "@timestamp", Sql.timestamptz timestamp;
+            "@status", status |> toJobStatusString |> Sql.string;
+            "@message", Sql.string message;
+        ]
+        |> Sql.executeNonQuery
+
+    let getLatestJobStatus (jobName:JobName) =
+        let sql = @"
+            SELECT * FROM jobs
+            WHERE name = @name
+            ORDER BY timestamp DESC
+            LIMIT 1"
+        
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@name", jobName |> toJobNameString |> Sql.string ;
+        ]
+        |> Sql.execute (fun reader -> 
+            (
+                (reader.string "message"),
+                (reader.datetimeOffset "timestamp")
+            )
+        )
+        |> singleOrThrow "More than one job status for the same job"

@@ -58,7 +58,7 @@ match config.dbConnectionString with
     value |> Storage.configureConnectionString
 
 match runScreeners() with
-| true -> 
+| true ->
     let screenerResults =
         config.screeners 
         |> Seq.map fetchScreenerResults
@@ -66,18 +66,22 @@ match runScreeners() with
 
     screenerResults
             |> saveToDb
+
+    Storage.saveJobStatus IndustryTrendsJob (DateTimeOffset.UtcNow) Success $"Ran {screenerResults.Length} screeners" |> ignore
+
 | false -> ()
 
 match runIndustryUpdates() with
-| true ->         
-    Storage.getIndustries()
+| true ->     
+    let updateCount =
+        Storage.getIndustries()
         |> List.toSeq
         |> Seq.map (fun industry -> 
             let (above20,below20) = industry |> FinvizClient.getResultCountForIndustryAboveAndBelowSMA 20
             let (above200,below200) = industry |> FinvizClient.getResultCountForIndustryAboveAndBelowSMA 200
             [(industry,20,above20,below20); (industry,200,above200,below200)]
         )
-        |> Seq.iter (fun result ->
+        |> Seq.map (fun result ->
             result
             |> List.iter(fun r ->
                 let (industry, days, _, _) = r
@@ -85,4 +89,8 @@ match runIndustryUpdates() with
                 Storage.saveIndustryUpdates (FinvizConfig.getRunDate()) r |> ignore
             )
         )
+        |> Seq.length
+    
+    Storage.saveJobStatus IndustryTrendsJob (DateTimeOffset.UtcNow) Success $"Updated trends for {updateCount} industries" |> ignore
+
 | false -> ()
