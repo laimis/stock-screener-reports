@@ -188,5 +188,16 @@ type StorageTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``save job works`` () =
-        let count = Storage.saveJobStatus ScreenerJob (System.DateTime.UtcNow) Success "generated results and it was great"
+        let message = "generated test results and it was great"
+        let timestamp = System.DateTimeOffset.UtcNow
+
+        let count = Storage.saveJobStatus TestJob timestamp Success message
         Assert.Equal(1, count)
+
+        let (latestMessage,latestTimestamp) = 
+            match (Storage.getLatestJobStatus TestJob) with
+            | Some (message,timestamp) -> (message,timestamp)
+            | None -> ("",System.DateTimeOffset.MinValue)
+
+        Assert.Equal(message, latestMessage)
+        Assert.Equal(timestamp.DateTime, latestTimestamp.DateTime, (System.TimeSpan.FromMilliseconds(1)))

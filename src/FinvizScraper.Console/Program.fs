@@ -67,7 +67,7 @@ match runScreeners() with
     screenerResults
             |> saveToDb
 
-    Storage.saveJobStatus IndustryTrendsJob (DateTime.UtcNow) Success $"Ran {screenerResults.Length} screeners" |> ignore
+    Storage.saveJobStatus IndustryTrendsJob (DateTimeOffset.UtcNow) Success $"Ran {screenerResults.Length} screeners" |> ignore
 
 | false -> ()
 
@@ -91,6 +91,6 @@ match runIndustryUpdates() with
         )
         |> Seq.length
     
-    Storage.saveJobStatus IndustryTrendsJob (DateTime.UtcNow) Success $"Updated trends for {updateCount} industries" |> ignore
+    Storage.saveJobStatus IndustryTrendsJob (DateTimeOffset.UtcNow) Success $"Updated trends for {updateCount} industries" |> ignore
 
 | false -> ()

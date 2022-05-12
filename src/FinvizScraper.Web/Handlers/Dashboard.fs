@@ -4,6 +4,7 @@ module Dashboard =
 
     open Giraffe.ViewEngine
     open FinvizScraper.Storage.Reports
+    open FinvizScraper.Storage.Storage
     open FinvizScraper.Web.Shared
     type DashboardViewModel =
         {
@@ -44,49 +45,65 @@ module Dashboard =
             ]
         ]
 
-    let private view (screeners:list<DashboardViewModel>) =
+    let private createView (screeners:list<DashboardViewModel>) =
         let screenerRows =
             screeners
             |> List.map generateBreakdownParts
 
-        let nodes = [
-            div [ _class "columns" ] [
-                div [ _class "column" ] [
-                    h1 [_class "title"] [ str "Dashboard" ]
-                ]
-                div [ _class "column is-three-quarters" ] [
-                    div [ _class "columns"] [
-                        div [ _class "column" ] [
-                            form [
-                                _action "/stocks/search"
-                                _method "GET"
-                            ] [
-                                input [
-                                    _class "input"
-                                    _type "text"
-                                    _placeholder "Search for stock"
-                                    _name "ticker"
-                                ]
-                            ]
-                        ]
-                        div [ _class "column" ] [
-                            Views.generateHrefWithAttr
-                                "Screener Trends"
-                                Links.screenerTrends
-                                (_class "button is-primary is-pulled-right mx-1")
+        let titleDiv = div [ _class "column" ] [
+            h1 [_class "title"] [ str "Dashboard" ]
+        ]
 
-                            Views.generateHrefWithAttr
-                                "Industry Trends"
-                                Links.industryTrends
-                                (_class "button is-primary is-pulled-right mx-1")
+        let searchDiv = div [ _class "column is-three-quarters" ] [
+            div [ _class "columns"] [
+                div [ _class "column" ] [
+                    form [
+                        _action "/stocks/search"
+                        _method "GET"
+                    ] [
+                        input [
+                            _class "input"
+                            _type "text"
+                            _placeholder "Search for stock"
+                            _name "ticker"
                         ]
                     ]
                 ]
+                div [ _class "column" ] [
+                    Views.generateHrefWithAttr
+                        "Screener Trends"
+                        Links.screenerTrends
+                        (_class "button is-primary is-pulled-right mx-1")
+
+                    Views.generateHrefWithAttr
+                        "Industry Trends"
+                        Links.industryTrends
+                        (_class "button is-primary is-pulled-right mx-1")
+                ]
             ]
-            
         ]
 
-        List.append nodes screenerRows
+        let genericJobStatusGet jobName =
+            match (getLatestJobStatus jobName) with
+                | Some (message, timestamp) -> $"{message} @ {timestamp}"
+                | None -> $"No results found for {jobName} found"
+
+        let latestScreenerJobStatus = FinvizScraper.Core.ScreenerJob |> genericJobStatusGet
+
+        let latestIndustryJobStatus = FinvizScraper.Core.IndustryTrendsJob |> genericJobStatusGet
+
+        let nodes = [
+            div [ _class "columns" ] [
+                titleDiv
+                searchDiv
+            ]
+            div [ _class "columns" ] [
+                div [ _class "column" ] [ latestScreenerJobStatus |> str ]
+                div [ _class "column" ] [ latestIndustryJobStatus |> str ]
+            ]
+        ]
+
+        nodes @ screenerRows
 
     let handler()  = 
         
@@ -107,5 +124,6 @@ module Dashboard =
                 }
             )
 
-        view screenerResultWithBreakdowns
-        |> Views.mainLayout "Dashboard"
+        screenerResultWithBreakdowns
+            |> createView
+            |> Views.mainLayout "Dashboard"

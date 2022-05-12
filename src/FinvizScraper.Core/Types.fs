@@ -89,3 +89,4 @@ type JobStatus =
 type JobName =
     | ScreenerJob
     | IndustryTrendsJob
+    | TestJob
