@@ -59,6 +59,13 @@ module IndustryTrends =
 
         let table = header::dataRows |> fullWidthTable
 
+        let jobStatusRow =
+            div [ _class "columns" ] [
+                div [ _class "column" ] [ 
+                    FinvizScraper.Core.IndustryTrendsJob |> genericJobStatusGet |> str 
+                ]
+            ]
+
         let view = [
             div [_class "content"] [
                 h1 [] [
@@ -66,6 +73,7 @@ module IndustryTrends =
                 ]
             ]
             table
+            jobStatusRow
         ]
         
         view |> mainLayout $"Industry Trends" 

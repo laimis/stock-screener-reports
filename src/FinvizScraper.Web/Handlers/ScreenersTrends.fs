@@ -65,7 +65,7 @@ module ScreenersTrends =
 
                 (date,high - low)
             )
-            |> Charts.convertNameCountsToChart "Highs - Lows" Charts.smallChart
+            |> Charts.convertNameCountsToChart "Highs - Lows" Charts.Bar None Charts.smallChart
             |> div [_class "block"]
 
         let charts =
@@ -74,7 +74,7 @@ module ScreenersTrends =
             |> List.map (fun (screener,screenerData) ->
                 
                 screenerData
-                |> Charts.convertNameCountsToChart screener.name Charts.smallChart
+                |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart
                 |> div [_class "block"]                 
             )
 

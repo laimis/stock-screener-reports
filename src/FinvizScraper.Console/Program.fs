@@ -67,7 +67,7 @@ match runScreeners() with
     screenerResults
             |> saveToDb
 
-    Storage.saveJobStatus IndustryTrendsJob (DateTimeOffset.UtcNow) Success $"Ran {screenerResults.Length} screeners" |> ignore
+    Storage.saveJobStatus ScreenerJob (DateTimeOffset.UtcNow) Success $"Ran {screenerResults.Length} screeners" |> ignore
 
 | false -> ()
 

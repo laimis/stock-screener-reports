@@ -33,8 +33,8 @@ module IndustryDashboard =
             let industryTrendChartsInternal days =
                 industryName
                 |> Storage.getIndustryTrends days
-                |> List.map (fun u -> (u.date,u.above))
-                |> Charts.convertNameCountsToChart $"{days} EMA Trend" Charts.smallChart 
+                |> List.map (fun u -> (u.date,System.Math.Round(u.percentAbove, 0)))
+                |> Charts.convertNameCountsToChart $"{days} EMA Trend" Charts.Line (Some 100) Charts.smallChart 
 
             (industryTrendChartsInternal 20) @ (industryTrendChartsInternal 200)
         
@@ -59,7 +59,7 @@ module IndustryDashboard =
                     | Some c -> (date,c)
                     | None -> (date,count)
                 )
-                |> Charts.convertNameCountsToChart screener.name Charts.smallChart
+                |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart
                 |> div [_class "block"] 
             )
 
@@ -69,12 +69,15 @@ module IndustryDashboard =
             |> List.map (fun screenerResult ->
                 tr [] [
                     td [] [ screenerResult.date.ToString("yyyy-MM-dd") |> str ]
-                    td [] [ screenerResult.screenername |> str ]
+                    td [] [
+                        (screenerResult.screenerid,screenerResult.screenername) |> Views.generateScreenerTags
+                    ]
                     td [] [ screenerResult.ticker |> generateTickerLink ]
                     td [] [ screenerResult.marketCap |> marketCapFormatted |> str ]
                     td [] [ screenerResult.price |> dollarFormatted |> str ]
                     td [] [ screenerResult.change |> percentFormatted |> str ]
                     td [] [ screenerResult.volume |> volumeFormatted |> str ]
+                    td [] [ screenerResult.ticker |> Links.tradingViewLink |> generateHref "chart" ]
                 ]
             )
 
@@ -87,6 +90,7 @@ module IndustryDashboard =
                 th [] [str "price"]
                 th [] [str "change"]
                 th [] [str "volume"]
+                th [] [str "trading view"]
             ]
 
         let screenerResultsTable = tableHeader::resultRows |> Views.fullWidthTable

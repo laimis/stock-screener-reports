@@ -83,27 +83,21 @@ module Dashboard =
             ]
         ]
 
-        let genericJobStatusGet jobName =
-            match (getLatestJobStatus jobName) with
-                | Some (message, timestamp) -> $"{message} @ {timestamp}"
-                | None -> $"No results found for {jobName} found"
-
-        let latestScreenerJobStatus = FinvizScraper.Core.ScreenerJob |> genericJobStatusGet
-
-        let latestIndustryJobStatus = FinvizScraper.Core.IndustryTrendsJob |> genericJobStatusGet
-
-        let nodes = [
+        let headerNodes = [
             div [ _class "columns" ] [
                 titleDiv
                 searchDiv
             ]
-            div [ _class "columns" ] [
-                div [ _class "column" ] [ latestScreenerJobStatus |> str ]
-                div [ _class "column" ] [ latestIndustryJobStatus |> str ]
-            ]
         ]
 
-        nodes @ screenerRows
+        let jobStatusRow =
+            div [ _class "columns" ] [
+                div [ _class "column" ] [ 
+                    FinvizScraper.Core.ScreenerJob |> Views.genericJobStatusGet |> str 
+                ]
+            ]
+
+        headerNodes @ screenerRows @ [ jobStatusRow ]
 
     let handler()  = 
         

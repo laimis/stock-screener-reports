@@ -6,17 +6,52 @@ module Charts =
     open Giraffe.ViewEngine.Attributes
 
     type ChartHeight = ChartHeight of string
+    type ChartType =
+        | Bar
+        | Line
 
     let smallChart = Some (ChartHeight "80")
 
-    let generateJSForChart title chartCanvasId labels data =
+    let private generateJSForChart
+        title
+        chartType
+        (maxYValue:option<int>)
+        chartCanvasId
+        labels
+        data =
 
         let formattedLabels = labels |> List.map (fun l -> $"'{l}'") |> String.concat ","
         let formattedData = data |> List.map (fun d -> $"{d}") |> String.concat ","
 
+        let chartTypeString =
+            match chartType with
+            | Bar -> "bar"
+            | Line -> "line"
+
+        let maxYValueString =
+            match maxYValue with
+            | Some m -> $"max: {m},"
+            | None -> ""
+
+        let options = "{
+                    scales: {
+                        y: {
+                            " + maxYValueString + "
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        datalabels : {
+                            // color: 'white',
+                            anchor: 'end',
+                            align: 'end'
+                        }
+                    }
+                }"
+
         rawText ("""
             const config""" + chartCanvasId + """ = {
-                type: 'bar',
+                type: '""" + chartTypeString + """',
                 data: {
                     labels: [""" + formattedLabels + """],
                     datasets: [{
@@ -27,15 +62,7 @@ module Charts =
                     }]
                 },
                 plugins: [ChartDataLabels],
-                options: {
-                    plugins: {
-                        datalabels : {
-                            // color: 'white',
-                            anchor: 'end',
-                            align: 'end'
-                        }
-                    }
-                }
+                options: """ + options + """
             };
             const myChart""" + chartCanvasId + """ = new Chart(
                 document.getElementById('""" + chartCanvasId + """'),
@@ -44,7 +71,13 @@ module Charts =
             """)
 
     
-    let generateChartElements title (height:option<ChartHeight>) labels data =
+    let private generateChartElements
+        title
+        chartType
+        (maxYValue:option<int>)
+        (height:option<ChartHeight>)
+        labels
+        data =
         let chartGuid = Guid.NewGuid().ToString("N")
         let canvasId = $"chart{chartGuid}"
 
@@ -66,7 +99,7 @@ module Charts =
         ]
 
         let chartScript = script [_type "application/javascript"] [
-            generateJSForChart title canvasId labels data
+            generateJSForChart title chartType maxYValue canvasId labels data
         ]
 
         [
@@ -74,8 +107,13 @@ module Charts =
             chartScript
         ]
 
-    let convertNameCountsToChart title height listOfNameCountPairs =
+    let convertNameCountsToChart
+        title
+        chartType
+        maxYValue
+        height
+        listOfNameCountPairs =
         let labels = listOfNameCountPairs |> List.map (fun ((name:DateTime),_) -> name.ToString("MMM/dd"))
         let data = listOfNameCountPairs |> List.map (fun (_,count) -> count)
 
-        generateChartElements title height labels data
+        generateChartElements title chartType maxYValue height labels data

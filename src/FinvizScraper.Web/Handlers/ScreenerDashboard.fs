@@ -56,7 +56,7 @@ module ScreenerDashboard =
         let last30DaysChartElements =
             days
             |> Reports.getDailyCountsForScreener screener.id
-            |> Charts.convertNameCountsToChart screener.name None
+            |> Charts.convertNameCountsToChart screener.name Charts.Bar None None
 
         let headerWithCharts = header::last30DaysChartElements
 

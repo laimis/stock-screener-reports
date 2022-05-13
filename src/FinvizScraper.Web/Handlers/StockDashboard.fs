@@ -48,7 +48,9 @@ module StockDashboard =
             recentScreenerResults |> List.map (fun screenerResult ->
                 tr [] [
                     td [] [ screenerResult.date.ToString("yyyy-MM-dd") |> str ]
-                    td [] [ screenerResult.screenername |> str ]
+                    td [] [ 
+                        (screenerResult.screenerid,screenerResult.screenername) |> generateScreenerTags
+                    ]
                     td [] [ screenerResult.marketCap |> marketCapFormatted |> str ]
                     td [] [ screenerResult.price |> dollarFormatted |> str ]
                     td [] [ screenerResult.change |> percentFormatted |> str ]

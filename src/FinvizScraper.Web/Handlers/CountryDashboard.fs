@@ -27,7 +27,7 @@ module CountryDashboard =
                     | Some c -> (date,c)
                     | None -> (date,count)
                 )
-                |> Charts.convertNameCountsToChart screener.name Charts.smallChart
+                |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart
                 |> div [_class "block"] 
             )
 
