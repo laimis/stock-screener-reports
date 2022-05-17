@@ -19,9 +19,17 @@ module ScreenerDashboard =
         let industriesData = fetchBreakdownData Reports.topIndustriesOverDays
         let countriesData = fetchBreakdownData Reports.topCountriesOverDays
 
-        let sectorsTable = sectorsData |> Views.toNameCountTable "Sectors"
-        let industriesTable = industriesData |> Views.toNameCountTable "Industries"
-        let countriesTable = countriesData |> Views.toNameCountTable "Countries"
+        let sectorsTable =
+            sectorsData
+            |> Views.toNameCountTableWithLinks "Sectors" (fun name -> Links.sectorLink name)
+
+        let industriesTable = 
+            industriesData
+            |> Views.toNameCountTableWithLinks "Industries" (fun name -> Links.industryLink name)
+
+        let countriesTable =
+            countriesData
+            |> Views.toNameCountTableWithLinks "Countries" (fun name -> Links.countryLink name)
 
         let breakdownDiv = div [_class "columns"] [
             div [_class "column"] [sectorsTable]
@@ -44,24 +52,19 @@ module ScreenerDashboard =
 
         let days = FinvizScraper.Core.FinvizConfig.dayRange
 
-        
-
         let header = 
             div [_class "content"] [
                 h1 [] [
-                    str screener.name
+                    str $"Screener: {screener.name}"
                 ]
             ]
 
-        let last30DaysChartElements =
+        let dailyChart =
             days
             |> Reports.getDailyCountsForScreener screener.id
             |> Charts.convertNameCountsToChart screener.name Charts.Bar None None
 
-        let headerWithCharts = header::last30DaysChartElements
-
-        // final page has
-        // title, chart of 30 days, last 7, last 14, last 30
+        let headerWithCharts = header::dailyChart
 
         let breakdownElements = 
             [7; 14; 30]

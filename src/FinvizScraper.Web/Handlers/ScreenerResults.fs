@@ -111,18 +111,18 @@ module ScreenerResults =
                 h1 [] [
                     str ("Screener: " + screener.name)
                 ]
-                div [_class "block"] [
-                    str ("Total Results: " + (string results.Length))
-                ]
                 
                 div [_class "block"] [
-                    a [
-                        _class "button is-primary" 
-                        _href screener.url
-                        _target "_blank"
-                    ] [
-                        str "View on Finviz"
-                    ]
+                    
+                    generateHrefWithAttr
+                        "View on Finviz"
+                        screener.url
+                        (_class "button is-primary mr-2")
+
+                    generateHrefWithAttr
+                        "Screener Details"
+                        (screener.id |> Links.screenerLink)
+                        (_class "button is-primary")
                 ]
             ]
             div [_class "columns"] breakdownDivs

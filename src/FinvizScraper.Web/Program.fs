@@ -18,6 +18,7 @@ let webApp =
             choose [
                 route "/" >=> warbler (fun _ -> Dashboard.handler())
 
+                route "/screeners" >=> warbler (fun _ -> ScreenerManagement.handler())
                 routef "/screeners/%i" ScreenerDashboard.handler
                 routef "/screeners/%i/results/%s" ScreenerResults.handler
                 route "/screeners/trends" >=> warbler (fun _ -> ScreenersTrends.handler())
