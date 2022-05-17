@@ -4,8 +4,8 @@ module Dashboard =
 
     open Giraffe.ViewEngine
     open FinvizScraper.Storage.Reports
-    open FinvizScraper.Storage.Storage
     open FinvizScraper.Web.Shared
+    
     type DashboardViewModel =
         {
             screener:ScreenerResultReport;
@@ -14,7 +14,7 @@ module Dashboard =
             countries:list<(string * int)>;
         }
 
-    let private generateBreakdownParts screener = 
+    let private generateScreenerResultSection screener = 
         
         let sectorsTable = screener.sectors |> Views.toNameCountTableWithLinks "Sectors" (fun name -> Links.sectorLink name)
         let industriesTable = screener.industries |> Views.toNameCountTableWithLinks "Industries" (fun name -> Links.industryLink name)
@@ -23,22 +23,17 @@ module Dashboard =
         let screenerDate = screener.screener.date.ToString("yyyy-MM-dd")
         
         div [_class "content"] [
-            h2 [] [ str screener.screener.name ]
-            h5 [] [
-                div [ _class "buttons"] [
-                    
-                    Views.generateHrefWithAttr
-                        $"{screener.screener.count} results"
-                        (Links.screenerResultsLink (screener.screener.screenerid) screenerDate)
-                        (_class "button is-primary")
+            h2 [] [
+                
+                Views.generateHrefWithAttr
+                    $"{screener.screener.count}"
+                    (Links.screenerResultsLink (screener.screener.screenerid) screenerDate)
+                    (_class "button is-primary mr-2")
 
-                    Views.generateHrefWithAttr
-                        "Screener Details"
-                        (screener.screener.screenerid |> Links.screenerLink)
-                        (_class "button is-primary")
-                ]
+                str screener.screener.name
             ]
-            div [_class "columns"] [
+            
+            div [_class "columns mb-5"] [
                 div [_class "column"] [sectorsTable]
                 div [_class "column"] [industriesTable]
                 div [_class "column"] [countriesTable]
@@ -48,7 +43,7 @@ module Dashboard =
     let private createView (screeners:list<DashboardViewModel>) =
         let screenerRows =
             screeners
-            |> List.map generateBreakdownParts
+            |> List.map generateScreenerResultSection
 
         let titleDiv = div [ _class "column" ] [
             h1 [_class "title"] [ str "Dashboard" ]
@@ -84,7 +79,7 @@ module Dashboard =
         ]
 
         let headerNodes = [
-            div [ _class "columns" ] [
+            div [ _class "columns mb-5" ] [
                 titleDiv
                 searchDiv
             ]
