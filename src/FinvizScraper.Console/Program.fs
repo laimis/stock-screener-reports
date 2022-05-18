@@ -109,4 +109,4 @@ match runTestReports() with
     let results = Reports.getTopIndustriesForScreener FinvizConfig.NewLowsScreener 14
     Console.WriteLine(results)
 
-| false -> Console.WriteLine("I will not run reports")
+| false -> ()

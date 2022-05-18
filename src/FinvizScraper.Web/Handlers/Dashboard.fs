@@ -17,7 +17,7 @@ module Dashboard =
                 Views.generateHrefWithAttr
                     $"{screener.count}"
                     (Links.screenerResultsLink (screener.screenerid) screenerDate)
-                    (_class "button is-primary mr-2 width50")
+                    (_class "button is-primary mr-2")
 
                 str screener.name
             ]
