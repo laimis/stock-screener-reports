@@ -1,0 +1,1 @@
+dotnet run --project src\FinvizScraper.Console config\config_secret.json --test-reports

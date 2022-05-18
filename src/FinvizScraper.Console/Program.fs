@@ -30,6 +30,9 @@ let runIndustryUpdates() =
 let runScreeners() =
     containsArgument "--screeners"
 
+let runTestReports() =
+    containsArgument "--test-reports"
+
 let fetchScreenerResults (input:ScreenerInput) =
     Console.WriteLine("Processing " + input.name)
     Console.WriteLine("fetching results...")
@@ -56,6 +59,7 @@ match config.dbConnectionString with
     Environment.Exit(-1)
 | value -> 
     value |> Storage.configureConnectionString
+    value |> Reports.configureConnectionString
 
 match runScreeners() with
 | true ->
@@ -70,6 +74,7 @@ match runScreeners() with
     Storage.saveJobStatus ScreenerJob (DateTimeOffset.UtcNow) Success $"Ran {screenerResults.Length} screeners" |> ignore
 
 | false -> ()
+
 
 match runIndustryUpdates() with
 | true ->     
@@ -92,5 +97,16 @@ match runIndustryUpdates() with
         |> Seq.length
     
     Storage.saveJobStatus IndustryTrendsJob (DateTimeOffset.UtcNow) Success $"Updated trends for {updateCount} industries" |> ignore
+
+| false -> ()
+
+
+match runTestReports() with
+| true -> 
+    let results = Reports.getTopIndustriesForScreener FinvizConfig.NewHighsScreener 14
+    Console.WriteLine(results)
+
+    let results = Reports.getTopIndustriesForScreener FinvizConfig.NewLowsScreener 14
+    Console.WriteLine(results)
 
 | false -> ()

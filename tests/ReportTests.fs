@@ -142,3 +142,19 @@ type ReportTests(output:ITestOutputHelper) =
         let results = FinvizScraper.Storage.Reports.getDailyCountsForScreenerAndCountry screener.Value.id industry 30
         
         Assert.NotEmpty(results)
+
+    [<Fact>]
+    let ``getting trending industries works``() =
+        let results = 
+            FinvizScraper.Storage.Reports.getTopIndustriesForScreener
+                FinvizScraper.Core.FinvizConfig.NewHighsScreener 14
+
+        Assert.NotEmpty(results)
+
+    [<Fact>]
+    let ``getting trending sectors works``() =
+        let results = 
+            FinvizScraper.Storage.Reports.getTopSectorsForScreener
+                FinvizScraper.Core.FinvizConfig.NewHighsScreener 14
+
+        Assert.NotEmpty(results)
