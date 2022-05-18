@@ -31,7 +31,6 @@ module Views =
     let generateHref title link =
         a [
             _href link
-            _target "_blank"
         ] [
             str title
         ]
@@ -39,7 +38,6 @@ module Views =
     let generateHrefWithElement element link =
         a [
             _href link
-            _target "_blank"
         ] [
             element
         ]
@@ -47,16 +45,15 @@ module Views =
     let generateHrefWithAttr title link attr =
         a [
             _href link
-            _target "_blank"
             attr
         ] [
             str title
         ]
 
-    let private toNameCountRows breakdownName nameElementFunc list =
+    let private toNameCountRows breakdownName maxNumberOfRows nameElementFunc list =
         let rows =
             list
-            |> List.truncate 10
+            |> List.truncate maxNumberOfRows
             |> List.map (fun (name,count) ->
                 tr [] [
                     td [] [ (nameElementFunc name) ]
@@ -72,11 +69,11 @@ module Views =
     let fullWidthTable rows =
         table [ _class "table is-fullwidth" ] rows
 
-    let toNameCountTable title listOfNameCountPairs =
-        listOfNameCountPairs |> toNameCountRows title (fun name -> str name) |> fullWidthTable
+    let toNameCountTable title maxNumberOfRows listOfNameCountPairs =
+        listOfNameCountPairs |> toNameCountRows title maxNumberOfRows (fun name -> str name) |> fullWidthTable
 
-    let toNameCountTableWithLinks title linkFunction listOfNameCountPairs =
-        listOfNameCountPairs |> toNameCountRows title (fun name -> generateHref name (linkFunction name)) |> fullWidthTable
+    let toNameCountTableWithLinks title maxNumberOfRows linkFunction listOfNameCountPairs =
+        listOfNameCountPairs |> toNameCountRows title maxNumberOfRows (fun name -> generateHref name (linkFunction name)) |> fullWidthTable
 
     let mainLayout pageTitle (content: XmlNode list) =
         html [] [

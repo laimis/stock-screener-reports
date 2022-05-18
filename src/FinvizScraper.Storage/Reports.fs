@@ -274,7 +274,7 @@ module Reports =
                 ]
                 |> Sql.execute mapScreenerResultReportItem
 
-    let getTopIndustriesForScreener id days =
+    let getTopIndustriesForScreener days screenerId =
 
         let sql = @$"
             SELECT 
@@ -291,7 +291,7 @@ module Reports =
             |> Sql.connect
             |> Sql.query sql
             |> Sql.parameters [
-                "@screenerid", Sql.int id;
+                "@screenerid", Sql.int screenerId;
                 "@days", Sql.int days
             ]
             |> Sql.execute (fun reader -> 
@@ -301,7 +301,7 @@ module Reports =
                 )
             )
 
-    let getTopSectorsForScreener id days =
+    let getTopSectorsForScreener days screenerId =
 
         let sql = @$"
             SELECT 
@@ -318,7 +318,7 @@ module Reports =
             |> Sql.connect
             |> Sql.query sql
             |> Sql.parameters [
-                "@screenerid", Sql.int id;
+                "@screenerid", Sql.int screenerId;
                 "@days", Sql.int days
             ]
             |> Sql.execute (fun reader -> 

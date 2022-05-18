@@ -103,10 +103,10 @@ match runIndustryUpdates() with
 
 match runTestReports() with
 | true -> 
-    let results = Reports.getTopIndustriesForScreener FinvizConfig.NewHighsScreener 14
+    let results = FinvizConfig.NewHighsScreener |> Reports.getTopIndustriesForScreener 14
     Console.WriteLine(results)
 
-    let results = Reports.getTopIndustriesForScreener FinvizConfig.NewLowsScreener 14
+    let results = FinvizConfig.NewLowsScreener |> Reports.getTopIndustriesForScreener 14
     Console.WriteLine(results)
 
 | false -> ()

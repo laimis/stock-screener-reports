@@ -53,7 +53,6 @@ module IndustryTrends =
             )
 
         let industry20And200Header = tr [] [
-            th [] [ ]
             th [] [ str "Industry" ]
             th [ _colspan "3"] [ str "20" ]
             th [ _colspan "3"] [ str "200" ]

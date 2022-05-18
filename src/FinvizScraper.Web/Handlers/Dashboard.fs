@@ -72,11 +72,6 @@ module Dashboard =
             ]
         ]
 
-    
-    let private filteredList func days screenerId =
-        func screenerId days
-        |> List.take 5
-
     let generateTrendsTable title nameCounts industryUpdates =
         let rows =
             nameCounts
@@ -94,22 +89,24 @@ module Dashboard =
                             name
                             (Links.industryLink name)
                     ]
-                    td [] [
+                    td [ _class "has-text-right" ] [
                         str ((industryRank + 1).ToString())
                     ]
                     td [ _class "has-text-right"] [ str (count.ToString()) ]
                 ])
 
         let header = tr [] [
-            th [ _colspan "3"] [ str title ]
+            th [] [ str title ]
+            th [ _class "has-text-right" ] [ str "Industry Rank" ]
+            th [ _class "has-text-right" ] [ str "# of stocks" ]
         ]
 
         header::rows |> Views.fullWidthTable
 
     let private generateIndustryTrendsRow days =
 
-        let gainers = FinvizConfig.NewHighsScreener |> filteredList getTopIndustriesForScreener days
-        let losers = FinvizConfig.NewLowsScreener |> filteredList getTopIndustriesForScreener days
+        let gainers = FinvizConfig.NewHighsScreener |> getTopIndustriesForScreener days |> List.take 5
+        let losers = FinvizConfig.NewLowsScreener |> getTopIndustriesForScreener days |> List.take 5
 
         let industryUpdates = 
             getIndustryUpdatesLatestDate()
@@ -129,16 +126,16 @@ module Dashboard =
 
     let private generateSectorTrendsRow days =
 
-        let gainers = FinvizConfig.NewHighsScreener |> filteredList getTopSectorsForScreener days
-        let losers = FinvizConfig.NewLowsScreener |> filteredList getTopSectorsForScreener days
+        let gainers = FinvizConfig.NewHighsScreener |> getTopSectorsForScreener days
+        let losers = FinvizConfig.NewLowsScreener |> getTopSectorsForScreener days
 
         [
             div [_class "columns"] [
                 div [ _class "column" ] [
-                    Views.toNameCountTableWithLinks "Sectors Trending Up" Links.sectorLink gainers
+                    Views.toNameCountTableWithLinks "Sectors Trending Up" 5 Links.sectorLink gainers
                 ]
                 div [ _class "column" ] [
-                    Views.toNameCountTableWithLinks "Sectors Trending Down" Links.sectorLink losers
+                    Views.toNameCountTableWithLinks "Sectors Trending Down" 5 Links.sectorLink losers
                 ]
             ]
         ]
