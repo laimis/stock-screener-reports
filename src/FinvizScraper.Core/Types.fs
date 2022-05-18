@@ -31,6 +31,8 @@ type FinvizConfig =
         System.DateTime.Now |> FinvizConfig.formatRunDate 
 
     static member dayRange = 31
+    static member industryTrendDayRange = 14
+    static member sectorTrendDayRange = 14
     
     // TODO: not sure how to make these more dynamic. We need some custom logic
     // for certain reports that refer to screeners by id

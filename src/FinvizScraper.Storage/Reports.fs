@@ -273,3 +273,57 @@ module Reports =
                     "@limit", Sql.int limit
                 ]
                 |> Sql.execute mapScreenerResultReportItem
+
+    let getTopIndustriesForScreener id days =
+
+        let sql = @$"
+            SELECT 
+                industry,count(DISTINCT stocks.ticker) as count
+            FROM screenerresults
+            JOIN stocks ON stocks.id = screenerresults.stockid
+            WHERE 
+                screenerresults.screenerid = @screenerid
+                AND screenerresults.date >= current_date - @days
+            GROUP BY industry
+            ORDER BY count DESC"
+
+        cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters [
+                "@screenerid", Sql.int id;
+                "@days", Sql.int days
+            ]
+            |> Sql.execute (fun reader -> 
+                (
+                    reader.string "industry",
+                    reader.int "count"
+                )
+            )
+
+    let getTopSectorsForScreener id days =
+
+        let sql = @$"
+            SELECT 
+                sector,count(DISTINCT stocks.ticker) as count
+            FROM screenerresults
+            JOIN stocks ON stocks.id = screenerresults.stockid
+            WHERE 
+                screenerresults.screenerid = @screenerid
+                AND screenerresults.date >= current_date - @days
+            GROUP BY sector
+            ORDER BY count DESC"
+
+        cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters [
+                "@screenerid", Sql.int id;
+                "@days", Sql.int days
+            ]
+            |> Sql.execute (fun reader -> 
+                (
+                    reader.string "sector",
+                    reader.int "count"
+                )
+            )

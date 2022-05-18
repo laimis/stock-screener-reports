@@ -5,46 +5,25 @@ module Dashboard =
     open Giraffe.ViewEngine
     open FinvizScraper.Storage.Reports
     open FinvizScraper.Web.Shared
-    
-    type DashboardViewModel =
-        {
-            screener:ScreenerResultReport;
-            sectors:list<(string * int)>;
-            industries:list<(string * int)>;
-            countries:list<(string * int)>;
-        }
+    open FinvizScraper.Core
 
-    let private generateScreenerResultSection screener = 
+    let private generateScreenerResultSection (screener:ScreenerResultReport) = 
         
-        let sectorsTable = screener.sectors |> Views.toNameCountTableWithLinks "Sectors" (fun name -> Links.sectorLink name)
-        let industriesTable = screener.industries |> Views.toNameCountTableWithLinks "Industries" (fun name -> Links.industryLink name)
-        let countriesTable = screener.countries |> Views.toNameCountTableWithLinks "Countries" (fun name -> Links.countryLink name)
-
-        let screenerDate = screener.screener.date.ToString("yyyy-MM-dd")
+        let screenerDate = screener.date.ToString("yyyy-MM-dd")
         
         div [_class "content"] [
             h2 [] [
                 
                 Views.generateHrefWithAttr
-                    $"{screener.screener.count}"
-                    (Links.screenerResultsLink (screener.screener.screenerid) screenerDate)
-                    (_class "button is-primary mr-2")
+                    $"{screener.count}"
+                    (Links.screenerResultsLink (screener.screenerid) screenerDate)
+                    (_class "button is-primary mr-2 width50")
 
-                str screener.screener.name
-            ]
-            
-            div [_class "columns mb-5"] [
-                div [_class "column"] [sectorsTable]
-                div [_class "column"] [industriesTable]
-                div [_class "column"] [countriesTable]
+                str screener.name
             ]
         ]
 
-    let private createView (screeners:list<DashboardViewModel>) =
-        let screenerRows =
-            screeners
-            |> List.map generateScreenerResultSection
-
+    let generateHeaderRow =
         let titleDiv = div [ _class "column" ] [
             h1 [_class "title"] [ str "Dashboard" ]
         ]
@@ -78,41 +57,73 @@ module Dashboard =
             ]
         ]
 
-        let headerNodes = [
+        [
             div [ _class "columns mb-5" ] [
                 titleDiv
                 searchDiv
             ]
         ]
 
-        let jobStatusRow =
-            div [ _class "columns" ] [
-                div [ _class "column" ] [ 
-                    FinvizScraper.Core.ScreenerJob |> Views.genericJobStatusGet |> str 
+    let private generateJobStatusRow =
+        div [ _class "columns" ] [
+            div [ _class "column" ] [ 
+                ScreenerJob |> Views.genericJobStatusGet |> str 
+            ]
+        ]
+
+    
+    let private filteredList func days screenerId =
+        func screenerId days
+        |> List.take 5
+
+    let private generateIndustryTrendsRow days =
+
+        let gainers = FinvizConfig.NewHighsScreener |> filteredList getTopIndustriesForScreener days
+        let losers = FinvizConfig.NewLowsScreener |> filteredList getTopIndustriesForScreener days
+
+        [
+            div [_class "columns"] [
+                div [ _class "column" ] [
+                    Views.toNameCountTableWithLinks "Industries Trending Up" Links.industryLink gainers
+                ]
+                div [ _class "column" ] [
+                    Views.toNameCountTableWithLinks "Industries Trending Down" Links.industryLink losers
                 ]
             ]
+        ]
 
-        headerNodes @ screenerRows @ [ jobStatusRow ]
+    let private generateSectorTrendsRow days =
+
+        let gainers = FinvizConfig.NewHighsScreener |> filteredList getTopSectorsForScreener days
+        let losers = FinvizConfig.NewLowsScreener |> filteredList getTopSectorsForScreener days
+
+        [
+            div [_class "columns"] [
+                div [ _class "column" ] [
+                    Views.toNameCountTableWithLinks "Sectors Trending Up" Links.sectorLink gainers
+                ]
+                div [ _class "column" ] [
+                    Views.toNameCountTableWithLinks "Sectors Trending Down" Links.sectorLink losers
+                ]
+            ]
+        ]
+
+    let private createView (screeners:list<ScreenerResultReport>) =
+        
+        let headerRow = generateHeaderRow
+
+        let screenerRows = screeners |> List.map generateScreenerResultSection
+
+        let industryTrendRows = generateIndustryTrendsRow FinvizConfig.industryTrendDayRange
+        let sectorTrendRows = generateSectorTrendsRow FinvizConfig.sectorTrendDayRange
+
+        let jobStatusRow = generateJobStatusRow
+
+        headerRow @ screenerRows @ industryTrendRows @ sectorTrendRows @ [ jobStatusRow ]
 
     let handler()  = 
         
         // get screeners, render them in HTML
-        let screenerResults = getLatestScreeners()
-
-        let screenerResultWithBreakdowns =
-            screenerResults
-            |> List.map (fun x -> 
-                let sectorBreakdown = topSectors x.screenerid x.date
-                let industryBreakdown = topIndustries x.screenerid x.date
-                let countryBreakdown = topCountries x.screenerid x.date
-                {
-                    screener=x;
-                    sectors=sectorBreakdown;
-                    industries=industryBreakdown;
-                    countries=countryBreakdown
-                }
-            )
-
-        screenerResultWithBreakdowns
-            |> createView
-            |> Views.mainLayout "Dashboard"
+        getLatestScreeners()
+        |> createView
+        |> Views.mainLayout "Dashboard"

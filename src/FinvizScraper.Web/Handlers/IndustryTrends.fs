@@ -7,7 +7,7 @@ module IndustryTrends =
     open FinvizScraper.Web.Shared.Views
     open Giraffe.ViewEngine
 
-    let handler()  =
+    let private generateIndustry20And200Table() =
         let date = Storage.getIndustryUpdatesLatestDate() |> FinvizScraper.Core.FinvizConfig.formatRunDate
 
         let getIndustryUpdatesAndTurnToMap (days:int) =
@@ -19,7 +19,7 @@ module IndustryTrends =
         let industryUpdates20 = getIndustryUpdatesAndTurnToMap 20
         let industryUpdates200 = getIndustryUpdatesAndTurnToMap 200
 
-        let dataRows =
+        let industry20And200Rows =
             industryUpdates200
             |> Map.toList
             |> List.sortByDescending (fun (key, update) -> update.percentAbove)
@@ -35,14 +35,16 @@ module IndustryTrends =
                 let sma20Cells = toSMACells (industryUpdates20[key])
                 let sma200Cells = toSMACells (iu)
 
-                let image = img [ 
-                    _src Links.finvizLogoLink
-                    _width "50px"
-                ]
-
                 let commonCells = [
-                    td [] [ iu.industry |> Links.industryFinvizLink |> generateHrefWithElement image]
-                    td [] [ iu.industry |> Links.industryLink |> generateHref iu.industry]
+                    td [] [ 
+                        span [ _class "mr-2"] [
+                            iu.industry |> Links.industryLink |> generateHref iu.industry
+                        ]
+                        
+                        span [ _class "is-pulled-right"] [
+                            iu.industry |> Links.industryFinvizLink |> generateHref "finviz" 
+                        ]
+                    ]
                 ]
 
                 let cells = List.append (List.append commonCells sma20Cells) sma200Cells
@@ -50,14 +52,18 @@ module IndustryTrends =
                 tr [] cells
             )
 
-        let header = tr [] [
+        let industry20And200Header = tr [] [
             th [] [ ]
             th [] [ str "Industry" ]
             th [ _colspan "3"] [ str "20" ]
             th [ _colspan "3"] [ str "200" ]
         ]
 
-        let table = header::dataRows |> fullWidthTable
+        industry20And200Header::industry20And200Rows |> fullWidthTable
+
+    let handler()  =
+        
+        let industryTrendTable = generateIndustry20And200Table()
 
         let jobStatusRow =
             div [ _class "columns" ] [
@@ -68,11 +74,10 @@ module IndustryTrends =
 
         let view = [
             div [_class "content"] [
-                h1 [] [
-                    str "Industry Trends"
-                ]
+                h1 [] [str "Industry Trends"]
             ]
-            table
+            h3 [] [ str "20/200 SMA breakdown"]
+            industryTrendTable
             jobStatusRow
         ]
         

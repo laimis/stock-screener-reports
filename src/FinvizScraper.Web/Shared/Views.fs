@@ -60,7 +60,7 @@ module Views =
             |> List.map (fun (name,count) ->
                 tr [] [
                     td [] [ (nameElementFunc name) ]
-                    td [] [ str (count.ToString()) ]
+                    td [ _class "has-text-right"] [ str (count.ToString()) ]
                 ])
 
         let header = tr [] [
