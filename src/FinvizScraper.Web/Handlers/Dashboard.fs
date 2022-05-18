@@ -6,6 +6,7 @@ module Dashboard =
     open FinvizScraper.Storage.Reports
     open FinvizScraper.Web.Shared
     open FinvizScraper.Core
+    open FinvizScraper.Storage.Storage
 
     let private generateScreenerResultSection (screener:ScreenerResultReport) = 
         
@@ -76,18 +77,52 @@ module Dashboard =
         func screenerId days
         |> List.take 5
 
+    let generateTrendsTable title nameCounts industryUpdates =
+        let rows =
+            nameCounts
+            |> List.truncate 10
+            |> List.map (fun (name,count) ->
+
+                let industryRank = 
+                    industryUpdates |> List.findIndex (fun (industry) ->
+                        industry.industry = name
+                    )
+
+                tr [] [
+                    td [] [ 
+                        Views.generateHref
+                            name
+                            (Links.industryLink name)
+                    ]
+                    td [] [
+                        str ((industryRank + 1).ToString())
+                    ]
+                    td [ _class "has-text-right"] [ str (count.ToString()) ]
+                ])
+
+        let header = tr [] [
+            th [ _colspan "3"] [ str title ]
+        ]
+
+        header::rows |> Views.fullWidthTable
+
     let private generateIndustryTrendsRow days =
 
         let gainers = FinvizConfig.NewHighsScreener |> filteredList getTopIndustriesForScreener days
         let losers = FinvizConfig.NewLowsScreener |> filteredList getTopIndustriesForScreener days
 
+        let industryUpdates = 
+            getIndustryUpdatesLatestDate()
+            |> FinvizConfig.formatRunDate
+            |> getIndustryUpdates 200
+
         [
             div [_class "columns"] [
                 div [ _class "column" ] [
-                    Views.toNameCountTableWithLinks "Industries Trending Up" Links.industryLink gainers
+                    generateTrendsTable "Industries Trending Up" gainers industryUpdates
                 ]
                 div [ _class "column" ] [
-                    Views.toNameCountTableWithLinks "Industries Trending Down" Links.industryLink losers
+                    generateTrendsTable "Industries Trending Down" losers industryUpdates
                 ]
             ]
         ]
