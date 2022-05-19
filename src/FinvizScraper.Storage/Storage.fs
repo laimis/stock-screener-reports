@@ -125,7 +125,7 @@ module Storage =
     let getScreeners() =
         cnnString
         |> Sql.connect
-        |> Sql.query "SELECT id,name,url FROM screeners"
+        |> Sql.query "SELECT id,name,url FROM screeners ORDER BY id"
         |> Sql.execute screenerMapper
             
     let getScreenerByName name = 

@@ -49,6 +49,12 @@ module Views =
         ] [
             str title
         ]
+    
+    let generateHrefWithAttrs title link attributes =
+        let finalAttributes = (_href link) :: attributes
+        a finalAttributes [
+            str title
+        ]
 
     let private toNameCountRows breakdownName maxNumberOfRows nameElementFunc list =
         let rows =

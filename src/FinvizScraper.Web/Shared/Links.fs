@@ -33,6 +33,10 @@ module Links =
     let countryLink countryName =
         $"/countries/{countryName}"
     
+    let screeners = "/screeners"
+    let screenersNew = "/screeners/new"
+    let screenersDelete id = $"/screeners/{id}/delete"
+    
     let screenerTrends = "/screeners/trends"
     let industryTrends = "/industries/trends"
 
