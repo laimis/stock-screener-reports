@@ -24,52 +24,6 @@ module Dashboard =
             ]
         ]
 
-    let generateHeaderRow =
-        let titleDiv = div [ _class "column" ] [
-            h1 [_class "title"] [ str "Dashboard" ]
-        ]
-
-        let searchDiv = div [ _class "column is-three-quarters" ] [
-            div [ _class "columns"] [
-                div [ _class "column" ] [
-                    form [
-                        _action "/stocks/search"
-                        _method "GET"
-                    ] [
-                        input [
-                            _class "input"
-                            _type "text"
-                            _placeholder "Search for stock"
-                            _name "ticker"
-                        ]
-                    ]
-                ]
-                div [ _class "column" ] [
-                    Views.generateHrefWithAttr
-                        "Screener Trends"
-                        Links.screenerTrends
-                        (_class "button is-small is-primary is-pulled-right mx-1")
-
-                    Views.generateHrefWithAttr
-                        "Industry Trends"
-                        Links.industryTrends
-                        (_class "button is-small is-primary is-pulled-right mx-1")
-
-                    Views.generateHrefWithAttr
-                        "Screeners"
-                        Links.screeners
-                        (_class "button is-small is-primary is-pulled-right mx-1")
-                ]
-            ]
-        ]
-
-        [
-            div [ _class "columns mb-5" ] [
-                titleDiv
-                searchDiv
-            ]
-        ]
-
     let private generateJobStatusRow =
         div [ _class "columns" ] [
             div [ _class "column" ] [ 
@@ -147,8 +101,6 @@ module Dashboard =
 
     let private createView (screeners:list<ScreenerResultReport>) =
         
-        let headerRow = generateHeaderRow
-
         let screenerRows = screeners |> List.map generateScreenerResultSection
 
         let industryTrendRows = generateIndustryTrendsRow FinvizConfig.industryTrendDayRange
@@ -156,7 +108,7 @@ module Dashboard =
 
         let jobStatusRow = generateJobStatusRow
 
-        headerRow @ screenerRows @ industryTrendRows @ sectorTrendRows @ [ jobStatusRow ]
+        screenerRows @ industryTrendRows @ sectorTrendRows @ [ jobStatusRow ]
 
     let handler()  = 
         

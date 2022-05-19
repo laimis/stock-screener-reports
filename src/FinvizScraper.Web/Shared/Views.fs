@@ -81,7 +81,55 @@ module Views =
     let toNameCountTableWithLinks title maxNumberOfRows linkFunction listOfNameCountPairs =
         listOfNameCountPairs |> toNameCountRows title maxNumberOfRows (fun name -> generateHref name (linkFunction name)) |> fullWidthTable
 
+    let generateHeaderRow =
+        let titleDiv = div [ _class "column" ] [
+            h1 [_class "title"] [ str "NG Finviz" ]
+        ]
+
+        let searchDiv = div [ _class "column is-three-quarters" ] [
+            div [ _class "columns"] [
+                div [ _class "column" ] [
+                    form [
+                        _action "/stocks/search"
+                        _method "GET"
+                    ] [
+                        input [
+                            _class "input"
+                            _type "text"
+                            _placeholder "Search for stock"
+                            _name "ticker"
+                        ]
+                    ]
+                ]
+                div [ _class "column" ] [
+                    generateHrefWithAttr
+                        "Screener Trends"
+                        Links.screenerTrends
+                        (_class "button is-small is-primary is-pulled-right mx-1")
+
+                    generateHrefWithAttr
+                        "Industry Trends"
+                        Links.industryTrends
+                        (_class "button is-small is-primary is-pulled-right mx-1")
+
+                    generateHrefWithAttr
+                        "Screeners"
+                        Links.screeners
+                        (_class "button is-small is-primary is-pulled-right mx-1")
+                ]
+            ]
+        ]
+
+        div [ _class "columns mb-5" ] [
+            titleDiv
+            searchDiv
+        ]
+
     let mainLayout pageTitle (content: XmlNode list) =
+    
+        let header = generateHeaderRow
+        let fullBodyContent = header::content
+
         html [] [
             head [] [
                 title []  [ encodedText pageTitle ]
@@ -101,7 +149,7 @@ module Views =
             ]
             body [] [
                 section [_class "section"] [
-                    div [_class "container"] content
+                    div [_class "container"] fullBodyContent
                 ]
             ]
         ] |> Giraffe.Core.htmlView
