@@ -48,12 +48,17 @@ module Dashboard =
                     Views.generateHrefWithAttr
                         "Screener Trends"
                         Links.screenerTrends
-                        (_class "button is-primary is-pulled-right mx-1")
+                        (_class "button is-small is-primary is-pulled-right mx-1")
 
                     Views.generateHrefWithAttr
                         "Industry Trends"
                         Links.industryTrends
-                        (_class "button is-primary is-pulled-right mx-1")
+                        (_class "button is-small is-primary is-pulled-right mx-1")
+
+                    Views.generateHrefWithAttr
+                        "Screeners"
+                        Links.screeners
+                        (_class "button is-small is-primary is-pulled-right mx-1")
                 ]
             ]
         ]

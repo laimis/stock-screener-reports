@@ -11,6 +11,7 @@ open Microsoft.Extensions.DependencyInjection
 open Giraffe
 open FinvizScraper.Web.Handlers
 open FinvizScraper.Storage
+open FinvizScraper.Web.Shared
 
 let webApp =
     choose [
@@ -18,7 +19,8 @@ let webApp =
             choose [
                 route "/" >=> warbler (fun _ -> Dashboard.handler())
 
-                route "/screeners" >=> warbler (fun _ -> ScreenerManagement.handler())
+                route "/screeners" >=> warbler (fun _ -> ScreenerManagement.managementHandler())
+
                 routef "/screeners/%i" ScreenerDashboard.handler
                 routef "/screeners/%i/results/%s" ScreenerResults.handler
                 route "/screeners/trends" >=> warbler (fun _ -> ScreenersTrends.handler())
@@ -30,6 +32,11 @@ let webApp =
                 route "/industries/trends" >=> warbler (fun _ -> IndustryTrends.handler())
                 routef "/industries/%s" IndustryDashboard.handler
                 routef "/countries/%s" CountryDashboard.handler
+            ]
+        POST >=>
+            choose [
+                route Links.screenersNew >=> ScreenerManagement.createHandler
+                routef "/screeners/%i/delete" ScreenerManagement.deleteHandler
             ]
         setStatusCode 404 >=> text "Not Found" ]
 
