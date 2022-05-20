@@ -37,10 +37,16 @@ module Dashboard =
             |> List.truncate 10
             |> List.map (fun (name,count) ->
 
-                let industryRank = 
-                    industryUpdates |> List.findIndex (fun (industry) ->
+                let industryRankOption = 
+                    industryUpdates |> List.tryFindIndex (fun (industry) ->
                         industry.industry = name
                     )
+
+                let industryRank =
+                    match industryRankOption with
+                    | Some index ->
+                        (index + 1).ToString()
+                    | None -> "N/A"
 
                 tr [] [
                     td [] [ 
@@ -49,7 +55,7 @@ module Dashboard =
                             (Links.industryLink name)
                     ]
                     td [ _class "has-text-right" ] [
-                        str ((industryRank + 1).ToString())
+                        str industryRank
                     ]
                     td [ _class "has-text-right"] [ str (count.ToString()) ]
                 ])

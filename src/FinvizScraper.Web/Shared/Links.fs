@@ -12,6 +12,9 @@ module Links =
 
     let chartJsDatalabelsLink = "https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"
 
+
+    let home = "/"
+
     let finvizLogoLink = "/finviz_logo.png"
 
     // app links
@@ -36,6 +39,7 @@ module Links =
     let screeners = "/screeners"
     let screenersNew = "/screeners/new"
     let screenersDelete id = $"/screeners/{id}/delete"
+    let screenersExport id = $"/screeners/{id}/export"
     
     let screenerTrends = "/screeners/trends"
     let industryTrends = "/industries/trends"
