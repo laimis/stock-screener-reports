@@ -165,6 +165,28 @@ module Reports =
             ]
             |> Sql.execute (fun reader -> mapScreenerResultReportItem reader)
 
+    let getAllScreenerResults id =
+
+        let sql = @$"
+            SELECT 
+                stocks.id,ticker,stocks.name,sector,industry,country,
+                screeners.id as screenerid,screeners.name as screenername,
+                screenerresults.date,marketcap,price,change,volume
+            FROM stocks
+            JOIN screenerresults ON stocks.id = screenerresults.stockid
+            JOIN screeners ON screeners.id = screenerresults.screenerid
+            WHERE 
+                screenerresults.screenerid = @screenerid
+            ORDER BY screenerresults.id"
+
+        cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters [
+                "@screenerid", Sql.int id
+            ]
+            |> Sql.execute (fun reader -> mapScreenerResultReportItem reader)
+
     let getDailyCountsForScreener id days =
 
         let sql = @$"

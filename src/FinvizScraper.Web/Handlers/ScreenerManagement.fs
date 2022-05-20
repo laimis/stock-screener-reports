@@ -6,6 +6,7 @@ module ScreenerManagement =
     open Giraffe.ViewEngine
     open FinvizScraper.Web.Shared
     open FinvizScraper.Storage
+    open FSharp.Data
 
     [<CLIMutable>]
     type ScreenerInput =
@@ -13,6 +14,15 @@ module ScreenerManagement =
             name: string
             url: string
         }
+
+    // type CsvType = CsvProvider<Schema = "ticker (string)",
+    //     HasHeaders=false>
+
+    type ScreenerExportType =   CsvProvider<
+        Schema = "date, ticker, name, sector (string), industry (string), country (string), marketCap (decimal), price (decimal), change (decimal), volume (decimal)",
+        HasHeaders=false>
+
+    let header = "date, ticker, name, sector, industry, country, marketCap, price, change, volume"
 
     let deleteHandler id =
         let screener = Storage.getScreenerById id
@@ -22,6 +32,41 @@ module ScreenerManagement =
             redirectTo false Links.screeners
         | None ->
             redirectTo false Links.screeners
+
+    let exportHandler id =
+        setHttpHeader "Content-Type" "text/csv"
+        >=> 
+            let screener = Storage.getScreenerById id
+            let filename =
+                match screener with
+                | Some s -> $"export_{s.name}.csv"
+                | None -> $"export.csv"
+
+            let escapedFilename = System.Uri.EscapeDataString(filename)
+
+            setHttpHeader "Content-Disposition" $"attachment; filename={escapedFilename}"
+        >=>
+            let data = Reports.getAllScreenerResults id
+            let rows = 
+                data 
+                |> List.map (fun r -> 
+                    ScreenerExportType.Row(
+                        r.date,
+                        r.ticker,
+                        r.name,
+                        r.sector,
+                        r.industry,
+                        r.country,
+                        r.marketCap,
+                        r.price,
+                        r.change,
+                        r.volume
+                    )
+                )
+
+            let csv = new ScreenerExportType(rows)
+
+            setBodyFromString (header + System.Environment.NewLine + csv.SaveToString())
 
     let createHandler : HttpHandler =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
@@ -43,6 +88,17 @@ module ScreenerManagement =
                     td [] [str screener.name]
                     td [] [screener.url |> Views.generateHref "Finviz" ]
                     td [] [
+                        form [
+                            _method "POST"
+                            _action (Links.screenersExport screener.id)
+                        ] [
+                            input [
+                                _type "submit"
+                                _value "Export"
+                                _class "button is-primary is-small is-light is-pulled-left"
+                            ]
+                        ]
+
                         form [
                             _method "POST"
                             _action (Links.screenersDelete screener.id)

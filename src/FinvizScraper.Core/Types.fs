@@ -30,7 +30,7 @@ type FinvizConfig =
     static member getRunDate() =
         System.DateTime.Now |> FinvizConfig.formatRunDate 
 
-    static member dayRange = 31
+    static member dayRange = 61
     static member industryTrendDayRange = 14
     static member sectorTrendDayRange = 14
     

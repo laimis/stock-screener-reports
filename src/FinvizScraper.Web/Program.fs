@@ -37,6 +37,8 @@ let webApp =
             choose [
                 route Links.screenersNew >=> ScreenerManagement.createHandler
                 routef "/screeners/%i/delete" ScreenerManagement.deleteHandler
+                
+                routef "/screeners/%i/export" ScreenerManagement.exportHandler
             ]
         setStatusCode 404 >=> text "Not Found" ]
 
