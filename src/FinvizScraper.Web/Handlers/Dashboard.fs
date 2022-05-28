@@ -24,7 +24,7 @@ module Dashboard =
             ]
         ]
 
-    let private generateJobStatusRow =
+    let private generateJobStatusRow() =
         div [ _class "columns" ] [
             div [ _class "column" ] [ 
                 ScreenerJob |> Views.genericJobStatusGet |> str 
@@ -112,7 +112,7 @@ module Dashboard =
         let industryTrendRows = generateIndustryTrendsRow FinvizConfig.industryTrendDayRange
         let sectorTrendRows = generateSectorTrendsRow FinvizConfig.sectorTrendDayRange
 
-        let jobStatusRow = generateJobStatusRow
+        let jobStatusRow = generateJobStatusRow()
 
         screenerRows @ industryTrendRows @ sectorTrendRows @ [ jobStatusRow ]
 
