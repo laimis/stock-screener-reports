@@ -22,7 +22,10 @@ module IndustryTrends =
         let industry20And200Rows =
             industryUpdates200
             |> Map.toList
-            |> List.sortByDescending (fun (key, update) -> update.percentAbove)
+            |> List.sortByDescending (fun (key, update200) -> 
+                let update20 = industryUpdates20[key]
+                (update200.percentAbove, update20.percentAbove)
+            )
             |> List.map (fun (key, iu) ->
 
                 let toSMACells (update:FinvizScraper.Core.IndustryUpdate) =
@@ -42,7 +45,7 @@ module IndustryTrends =
                         ]
                         
                         span [ _class "is-pulled-right"] [
-                            iu.industry |> Links.industryFinvizLink |> generateHref "finviz" 
+                            iu.industry |> Links.industryFinvizLink |> generateHrefNewTab "finviz" 
                         ]
                     ]
                 ]

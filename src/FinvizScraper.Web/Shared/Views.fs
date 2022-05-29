@@ -50,6 +50,9 @@ module Views =
             str title
         ]
     
+    let generateHrefNewTab title link =
+        generateHrefWithAttr title link (_target "_blank")
+    
     let generateHrefWithAttrs title link attributes =
         let finalAttributes = (_href link) :: attributes
         a finalAttributes [
