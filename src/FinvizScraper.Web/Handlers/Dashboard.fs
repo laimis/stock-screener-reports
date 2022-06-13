@@ -70,8 +70,8 @@ module Dashboard =
 
     let private generateIndustryTrendsRow days =
 
-        let gainers = FinvizConfig.NewHighsScreener |> getTopIndustriesForScreener days |> List.take 5
-        let losers = FinvizConfig.NewLowsScreener |> getTopIndustriesForScreener days |> List.take 5
+        let gainers = Constants.NewHighsScreenerId |> getTopIndustriesForScreener days |> List.take 5
+        let losers = Constants.NewLowsScreenerId |> getTopIndustriesForScreener days |> List.take 5
 
         let industryUpdates = 
             getIndustryUpdatesLatestDate()
@@ -91,8 +91,8 @@ module Dashboard =
 
     let private generateSectorTrendsRow days =
 
-        let gainers = FinvizConfig.NewHighsScreener |> getTopSectorsForScreener days
-        let losers = FinvizConfig.NewLowsScreener |> getTopSectorsForScreener days
+        let gainers = Constants.NewHighsScreenerId |> getTopSectorsForScreener days
+        let losers = Constants.NewLowsScreenerId |> getTopSectorsForScreener days
 
         [
             div [_class "columns"] [

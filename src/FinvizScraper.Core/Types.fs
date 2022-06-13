@@ -11,11 +11,30 @@ module StockTicker =
     // unwrap
     let value (StockTicker e) = e
 
+module Constants =
+    
+    [<Literal>] 
+    let NewHighsWithSalesScreenerId = 27
+
+    [<Literal>] 
+    let NewHighsScreenerId = 28
+
+    [<Literal>] 
+    let TopGainerScreenerId = 29
+
+    [<Literal>] 
+    let TopLoserScreenerId = 30
+    
+    [<Literal>] 
+    let NewLowsScreenerId = 31
+
+
 type ScreenerInput = {
     name:string;
     url:string;
     filename:string;
 }
+
 
 type FinvizConfig =
     {
@@ -34,13 +53,17 @@ type FinvizConfig =
     static member industryTrendDayRange = 14
     static member sectorTrendDayRange = 14
     
-    // TODO: not sure how to make these more dynamic. We need some custom logic
-    // for certain reports that refer to screeners by id
-    static member NewHighsWithSalesScreener = 27
-    static member NewHighsScreener = 28
-    static member NewLowsScreener = 31
+    static member getBackgroundColorForScreenerId id =
+        match id with
+            | Constants.NewHighsWithSalesScreenerId -> "#2C59D8" // new high
+            | Constants.NewHighsScreenerId -> "#3590F3" // new high (w/ sales)
+            | Constants.TopGainerScreenerId -> "#4DBEF7" // top gainer
+            | Constants.TopLoserScreenerId -> "#C54A8B" // top loser
+            | Constants.NewLowsScreenerId -> "#90323C" // new low
+            | _ -> raise (new System.Exception($"Unknown screener id {id} for screener tags")) // otherwise blow up
 
-    
+    static member getBackgroundColorDefault = "#FF6586"
+
 type ScreenerResult = {
     ticker:StockTicker.T;
     company:string;

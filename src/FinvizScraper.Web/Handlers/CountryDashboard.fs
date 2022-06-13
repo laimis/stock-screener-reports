@@ -5,11 +5,12 @@ module CountryDashboard =
     open Giraffe.ViewEngine.HtmlElements
     open FinvizScraper.Storage
     open Giraffe.ViewEngine.Attributes
+    open FinvizScraper.Core
 
     let handler countryName =
         let screeners = Storage.getScreeners()
 
-        let days = FinvizScraper.Core.FinvizConfig.dayRange
+        let days = FinvizConfig.dayRange
 
         let list = [for i in -days .. 0 -> (System.DateTime.UtcNow.Date.AddDays(i),0) ]
 
@@ -27,7 +28,7 @@ module CountryDashboard =
                     | Some c -> (date,c)
                     | None -> (date,count)
                 )
-                |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart
+                |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart FinvizConfig.getBackgroundColorDefault
                 |> div [_class "block"] 
             )
 

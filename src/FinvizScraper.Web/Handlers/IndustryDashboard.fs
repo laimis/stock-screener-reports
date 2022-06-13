@@ -4,6 +4,7 @@ module IndustryDashboard =
     open FinvizScraper.Web.Shared
     open Giraffe.ViewEngine.HtmlElements
     open FinvizScraper.Storage
+    open FinvizScraper.Core
     open Giraffe.ViewEngine.Attributes
     open FinvizScraper.Web.Shared.Views
 
@@ -34,7 +35,7 @@ module IndustryDashboard =
                 industryName
                 |> Storage.getIndustryTrends days
                 |> List.map (fun u -> (u.date,System.Math.Round(u.percentAbove, 0)))
-                |> Charts.convertNameCountsToChart $"{days} EMA Trend" Charts.Line (Some 100) Charts.smallChart 
+                |> Charts.convertNameCountsToChart $"{days} EMA Trend" Charts.Line (Some 100) Charts.smallChart FinvizConfig.getBackgroundColorDefault 
 
             (industryTrendChartsInternal 20) @ (industryTrendChartsInternal 200)
         
@@ -59,7 +60,7 @@ module IndustryDashboard =
                     | Some c -> (date,c)
                     | None -> (date,count)
                 )
-                |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart
+                |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart (FinvizConfig.getBackgroundColorForScreenerId screener.id)
                 |> div [_class "block"] 
             )
 

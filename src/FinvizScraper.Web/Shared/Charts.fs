@@ -18,7 +18,8 @@ module Charts =
         (maxYValue:option<int>)
         chartCanvasId
         labels
-        data =
+        data
+        color =
 
         let formattedLabels = labels |> List.map (fun l -> $"'{l}'") |> String.concat ","
         let formattedData = data |> List.map (fun d -> $"{d}") |> String.concat ","
@@ -56,8 +57,8 @@ module Charts =
                     labels: [""" + formattedLabels + """],
                     datasets: [{
                         label: '""" + title + """',
-                        backgroundColor: 'rgb(255, 99, 132)',
-                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: '""" + color + """',
+                        borderColor: '""" + color + """',
                         data: [""" + formattedData + """],
                     }]
                 },
@@ -77,7 +78,8 @@ module Charts =
         (maxYValue:option<int>)
         (height:option<ChartHeight>)
         labels
-        data =
+        data
+        color =
         let chartGuid = Guid.NewGuid().ToString("N")
         let canvasId = $"chart{chartGuid}"
 
@@ -99,7 +101,7 @@ module Charts =
         ]
 
         let chartScript = script [_type "application/javascript"] [
-            generateJSForChart title chartType maxYValue canvasId labels data
+            generateJSForChart title chartType maxYValue canvasId labels data color
         ]
 
         [
@@ -112,8 +114,9 @@ module Charts =
         chartType
         maxYValue
         height
+        color
         listOfNameCountPairs =
         let labels = listOfNameCountPairs |> List.map (fun ((name:DateTime),_) -> name.ToString("MMM/dd"))
         let data = listOfNameCountPairs |> List.map (fun (_,count) -> count)
 
-        generateChartElements title chartType maxYValue height labels data
+        generateChartElements title chartType maxYValue height labels data color

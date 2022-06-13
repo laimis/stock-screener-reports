@@ -5,6 +5,7 @@ module ScreenersTrends =
     open Giraffe.ViewEngine
     open FinvizScraper.Web.Shared
     open FinvizScraper.Storage
+    open FinvizScraper.Core
     
     let handler() =
 
@@ -20,7 +21,7 @@ module ScreenersTrends =
         
         let screeners =
             Storage.getScreeners()
-            |> List.where (fun s -> s.id = FinvizScraper.Core.FinvizConfig.NewHighsWithSalesScreener |> not)
+            |> List.where (fun s -> s.id = Constants.NewHighsWithSalesScreenerId |> not)
 
         let dataByScreenerByDate =
             screeners
@@ -45,16 +46,16 @@ module ScreenersTrends =
 
         // make chart that is new highs - new lows for each day
 
-        let findScreener screnerId =
+        let findScreener screenerId =
             screeners
-            |> List.find (fun s -> s.id = screnerId)
+            |> List.find (fun s -> s.id = screenerId)
 
         let newHighsDataMap =
-            dataByScreenerByDate.Item(FinvizScraper.Core.FinvizConfig.NewHighsScreener |> findScreener)
+            dataByScreenerByDate.Item(Constants.NewHighsScreenerId |> findScreener)
             |> Map.ofList
             
         let newLowsDataMap =
-            dataByScreenerByDate.Item(FinvizScraper.Core.FinvizConfig.NewLowsScreener |> findScreener)
+            dataByScreenerByDate.Item(Constants.NewLowsScreenerId |> findScreener)
             |> Map.ofList
 
         let highsMinusLowsChart =
@@ -65,7 +66,7 @@ module ScreenersTrends =
 
                 (date,high - low)
             )
-            |> Charts.convertNameCountsToChart "Highs - Lows" Charts.Bar None Charts.smallChart
+            |> Charts.convertNameCountsToChart "Highs - Lows" Charts.Bar None Charts.smallChart FinvizConfig.getBackgroundColorDefault
             |> div [_class "block"]
 
         let charts =
@@ -74,7 +75,7 @@ module ScreenersTrends =
             |> List.map (fun (screener,screenerData) ->
                 
                 screenerData
-                |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart
+                |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart (FinvizConfig.getBackgroundColorForScreenerId screener.id) 
                 |> div [_class "block"]                 
             )
 

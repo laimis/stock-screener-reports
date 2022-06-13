@@ -5,6 +5,7 @@ module ScreenerDashboard =
     open Giraffe.ViewEngine
     open FinvizScraper.Web.Shared
     open FinvizScraper.Storage
+    open FinvizScraper.Core
     open System
     
 
@@ -62,7 +63,7 @@ module ScreenerDashboard =
         let dailyChart =
             days
             |> Reports.getDailyCountsForScreener screener.id
-            |> Charts.convertNameCountsToChart screener.name Charts.Bar None None
+            |> Charts.convertNameCountsToChart screener.name Charts.Bar None None (FinvizConfig.getBackgroundColorForScreenerId screener.id)
 
         let headerWithCharts = header::dailyChart
 

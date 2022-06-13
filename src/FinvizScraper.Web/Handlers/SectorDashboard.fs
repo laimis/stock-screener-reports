@@ -6,6 +6,7 @@ module SectorDashboard =
     open FinvizScraper.Storage
     open Giraffe.ViewEngine.Attributes
     open FinvizScraper.Web.Shared.Views
+    open FinvizScraper.Core
 
     let handler sectorName =
         let screeners = Storage.getScreeners()
@@ -28,7 +29,7 @@ module SectorDashboard =
                     | Some c -> (date,c)
                     | None -> (date,count)
                 )
-                |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart
+                |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart (FinvizConfig.getBackgroundColorForScreenerId screener.id)
                 |> div [_class "block"] 
             )
 

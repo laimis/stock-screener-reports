@@ -173,14 +173,7 @@ module Views =
         let (id,name) = idAndNameTuple
 
         // TODO: screemer id mapping is hardcoded here
-        let backgroundColor =
-            match id with
-            | 27 -> "#2C59D8" // new high
-            | 28 -> "#3590F3" // new high (w/ sales)
-            | 29 -> "#4DBEF7" // top gainer
-            | 31 -> "#90323C" // new low
-            | 30 -> "#C54A8B" // top loser
-            | _ -> raise (new System.Exception($"Unknown screener id {id} for screener tags")) // otherwise blow up
+        let backgroundColor = FinvizScraper.Core.FinvizConfig.getBackgroundColorForScreenerId id
 
         div [ _class "tags has-addons" ] [
             span [ 
