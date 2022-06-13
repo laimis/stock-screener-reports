@@ -146,7 +146,7 @@ type ReportTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``getting trending industries works``() =
         let results = 
-            FinvizScraper.Core.FinvizConfig.NewHighsScreener
+            FinvizScraper.Core.Constants.NewHighsScreenerId
             |> FinvizScraper.Storage.Reports.getTopIndustriesForScreener 14
 
         Assert.NotEmpty(results)
@@ -154,7 +154,7 @@ type ReportTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``getting trending sectors works``() =
         let results = 
-            FinvizScraper.Core.FinvizConfig.NewHighsScreener
+            FinvizScraper.Core.Constants.NewHighsScreenerId
             |> FinvizScraper.Storage.Reports.getTopSectorsForScreener 14
 
         Assert.NotEmpty(results)
