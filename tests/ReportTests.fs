@@ -93,6 +93,18 @@ type ReportTests(output:ITestOutputHelper) =
         Assert.True(firstCount > 0)
 
     [<Fact>]
+    let ``Particular screener daily volume works``() =
+
+        let screener = getTestScreener
+
+        let results = FinvizScraper.Storage.Reports.getDailyAverageVolumeForScreener screener.Value.id 7
+
+        Assert.NotEmpty(results)
+
+        let (_,firstCount) = results.Item(0)
+        Assert.True(firstCount > 0)
+
+    [<Fact>]
     let ``Date range sector grouping works``() =
         "Energy" |> topGroupingTest (
             fun x -> 

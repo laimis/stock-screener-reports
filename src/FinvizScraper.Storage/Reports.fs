@@ -187,6 +187,30 @@ module Reports =
             ]
             |> Sql.execute (fun reader -> mapScreenerResultReportItem reader)
 
+    let getDailyAverageVolumeForScreener id days =
+
+        let sql = @$"
+            SELECT 
+                date,avg(volume) as count
+            FROM screenerresults
+            WHERE 
+                screenerid = @screenerid
+                AND date >= current_date - @days
+            GROUP BY date
+            ORDER BY date"
+
+        cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters [
+                "@days", Sql.int days;
+                "@screenerid", Sql.int id
+            ]
+            |> Sql.execute (fun reader ->
+                (reader.dateTime "date", reader.int "count")
+            )
+
+
     let getDailyCountsForScreener id days =
 
         let sql = @$"

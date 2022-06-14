@@ -45,7 +45,10 @@ module Charts =
                         datalabels : {
                             // color: 'white',
                             anchor: 'end',
-                            align: 'end'
+                            align: 'end',
+                            formatter: function(value, context) {
+                                return value > 1000000 ? (value / 1000000).toFixed(0) + 'M' : value;
+                            }
                         }
                     }
                 }"
