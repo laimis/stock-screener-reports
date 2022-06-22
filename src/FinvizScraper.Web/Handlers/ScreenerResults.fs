@@ -9,12 +9,6 @@ module ScreenerResults =
 
     let screenerResultToTr (result:ScreenerResultReportItem) =
         
-        let toTd input =
-            td [] [ str input ]
-
-        let toTdWithNode node =
-            td [] [ node ]
-
         let rowAttributes = [_height "50px"]
 
         tr rowAttributes [
@@ -64,7 +58,7 @@ module ScreenerResults =
         
         breakdowns |> List.map convertToBreakdown
 
-    let headerRow =
+    let generateScreenerResultTable results =
         let headers = [ 
             "Ticker"
             "Company"
@@ -78,20 +72,16 @@ module ScreenerResults =
             "Link"
         ]
 
-        let toHeader title =
-            th [] [str title]
+        let headerCells = headers |> List.map toHeaderCell
 
-        let headerCells = headers |> List.map toHeader
-
-        tr [] headerCells
+        results
+            |> List.map screenerResultToTr
+            |> List.append [tr [] headerCells]
+            |> fullWidthTable
 
     let private view (screener:FinvizScraper.Core.Screener) (results:list<ScreenerResultReportItem>) =
 
-        let screenerTable =
-            results
-            |> List.map screenerResultToTr
-            |> List.append [headerRow]
-            |> fullWidthTable
+        let screenerTable = results |> generateScreenerResultTable
 
         let breakdowns = calculateBreakdowns results
                 

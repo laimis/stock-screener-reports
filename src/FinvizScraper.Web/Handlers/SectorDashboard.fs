@@ -11,9 +11,9 @@ module SectorDashboard =
     let handler sectorName =
         let screeners = Storage.getScreeners()
 
-        let days = FinvizScraper.Core.FinvizConfig.dayRange
+        let days = FinvizConfig.dayRange
 
-        let list = [for i in -days .. 0 -> (System.DateTime.UtcNow.Date.AddDays(i),0) ]
+        let list = days |> Logic.businessDatesWithZeroPairs
 
         let charts = 
             screeners
@@ -32,6 +32,38 @@ module SectorDashboard =
                 |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart (FinvizConfig.getBackgroundColorForScreenerId screener.id)
                 |> div [_class "block"] 
             )
+
+        let resultRows =
+            sectorName
+            |> Reports.getScreenerResultsForSector 50
+            |> List.map (fun screenerResult ->
+                tr [] [
+                    td [] [ screenerResult.date.ToString("yyyy-MM-dd") |> str ]
+                    td [] [
+                        (screenerResult.screenerid,screenerResult.screenername) |> Views.generateScreenerTags
+                    ]
+                    td [] [ screenerResult.ticker |> generateTickerLink ]
+                    td [] [ screenerResult.marketCap |> marketCapFormatted |> str ]
+                    td [] [ screenerResult.price |> dollarFormatted |> str ]
+                    td [] [ screenerResult.change |> percentFormatted |> str ]
+                    td [] [ screenerResult.volume |> volumeFormatted |> str ]
+                    td [] [ screenerResult.ticker |> Links.tradingViewLink |> generateHref "chart" ]
+                ]
+            )
+
+        let tableHeader =
+            tr [] [
+                th [] [str "date"]
+                th [] [str "screener"]
+                th [] [str "ticker"]
+                th [] [str "market cap"]
+                th [] [str "price"]
+                th [] [str "change"]
+                th [] [str "volume"]
+                th [] [str "trading view"]
+            ]
+
+        let screenerResultsTable = tableHeader::resultRows |> fullWidthTable
 
         let stocks = Storage.getStocksBySector sectorName
 
@@ -54,7 +86,7 @@ module SectorDashboard =
                 h1 [] [
                     "Sector: " + sectorName |> str
                 ]
-            ]::charts @ [stockTable]
+            ]::charts @ [screenerResultsTable; stockTable]
             
         
         view |> mainLayout $"Sector Dashboard for {sectorName}" 

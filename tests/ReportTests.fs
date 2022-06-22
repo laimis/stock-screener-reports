@@ -81,6 +81,15 @@ type ReportTests(output:ITestOutputHelper) =
         Assert.NotEmpty(results)
 
     [<Fact>]
+    let ``Particular screener result for multiple days works``() =
+
+        let screener = FinvizScraper.Storage.Reports.getLatestScreeners().Head
+        
+        let results = FinvizScraper.Storage.Reports.getScreenerResultsForDays screener.screenerid 14
+
+        Assert.NotEmpty(results)
+
+    [<Fact>]
     let ``Particular screener daily counts work``() =
 
         let screener = getTestScreener
@@ -113,7 +122,7 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``Date range industry grouping works``() =
-        "Food Distribution" |> topGroupingTest (
+        "Biotechnology" |> topGroupingTest (
             fun x -> 
                 FinvizScraper.Storage.Reports.topIndustriesOverDays x.id (getTestStartDate()) (getTestEndDate())
             )

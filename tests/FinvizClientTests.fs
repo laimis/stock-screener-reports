@@ -31,3 +31,14 @@ type ParsingTests(output:ITestOutputHelper) =
 
         Assert.True(above > 0)
         Assert.True(below > 0)
+
+
+    [<Fact>]
+    let ``industry with special characters works`` () =
+        let (above,below) =
+            StorageTests.testStockIndustryWithSpecialCharacters
+            |> FinvizClient.getResultCountForIndustryAboveAndBelowSMA 20 
+
+        let total = above + below
+
+        Assert.True(total < 100)

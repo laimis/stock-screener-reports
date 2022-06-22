@@ -52,6 +52,15 @@ module Views =
     
     let generateHrefNewTab title link =
         generateHrefWithAttr title link (_target "_blank")
+
+    let toTdWithNode node =
+            td [] [ node ]
+
+    let toTd input =
+        str input |> toTdWithNode
+
+    let toHeaderCell title =
+        th [] [str title]
     
     let generateHrefWithAttrs title link attributes =
         let finalAttributes = (_href link) :: attributes

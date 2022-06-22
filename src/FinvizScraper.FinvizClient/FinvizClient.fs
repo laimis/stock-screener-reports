@@ -135,11 +135,8 @@ module FinvizClient =
                 System.Int32.Parse(total |> removeTotalMarker)
             | _ -> System.Int32.Parse(totalText |> removeTotalMarker)
 
-    let cleanIndustry (industry:string) =
-        industry.Replace("&", "").Replace(" ", "").ToLower()
-
     let getResultCountForIndustryAboveAndBelowSMA days industry =
-        let cleaned = industry |> cleanIndustry
+        let cleaned = industry |> FinvizScraper.Core.Utils.cleanIndustry
 
         let fetchCountWithTA ta =
             $"https://finviz.com/screener.ashx?v=111&f=ind_{cleaned},{ta}"

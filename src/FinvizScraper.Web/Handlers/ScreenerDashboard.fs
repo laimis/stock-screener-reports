@@ -39,9 +39,7 @@ module ScreenerDashboard =
         ]
 
         let breakdownHeader = div [_class "content mt-5"] [
-            h2 [] [
-                str $"Last {days} days"
-            ]
+            h2 [] [str $"Last {days} days"]
         ]
 
         [
@@ -51,7 +49,7 @@ module ScreenerDashboard =
 
     let generateLayoutForScreener (screener:FinvizScraper.Core.Screener) =
 
-        let days = FinvizScraper.Core.FinvizConfig.dayRange
+        let days = FinvizConfig.dayRange
 
         let header = 
             div [_class "content"] [
@@ -72,7 +70,15 @@ module ScreenerDashboard =
             |> List.map (fun days -> days |> generateBreakdowsElementsForDays screener.id)
             |> List.concat
 
-        breakdownElements |> List.append headerWithCharts
+        let results =
+            days |>
+            Reports.getScreenerResultsForDays screener.id
+
+        let resultsTable =
+            results
+            |> ScreenerResults.generateScreenerResultTable
+
+        headerWithCharts @ breakdownElements @ [resultsTable]
 
 
     let handler screenerId  = 

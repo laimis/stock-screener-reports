@@ -45,5 +45,8 @@ module Links =
     let industryTrends = "/industries/trends"
 
     let industryFinvizLink (industryName:string) =
-        let value = industryName.Replace("&", "").Replace(" ", "").ToLower()
+        let value =
+            industryName
+            |> FinvizScraper.Core.Utils.cleanIndustry
+        
         $"https://finviz.com/screener.ashx?v=111&f=ind_" + value

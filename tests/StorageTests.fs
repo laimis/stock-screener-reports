@@ -11,6 +11,7 @@ let testStockName       = "Apple Inc."
 let testStockSector     = "Technology"
 let testStockIndustry   = "Computer Hardware"
 let testStockCountry    = "United States"
+let testStockIndustryWithSpecialCharacters = "Furnishings, Fixtures & Appliances"
 
 let dbEnvironmentVariableName = "FINVIZ_CONNECTIONSTRING"
 

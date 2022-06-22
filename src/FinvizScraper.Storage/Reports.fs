@@ -141,6 +141,32 @@ module Reports =
                 }
             )
 
+    let getScreenerResultsForDays id days =
+
+        let sql = @$"
+            SELECT 
+                stocks.id,ticker,stocks.name,sector,industry,country,
+                screeners.id as screenerid,screeners.name as screenername,
+                screenerresults.date,marketcap,price,change,volume
+            FROM stocks
+            JOIN screenerresults ON stocks.id = screenerresults.stockid
+            JOIN screeners ON screeners.id = screenerresults.screenerid
+            WHERE 
+                screenerresults.screenerid = @screenerid
+                AND screenerresults.date >= current_date - @days
+            ORDER BY screenerresults.date DESC, ticker DESC"
+
+        cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters [
+                "@screenerid", Sql.int id;
+                "@days", Sql.int days
+            ]
+            |> Sql.execute (fun reader ->
+                mapScreenerResultReportItem reader
+            )
+
     let getScreenerResults id date =
 
         let sql = @$"
@@ -293,6 +319,30 @@ module Reports =
             |> Sql.query sql
             |> Sql.parameters [
                 "@ticker", ticker |> FinvizScraper.Core.StockTicker.value |> Sql.string
+            ]
+            |> Sql.execute mapScreenerResultReportItem
+
+    let getScreenerResultsForSector limit sector =
+
+        let sql = @$"
+            SELECT 
+                stocks.id,ticker,stocks.name,sector,industry,country,
+                screeners.id as screenerid,screeners.name as screenername,
+                screenerresults.date,marketcap,price,change,volume
+            FROM stocks
+            JOIN screenerresults ON stocks.id = screenerresults.stockid
+            JOIN screeners ON screeners.id = screenerresults.screenerid
+            WHERE 
+                sector = @sector
+            ORDER BY screenerresults.date DESC
+            LIMIT @limit"
+
+        cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters [
+                "@sector", Sql.string sector;
+                "@limit", Sql.int limit
             ]
             |> Sql.execute mapScreenerResultReportItem
 

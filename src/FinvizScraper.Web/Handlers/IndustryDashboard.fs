@@ -42,9 +42,9 @@ module IndustryDashboard =
         // load charts for each screener
         let screeners = Storage.getScreeners()
 
-        let days = FinvizScraper.Core.FinvizConfig.dayRange
+        let days = FinvizConfig.dayRange
 
-        let list = [for i in -days .. 0 -> (System.DateTime.UtcNow.Date.AddDays(i),0) ]
+        let list = days |> Logic.businessDatesWithZeroPairs
 
         let screenerCharts = 
             screeners

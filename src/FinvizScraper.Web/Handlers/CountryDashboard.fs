@@ -12,7 +12,7 @@ module CountryDashboard =
 
         let days = FinvizConfig.dayRange
 
-        let list = [for i in -days .. 0 -> (System.DateTime.UtcNow.Date.AddDays(i),0) ]
+        let list = days |> Logic.businessDatesWithZeroPairs
 
         let charts = 
             screeners
@@ -28,7 +28,7 @@ module CountryDashboard =
                     | Some c -> (date,c)
                     | None -> (date,count)
                 )
-                |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart FinvizConfig.getBackgroundColorDefault
+                |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart (FinvizConfig.getBackgroundColorForScreenerId screener.id)
                 |> div [_class "block"] 
             )
 
