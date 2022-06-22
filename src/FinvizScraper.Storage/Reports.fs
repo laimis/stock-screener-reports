@@ -423,3 +423,22 @@ module Reports =
                     reader.int "count"
                 )
             )
+
+    let getStockByCountryBreakdown() =
+
+        let sql = @$"
+            SELECT 
+                country,count(*) as count
+            FROM stocks
+            GROUP BY country
+            ORDER BY count DESC"
+
+        cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.execute (fun reader -> 
+                (
+                    reader.string "country",
+                    reader.int "count"
+                )
+            )

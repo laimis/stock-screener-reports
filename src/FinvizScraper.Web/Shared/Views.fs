@@ -93,7 +93,7 @@ module Views =
     let toNameCountTableWithLinks title maxNumberOfRows linkFunction listOfNameCountPairs =
         listOfNameCountPairs |> toNameCountRows title maxNumberOfRows (fun name -> generateHref name (linkFunction name)) |> fullWidthTable
 
-    let generateHeaderRow =
+    let private generateHeaderRow =
         let titleDiv = div [ _class "column" ] [
             h1 [_class "title"] [ 
                 generateHrefWithAttr "NG Finviz" Links.home (_class "has-text-primary")
