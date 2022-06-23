@@ -31,14 +31,14 @@ module Dashboard =
             ]
         ]
 
-    let generateTrendsTable title nameCounts industryUpdates =
+    let generateTrendsTable title nameCounts industrySMABreakdowns =
         let rows =
             nameCounts
             |> List.truncate 10
             |> List.map (fun (name,count) ->
 
                 let industryRankOption = 
-                    industryUpdates |> List.tryFindIndex (fun (industry) ->
+                    industrySMABreakdowns |> List.tryFindIndex (fun (industry) ->
                         industry.industry = name
                     )
 
@@ -73,18 +73,18 @@ module Dashboard =
         let gainers = Constants.NewHighsScreenerId |> getTopIndustriesForScreener days |> List.take 5
         let losers = Constants.NewLowsScreenerId |> getTopIndustriesForScreener days |> List.take 5
 
-        let industryUpdates = 
-            getIndustryUpdatesLatestDate()
+        let industrySMABreakdowns = 
+            getIndustrySMABreakdownLatestDate()
             |> FinvizConfig.formatRunDate
-            |> getIndustryUpdates 200
+            |> getIndustrySMABreakdowns 200
 
         [
             div [_class "columns"] [
                 div [ _class "column" ] [
-                    generateTrendsTable "Industries Trending Up" gainers industryUpdates
+                    generateTrendsTable "Industries Trending Up" gainers industrySMABreakdowns
                 ]
                 div [ _class "column" ] [
-                    generateTrendsTable "Industries Trending Down" losers industryUpdates
+                    generateTrendsTable "Industries Trending Down" losers industrySMABreakdowns
                 ]
             ]
         ]

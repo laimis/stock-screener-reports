@@ -26,15 +26,6 @@ module Storage =
             country = reader.string "country";
         }
 
-    let private industryUpdateMapper (reader:RowReader) : IndustryUpdate =
-        {
-            industry = reader.string "industry";
-            date = reader.dateTime "date";
-            days = reader.int "days";
-            above = reader.int "above";
-            below = reader.int "below";
-        }
-
     let private toJobNameString jobName =
         match jobName with
             | ScreenerJob _ -> "screenerjob"
@@ -221,11 +212,11 @@ module Storage =
         |> Sql.query "SELECT DISTINCT industry FROM stocks ORDER BY industry"
         |> Sql.execute (fun reader -> reader.string "industry")
 
-    let saveIndustrySMACounts date  (industry,days,above:int,below:int) =
+    let saveIndustrySMABreakdowns date  (industry,days,above:int,below:int) =
         let sql = @"
-            DELETE FROM industryupdates WHERE industry = @industry AND date = date(@date) AND days = @days;
+            DELETE FROM IndustrySMABreakdowns WHERE industry = @industry AND date = date(@date) AND days = @days;
 
-            INSERT INTO industryupdates
+            INSERT INTO IndustrySMABreakdowns
             (industry,date,days,above,below)
             VALUES
             (@industry,date(@date),@days,@above,@below)"
@@ -241,62 +232,6 @@ module Storage =
             "@below", Sql.int below;
         ]
         |> Sql.executeNonQuery
-
-    let getIndustryTrends days industry =
-        let sql = @"
-            SELECT industry,date,days,above,below
-            FROM industryupdates
-            WHERE industry = @industry
-            AND days = @days
-            ORDER BY date"
-
-        cnnString
-        |> Sql.connect
-        |> Sql.query sql
-        |> Sql.parameters [
-            "@industry", Sql.string industry;
-            "@days", Sql.int days;
-        ]
-        |> Sql.execute industryUpdateMapper
-
-    let getIndustryUpdates days date =
-        let sql = @"
-            SELECT industry,date,days,above,below FROM industryupdates
-            WHERE date = date(@date)
-            AND days = @days
-            ORDER BY (above/(below + above)) DESC"
-
-        cnnString
-        |> Sql.connect
-        |> Sql.query sql
-        |> Sql.parameters [
-            "@date", Sql.string date;
-            "@days", Sql.int days;
-        ]
-        |> Sql.execute industryUpdateMapper
-
-    let getMostRecentIndustryTrends days industry =
-        let sql = @"
-            SELECT industry,date,days,above,below FROM industryupdates
-            WHERE industry = @industry
-            AND days = @days
-            AND date = (SELECT MAX(date) FROM industryupdates WHERE industry = @industry AND days = @days)"
-
-        cnnString
-        |> Sql.connect
-        |> Sql.query sql
-        |> Sql.parameters [
-            "@industry", Sql.string industry;
-            "@days", Sql.int days;
-        ]
-        |> Sql.execute industryUpdateMapper
-        |> singleOrThrow "More than one industry trend for the same industry and days"
-
-    let getIndustryUpdatesLatestDate() =
-        cnnString
-        |> Sql.connect
-        |> Sql.query "SELECT MAX(date) as date FROM industryupdates"
-        |> Sql.executeRow (fun reader -> reader.dateTime "date")
 
     let saveJobStatus (jobName:JobName) (timestamp : System.DateTimeOffset) (status:JobStatus) message =
         let sql = @"

@@ -3,14 +3,15 @@ module ReportTests
 open Xunit
 open Xunit.Abstractions
 open System
+open FinvizScraper.Storage
 
 type ReportTests(output:ITestOutputHelper) =
     do
-        FinvizScraper.Storage.Reports.configureConnectionString (System.Environment.GetEnvironmentVariable(StorageTests.dbEnvironmentVariableName))
-        FinvizScraper.Storage.Storage.configureConnectionString (System.Environment.GetEnvironmentVariable(StorageTests.dbEnvironmentVariableName))
+        Reports.configureConnectionString (System.Environment.GetEnvironmentVariable(StorageTests.dbEnvironmentVariableName))
+        Storage.configureConnectionString (System.Environment.GetEnvironmentVariable(StorageTests.dbEnvironmentVariableName))
 
     let getTestScreener = 
-        FinvizScraper.Storage.Storage.getScreenerByName StorageTests.testScreenerName
+        Storage.getScreenerByName StorageTests.testScreenerName
 
     let getTestSector = "Energy"
     let getTestIndustry = "Agricultural Inputs"
@@ -45,47 +46,47 @@ type ReportTests(output:ITestOutputHelper) =
     [<InlineData("2022-04-01")>]
     let ``Getting sectors works`` dateStr =
         let date = parseDate dateStr
-        "Energy" |> topGroupingTest (fun x-> FinvizScraper.Storage.Reports.topSectors x.id date)
+        "Energy" |> topGroupingTest (fun x-> Reports.topSectors x.id date)
 
     [<Theory>]
     [<InlineData("2022-04-01")>]
     let ``Getting industry works`` dateStr =
         let date = parseDate dateStr
-        "Telecom Services" |> topGroupingTest (fun x-> FinvizScraper.Storage.Reports.topIndustries x.id date)
+        "Telecom Services" |> topGroupingTest (fun x-> Reports.topIndustries x.id date)
 
     [<Theory>]
     [<InlineData("2022-04-01")>]
     let ``Getting countries works`` dateStr =
         let date = parseDate dateStr
-        "USA" |> topGroupingTest (fun x-> FinvizScraper.Storage.Reports.topCountries x.id date)
+        "USA" |> topGroupingTest (fun x-> Reports.topCountries x.id date)
 
     [<Fact>]
     let ``Screener result list works``() =
         
         let expectedScreenerCount = 
-            FinvizScraper.Storage.Storage.getScreeners()
+            Storage.getScreeners()
             |> List.filter (fun x -> x.name.StartsWith("screener") |> not)
             |> Seq.length
 
-        let screenerResults = FinvizScraper.Storage.Reports.getLatestScreeners()
+        let screenerResults = Reports.getLatestScreeners()
 
         Assert.Equal(expectedScreenerCount, screenerResults.Length)
 
     [<Fact>]
     let ``Particular screener results list works``() =
 
-        let screener = FinvizScraper.Storage.Reports.getLatestScreeners().Head
+        let screener = Reports.getLatestScreeners().Head
 
-        let results = FinvizScraper.Storage.Reports.getScreenerResults screener.screenerid (screener.date.ToString("yyyy-MM-dd"))
+        let results = Reports.getScreenerResults screener.screenerid (screener.date.ToString("yyyy-MM-dd"))
 
         Assert.NotEmpty(results)
 
     [<Fact>]
     let ``Particular screener result for multiple days works``() =
 
-        let screener = FinvizScraper.Storage.Reports.getLatestScreeners().Head
+        let screener = Reports.getLatestScreeners().Head
         
-        let results = FinvizScraper.Storage.Reports.getScreenerResultsForDays screener.screenerid 14
+        let results = Reports.getScreenerResultsForDays screener.screenerid 14
 
         Assert.NotEmpty(results)
 
@@ -94,7 +95,7 @@ type ReportTests(output:ITestOutputHelper) =
 
         let screener = getTestScreener
 
-        let results = FinvizScraper.Storage.Reports.getDailyCountsForScreener screener.Value.id 7
+        let results = Reports.getDailyCountsForScreener screener.Value.id 7
 
         Assert.NotEmpty(results)
 
@@ -106,7 +107,7 @@ type ReportTests(output:ITestOutputHelper) =
 
         let screener = getTestScreener
 
-        let results = FinvizScraper.Storage.Reports.getDailyAverageVolumeForScreener screener.Value.id 7
+        let results = Reports.getDailyAverageVolumeForScreener screener.Value.id 7
 
         Assert.NotEmpty(results)
 
@@ -117,24 +118,24 @@ type ReportTests(output:ITestOutputHelper) =
     let ``Date range sector grouping works``() =
         "Energy" |> topGroupingTest (
             fun x -> 
-                FinvizScraper.Storage.Reports.topSectorsOverDays x.id (getTestStartDate()) (getTestEndDate())
+                Reports.topSectorsOverDays x.id (getTestStartDate()) (getTestEndDate())
             )
 
     [<Fact>]
     let ``Date range industry grouping works``() =
         "Biotechnology" |> topGroupingTest (
             fun x -> 
-                FinvizScraper.Storage.Reports.topIndustriesOverDays x.id (getTestStartDate()) (getTestEndDate())
+                Reports.topIndustriesOverDays x.id (getTestStartDate()) (getTestEndDate())
             )
 
     [<Fact>]
     let ``Date range country grouping works``() =
-        "USA" |> topGroupingTest (fun x -> FinvizScraper.Storage.Reports.topCountriesOverDays x.id (DateTime.Now.AddDays(-7)) DateTime.Now)
+        "USA" |> topGroupingTest (fun x -> Reports.topCountriesOverDays x.id (DateTime.Now.AddDays(-7)) DateTime.Now)
 
     [<Fact>]
     let ``getting screener results for ticker works``() =
         let ticker = FinvizScraper.Core.StockTicker.create "cutr"
-        let results = FinvizScraper.Storage.Reports.getScreenerResultsForTicker ticker 100
+        let results = Reports.getScreenerResultsForTicker ticker 100
         Assert.NotEmpty(results)
 
     [<Fact>]
@@ -142,7 +143,7 @@ type ReportTests(output:ITestOutputHelper) =
         let screener = getTestScreener
         let sector = getTestSector
 
-        let results = FinvizScraper.Storage.Reports.getDailyCountsForScreenerAndSector screener.Value.id sector 7
+        let results = Reports.getDailyCountsForScreenerAndSector screener.Value.id sector 7
         
         Assert.NotEmpty(results)
 
@@ -151,7 +152,7 @@ type ReportTests(output:ITestOutputHelper) =
         let screener = getTestScreener
         let industry = getTestIndustry
 
-        let results = FinvizScraper.Storage.Reports.getDailyCountsForScreenerAndIndustry screener.Value.id industry 30
+        let results = Reports.getDailyCountsForScreenerAndIndustry screener.Value.id industry 30
         
         Assert.NotEmpty(results)
 
@@ -160,7 +161,7 @@ type ReportTests(output:ITestOutputHelper) =
         let screener = getTestScreener
         let industry = getTestCountry
 
-        let results = FinvizScraper.Storage.Reports.getDailyCountsForScreenerAndCountry screener.Value.id industry 30
+        let results = Reports.getDailyCountsForScreenerAndCountry screener.Value.id industry 30
         
         Assert.NotEmpty(results)
 
@@ -168,7 +169,7 @@ type ReportTests(output:ITestOutputHelper) =
     let ``getting trending industries works``() =
         let results = 
             FinvizScraper.Core.Constants.NewHighsScreenerId
-            |> FinvizScraper.Storage.Reports.getTopIndustriesForScreener 14
+            |> Reports.getTopIndustriesForScreener 14
 
         Assert.NotEmpty(results)
 
@@ -176,14 +177,14 @@ type ReportTests(output:ITestOutputHelper) =
     let ``getting trending sectors works``() =
         let results = 
             FinvizScraper.Core.Constants.NewHighsScreenerId
-            |> FinvizScraper.Storage.Reports.getTopSectorsForScreener 14
+            |> Reports.getTopSectorsForScreener 14
 
         Assert.NotEmpty(results)
 
 
     [<Fact>]
     let ``getting countries works``() =
-        let results = FinvizScraper.Storage.Reports.getStockByCountryBreakdown()
+        let results = Reports.getStockByCountryBreakdown()
 
         Assert.NotEmpty(results)
 
@@ -194,9 +195,49 @@ type ReportTests(output:ITestOutputHelper) =
         Assert.True(count < 8000)
 
     [<Fact>]
+    let ``industry updates end to end works`` () =
+        let date = "2022-04-01"
+        let days = 20
+
+        Storage.saveIndustrySMABreakdowns date ("airlines",days,10,50)
+        |> ignore
+
+        let updates = date |> Reports.getIndustrySMABreakdowns days
+
+        let update = Assert.Single(updates)
+
+        Assert.Equal("airlines", update.industry)
+        Assert.Equal(10, update.above)
+        Assert.Equal(50, update.below)
+
+    
+    [<Fact>]
+    let ``latest industry update works`` () =
+        let update =
+            StorageTests.testStockIndustry
+            |> Reports.getMostRecentIndustrySMABreakdown 20
+
+        match update with
+            | Some update ->
+                Assert.Equal(StorageTests.testStockIndustry, update.industry)
+            | None ->
+                Assert.True(false, "Expected industry update to be found")
+
+    [<Fact>]
+    let ``latest industry update date works`` () =
+        let date = Reports.getIndustrySMABreakdownLatestDate()
+        Assert.True(date > System.DateTime.MinValue)
+
+
+    [<Fact>]
+    let ``get industry trends for industry`` () =
+        let trends = StorageTests.testStockIndustry |> Reports.getIndustrySMABreakdownsForIndustry 20
+        Assert.NotEmpty(trends)
+
+    [<Fact>]
     let ``get stock SMA breakdown works`` () =
-        let (above20, below20) = FinvizScraper.Storage.Reports.getStockSMABreakdown 20
-        let (above200, below200) = FinvizScraper.Storage.Reports.getStockSMABreakdown 200
+        let (above20, below20) = Reports.getStockSMABreakdown 20
+        let (above200, below200) = Reports.getStockSMABreakdown 200
 
         Assert.True(above20 > 0)
         Assert.True(below20 > 0)

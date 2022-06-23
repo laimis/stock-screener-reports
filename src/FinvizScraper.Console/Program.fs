@@ -24,7 +24,7 @@ let containsArgument toFind =
     | None -> false
     | Some _ -> true
 
-let runIndustryUpdates() =
+let runIndustrySMAUpdates() =
     containsArgument "--industry-updates"
 
 let runScreeners() =
@@ -76,7 +76,7 @@ match runScreeners() with
 | false -> ()
 
 
-match runIndustryUpdates() with
+match runIndustrySMAUpdates() with
 | true ->     
     let updateCount =
         Storage.getIndustries()
@@ -91,7 +91,7 @@ match runIndustryUpdates() with
             |> List.iter(fun r ->
                 let (industry, days, _, _) = r
                 Console.WriteLine($"Saving industry {industry} {days} days sma")
-                Storage.saveIndustrySMACounts (FinvizConfig.getRunDate()) r |> ignore
+                Storage.saveIndustrySMABreakdowns (FinvizConfig.getRunDate()) r |> ignore
             )
         )
         |> Seq.length

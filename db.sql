@@ -59,3 +59,6 @@ create table jobs (
     status text not null,
     message text not null
 );
+
+create table industrysmabreakdowns ( like industryupdates INCLUDING DEFAULTS INCLUDING CONSTRAINTS INCLUDING INDEXES);
+insert into industrysmabreakdowns SELECT * FROM industryupdates;

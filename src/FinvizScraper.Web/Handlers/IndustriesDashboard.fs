@@ -8,33 +8,33 @@ module IndustriesDashboard =
     open Giraffe.ViewEngine
 
     let private generateIndustry20And200Table() =
-        let date = Storage.getIndustryUpdatesLatestDate() |> FinvizScraper.Core.FinvizConfig.formatRunDate
+        let date = Storage.getIndustrySMABreakdownLatestDate() |> FinvizScraper.Core.FinvizConfig.formatRunDate
 
-        let getIndustryUpdatesAndTurnToMap (days:int) =
+        let getIndustrySMABreakdownsAndTurnToMap (days:int) =
             date 
-            |> Storage.getIndustryUpdates days
+            |> Storage.getIndustrySMABreakdowns days
             |> List.map (fun x -> (x.industry, x))
             |> Map.ofList
         
-        let industryUpdates20 = getIndustryUpdatesAndTurnToMap 20
-        let industryUpdates200 = getIndustryUpdatesAndTurnToMap 200
+        let industrySMABreakdowns20 = getIndustrySMABreakdownsAndTurnToMap 20
+        let industrySMABreakdown200 = getIndustrySMABreakdownsAndTurnToMap 200
 
         let industry20And200Rows =
-            industryUpdates200
+            industrySMABreakdown200
             |> Map.toList
             |> List.sortByDescending (fun (key, update200) -> 
-                let update20 = industryUpdates20[key]
+                let update20 = industrySMABreakdowns20[key]
                 (update200.percentAbove, update20.percentAbove)
             )
             |> List.map (fun (key, iu) ->
 
-                let toSMACells (update:FinvizScraper.Core.IndustryUpdate) =
+                let toSMACells (update:FinvizScraper.Core.IndustrySMABreakdown) =
                     [
                         td [] [ update.above.ToString() |> str  ]
                         td [] [ System.String.Format("{0:N2}%", update.percentAbove) |> str ]
                     ]
 
-                let sma20Cells = toSMACells (industryUpdates20[key])
+                let sma20Cells = toSMACells (industrySMABreakdowns20[key])
                 let sma200Cells = toSMACells (iu)
 
                 let commonCells = [

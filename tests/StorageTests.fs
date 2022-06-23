@@ -148,46 +148,6 @@ type StorageTests(output:ITestOutputHelper) =
         Assert.NotEmpty(industries)
 
     [<Fact>]
-    let ``industry updates end to end works`` () =
-        let date = "2022-04-01"
-        let days = 20
-
-        Storage.saveIndustrySMACounts date ("airlines",days,10,50)
-        |> ignore
-
-        let updates = date |> Storage.getIndustryUpdates days
-
-        let update = Assert.Single(updates)
-
-        Assert.Equal("airlines", update.industry)
-        Assert.Equal(10, update.above)
-        Assert.Equal(50, update.below)
-
-    
-    [<Fact>]
-    let ``latest industry update works`` () =
-        let update =
-            testStockIndustry
-            |> Storage.getMostRecentIndustryTrends 20
-
-        match update with
-            | Some update ->
-                Assert.Equal(testStockIndustry, update.industry)
-            | None ->
-                Assert.True(false, "Expected industry update to be found")
-
-    [<Fact>]
-    let ``latest industry update date works`` () =
-        let date = Storage.getIndustryUpdatesLatestDate()
-        Assert.True(date > System.DateTime.MinValue)
-
-
-    [<Fact>]
-    let ``get industry trends for industry`` () =
-        let trends = testStockIndustry |> Storage.getIndustryTrends 20
-        Assert.NotEmpty(trends)
-
-    [<Fact>]
     let ``save job works`` () =
         let message = "generated test results and it was great"
         let timestamp = System.DateTimeOffset.UtcNow

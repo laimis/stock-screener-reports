@@ -91,7 +91,7 @@ type Screener = {
     url: string;
 }
 
-type IndustryUpdate =
+type IndustrySMABreakdown =
     {
         industry: string;
         date: System.DateTime;

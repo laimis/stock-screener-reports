@@ -11,7 +11,7 @@ module IndustryDashboard =
     let handler industryName =
         
         // load industry trends
-        let createTrendSpan (trend:option<FinvizScraper.Core.IndustryUpdate>) =
+        let createTrendSpan (trend:option<FinvizScraper.Core.IndustrySMABreakdown>) =
             let desc = 
                 match trend with
                 | None -> "No 20 SMA trends found"
@@ -25,15 +25,15 @@ module IndustryDashboard =
             ]
             
         let trendsDiv = div [] [
-            (industryName |> Storage.getMostRecentIndustryTrends 20 |> createTrendSpan)
-            (industryName |> Storage.getMostRecentIndustryTrends 200 |> createTrendSpan)
+            (industryName |> Storage.getMostRecentIndustrySMABreakdown 20 |> createTrendSpan)
+            (industryName |> Storage.getMostRecentIndustrySMABreakdown 200 |> createTrendSpan)
             span [ _class "mx-1"] [industryName |> Links.industryFinvizLink |> generateHref "Finviz"]
         ]
 
         let industryTrendCharts =
             let industryTrendChartsInternal days =
                 industryName
-                |> Storage.getIndustryTrends days
+                |> Storage.getIndustrySMABreakdownsForIndustry days
                 |> List.map (fun u -> (u.date,System.Math.Round(u.percentAbove, 0)))
                 |> Charts.convertNameCountsToChart $"{days} EMA Trend" Charts.Line (Some 100) Charts.smallChart FinvizConfig.getBackgroundColorDefault 
 

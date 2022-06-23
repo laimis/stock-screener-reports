@@ -55,6 +55,15 @@ module Reports =
             screenername = (reader.string "screenername");
         }
 
+    let private industrySMABreakdownMapper (reader:RowReader) : FinvizScraper.Core.IndustrySMABreakdown =
+        {
+            industry = reader.string "industry";
+            date = reader.dateTime "date";
+            days = reader.int "days";
+            above = reader.int "above";
+            below = reader.int "below";
+        }
+
     let private topGrouping screenerId date grouping =
         let sql = @$"SELECT {grouping},count(*) as count FROM stocks
             JOIN screenerresults ON stocks.id = screenerresults.stockid
@@ -475,8 +484,8 @@ module Reports =
         let sql = @$"
             SELECT 
                 sum(above) as above,sum(below) as below
-            FROM industryupdates
-            WHERE date = (select max(date) from industryupdates where days = @days)
+            FROM industrysmabreakdowns
+            WHERE date = (select max(date) from industrysmabreakdowns where days = @days)
             AND days = @days"
 
         let result = 
@@ -492,3 +501,59 @@ module Reports =
         match result with
             | Some (above,below) -> (above,below)
             | None -> (0,0)
+
+    let getIndustrySMABreakdownsForIndustry days industry =
+        let sql = @"
+            SELECT industry,date,days,above,below
+            FROM IndustrySMABreakdowns
+            WHERE industry = @industry
+            AND days = @days
+            ORDER BY date"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@industry", Sql.string industry;
+            "@days", Sql.int days;
+        ]
+        |> Sql.execute industrySMABreakdownMapper
+
+    let getIndustrySMABreakdowns days date =
+        let sql = @"
+            SELECT industry,date,days,above,below FROM IndustrySMABreakdowns
+            WHERE date = date(@date)
+            AND days = @days
+            ORDER BY (above/(below + above)) DESC"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@date", Sql.string date;
+            "@days", Sql.int days;
+        ]
+        |> Sql.execute industrySMABreakdownMapper
+
+    let getMostRecentIndustrySMABreakdown days industry =
+        let sql = @"
+            SELECT industry,date,days,above,below FROM IndustrySMABreakdowns
+            WHERE industry = @industry
+            AND days = @days
+            AND date = (SELECT MAX(date) FROM IndustrySMABreakdowns WHERE industry = @industry AND days = @days)"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@industry", Sql.string industry;
+            "@days", Sql.int days;
+        ]
+        |> Sql.execute industrySMABreakdownMapper
+        |> Storage.singleOrThrow "More than one industry trend for the same industry and days"
+
+    let getIndustrySMABreakdownLatestDate() =
+        cnnString
+        |> Sql.connect
+        |> Sql.query "SELECT MAX(date) as date FROM IndustrySMABreakdowns"
+        |> Sql.executeRow (fun reader -> reader.dateTime "date")
