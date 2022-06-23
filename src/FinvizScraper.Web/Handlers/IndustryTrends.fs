@@ -57,8 +57,8 @@ module IndustryTrends =
 
         let industry20And200Header = tr [] [
             th [] [ str "Industry" ]
-            th [ _colspan "3"] [ str "20" ]
-            th [ _colspan "3"] [ str "200" ]
+            th [ _colspan "3"] [ str "20sma" ]
+            th [ _colspan "3"] [ str "200sma" ]
         ]
 
         industry20And200Header::industry20And200Rows |> fullWidthTable
@@ -76,9 +76,8 @@ module IndustryTrends =
 
         let view = [
             div [_class "content"] [
-                h1 [] [str "Industry Trends"]
+                h1 [] [str "Industry SMA Above/Below"]
             ]
-            h3 [] [ str "20/200 SMA breakdown"]
             industryTrendTable
             jobStatusRow
         ]

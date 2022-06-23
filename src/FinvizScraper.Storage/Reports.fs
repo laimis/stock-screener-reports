@@ -300,7 +300,7 @@ module Reports =
     let getDailyCountsForScreenerAndCountry id country days =
         getDailyCountsForScreenerAndStockFilter id "country" country days
 
-    let getScreenerResultsForTicker (ticker:FinvizScraper.Core.StockTicker.T) =
+    let getScreenerResultsForTicker (ticker:FinvizScraper.Core.StockTicker.T) days =
             
         let sql = @$"
             SELECT 
@@ -312,6 +312,7 @@ module Reports =
             JOIN screeners ON screeners.id = screenerresults.screenerid
             WHERE 
                 stocks.ticker = @ticker
+                AND screenerresults.date >= current_date - @days
             ORDER BY screenerresults.date DESC"
 
         cnnString
@@ -319,6 +320,7 @@ module Reports =
             |> Sql.query sql
             |> Sql.parameters [
                 "@ticker", ticker |> FinvizScraper.Core.StockTicker.value |> Sql.string
+                "@days", Sql.int days
             ]
             |> Sql.execute mapScreenerResultReportItem
 
@@ -369,6 +371,31 @@ module Reports =
                     "@limit", Sql.int limit
                 ]
                 |> Sql.execute mapScreenerResultReportItem
+
+
+    let getScreenerResultsForCountry limit country =
+
+        let sql = @$"
+            SELECT 
+                stocks.id,ticker,stocks.name,sector,industry,country,
+                screeners.id as screenerid,screeners.name as screenername,
+                screenerresults.date,marketcap,price,change,volume
+            FROM stocks
+            JOIN screenerresults ON stocks.id = screenerresults.stockid
+            JOIN screeners ON screeners.id = screenerresults.screenerid
+            WHERE 
+                country = @country
+            ORDER BY screenerresults.date DESC
+            LIMIT @limit"
+
+        cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters [
+                "@country", Sql.string country;
+                "@limit", Sql.int limit
+            ]
+            |> Sql.execute mapScreenerResultReportItem
 
     let getTopIndustriesForScreener days screenerId =
 

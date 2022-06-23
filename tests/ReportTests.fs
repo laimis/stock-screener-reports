@@ -134,7 +134,7 @@ type ReportTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``getting screener results for ticker works``() =
         let ticker = FinvizScraper.Core.StockTicker.create "cutr"
-        let results = FinvizScraper.Storage.Reports.getScreenerResultsForTicker ticker
+        let results = FinvizScraper.Storage.Reports.getScreenerResultsForTicker ticker 100
         Assert.NotEmpty(results)
 
     [<Fact>]
@@ -179,3 +179,16 @@ type ReportTests(output:ITestOutputHelper) =
             |> FinvizScraper.Storage.Reports.getTopSectorsForScreener 14
 
         Assert.NotEmpty(results)
+
+
+    [<Fact>]
+    let ``getting countries works``() =
+        let results = FinvizScraper.Storage.Reports.getStockByCountryBreakdown()
+
+        Assert.NotEmpty(results)
+
+        let country,count = results.Item(0)
+
+        Assert.Equal("USA", country)
+        Assert.True(count > 1000)
+        Assert.True(count < 8000)

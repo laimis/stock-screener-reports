@@ -4,14 +4,13 @@ module StockDashboard =
     open FinvizScraper.Core
     open FinvizScraper.Storage
     open FinvizScraper.Storage.Reports
-    open FinvizScraper.Web.Shared
     open FinvizScraper.Web.Shared.Views
     open Giraffe.ViewEngine.Attributes
     open Giraffe.ViewEngine.HtmlElements
     open FinvizScraper.Web.Shared.Links
 
 
-    let view (stock:Stock) (recentScreenerResults:list<ScreenerResultReportItem>) =
+    let private renderStockInternal (stock:Stock) =
 
         let header = div [_class "content"] [
            h1 [] [
@@ -43,41 +42,57 @@ module StockDashboard =
                 th [] [str "change"]
                 th [] [str "volume"]
             ]
-        
-        let results = 
-            recentScreenerResults |> List.map (fun screenerResult ->
-                tr [] [
-                    td [] [ screenerResult.date.ToString("yyyy-MM-dd") |> str ]
-                    td [] [ 
-                        (screenerResult.screenerid,screenerResult.screenername) |> generateScreenerTags
-                    ]
-                    td [] [ screenerResult.marketCap |> marketCapFormatted |> str ]
-                    td [] [ screenerResult.price |> dollarFormatted |> str ]
-                    td [] [ screenerResult.change |> percentFormatted |> str ]
-                    td [] [ screenerResult.volume |> volumeFormatted |> str ]
+
+        let screenerResultToRow screenerResult =
+            tr [] [
+                td [] [ screenerResult.date.ToString("yyyy-MM-dd") |> str ]
+                td [] [ 
+                    (screenerResult.screenerid,screenerResult.screenername) |> generateScreenerTags
                 ]
+                td [] [ screenerResult.marketCap |> marketCapFormatted |> str ]
+                td [] [ screenerResult.price |> dollarFormatted |> str ]
+                td [] [ screenerResult.change |> percentFormatted |> str ]
+                td [] [ screenerResult.volume |> volumeFormatted |> str ]
+            ]
+
+        let days = 30
+
+        let recentScreenerResults = getScreenerResultsForTicker stock.ticker days
+
+        // group recent screenerresults by date
+        let recentScreenerResultsByDate = 
+            recentScreenerResults
+            |> List.groupBy (fun screenerResult -> screenerResult.date)
+            |> Map.ofList
+
+        let rows = 
+            FinvizScraper.Web.Shared.Logic.businessDatesWithZeroPairs days
+            |> List.rev
+            |> List.collect (fun (date,_) ->
+                let screenerResults = Map.tryFind date recentScreenerResultsByDate
+                match screenerResults with
+                    | Some l -> l |> List.map screenerResultToRow
+                    | None -> [tr [] [td [_colspan "6"] [date.ToString("yyyy-MM-dd") |> str]]]
             )
 
         [
             header
-            tableHeader::results |> Views.fullWidthTable
+            tableHeader::rows |> fullWidthTable
         ]
 
+    let renderTicker (stock:Stock) =
+        
+        let view = renderStockInternal stock
+
+        let pageTitle = (stock.ticker |> StockTicker.value) + " - " + stock.company
+
+        view |> mainLayout pageTitle
 
     let handler ticker =
         let stockTicker = StockTicker.create ticker
         let stock = Storage.getStockByTicker stockTicker
         match stock with
         | Some stock ->
-            let recentHits = getScreenerResultsForTicker stockTicker
-
-            printf "Result count %i" (recentHits.Length)
-
-            let nodes = view stock recentHits
-
-            let pageTitle = (stock.ticker |> StockTicker.value) + " - " + stock.company
-
-            nodes |> Views.mainLayout pageTitle
+            renderTicker stock
         | None -> 
-            Views.notFound $"Stock with {ticker} symbol not found"
-        
+            notFound $"Stock with {ticker} symbol not found"

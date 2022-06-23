@@ -29,4 +29,4 @@ module Countries =
         let table = rows |> Views.fullWidthTable
 
         
-        [header; table] |> Views.mainLayout $"Countries" 
+        [header; table] |> Views.mainLayout $"Countries"

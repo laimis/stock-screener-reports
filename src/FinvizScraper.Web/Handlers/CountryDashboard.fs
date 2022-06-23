@@ -6,6 +6,7 @@ module CountryDashboard =
     open FinvizScraper.Storage
     open Giraffe.ViewEngine.Attributes
     open FinvizScraper.Core
+    open FinvizScraper.Web.Shared.Views
 
     let handler countryName =
         let screeners = Storage.getScreeners()
@@ -32,11 +33,43 @@ module CountryDashboard =
                 |> div [_class "block"] 
             )
 
-        let view = 
+        let resultRows =
+            countryName
+            |> Reports.getScreenerResultsForCountry 50
+            |> List.map (fun screenerResult ->
+                tr [] [
+                    td [] [ screenerResult.date.ToString("yyyy-MM-dd") |> str ]
+                    td [] [
+                        (screenerResult.screenerid,screenerResult.screenername) |> generateScreenerTags
+                    ]
+                    td [] [ screenerResult.ticker |> generateTickerLink ]
+                    td [] [ screenerResult.marketCap |> marketCapFormatted |> str ]
+                    td [] [ screenerResult.price |> dollarFormatted |> str ]
+                    td [] [ screenerResult.change |> percentFormatted |> str ]
+                    td [] [ screenerResult.volume |> volumeFormatted |> str ]
+                    td [] [ screenerResult.ticker |> Links.tradingViewLink |> generateHref "chart" ]
+                ]
+            )
+
+        let tableHeader =
+            tr [] [
+                th [] [str "date"]
+                th [] [str "screener"]
+                th [] [str "ticker"]
+                th [] [str "market cap"]
+                th [] [str "price"]
+                th [] [str "change"]
+                th [] [str "volume"]
+                th [] [str "trading view"]
+            ]
+
+        let screenerResultsTable = tableHeader::resultRows |> fullWidthTable
+
+        let header = 
             div [_class "content"] [
                 h1 [] [
                     str countryName
                 ]
-            ]::charts
-        
-        view |> Views.mainLayout $"Country Dashboard for {countryName}" 
+            ]
+
+        [screenerResultsTable] |> List.append charts |> List.append [header] |> mainLayout $"Country Dashboard for {countryName}" 
