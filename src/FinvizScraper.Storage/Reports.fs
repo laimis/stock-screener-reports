@@ -469,3 +469,26 @@ module Reports =
                     reader.int "count"
                 )
             )
+
+    let getStockSMABreakdown days = 
+
+        let sql = @$"
+            SELECT 
+                sum(above) as above,sum(below) as below
+            FROM industryupdates
+            WHERE date = (select max(date) from industryupdates where days = @days)
+            AND days = @days"
+
+        let result = 
+            cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters [
+                "@days", Sql.int days
+            ]
+            |> Sql.execute (fun reader -> (reader.int "above", reader.int "below"))
+            |> Storage.singleOrThrow "More than one SMA breakdown found"
+        
+        match result with
+            | Some (above,below) -> (above,below)
+            | None -> (0,0)

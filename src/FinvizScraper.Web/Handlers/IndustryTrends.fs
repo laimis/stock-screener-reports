@@ -74,10 +74,31 @@ module IndustryTrends =
                 ]
             ]
 
+        let (above20, below20) = Reports.getStockSMABreakdown 20
+        let (above200, below200) = Reports.getStockSMABreakdown 200
+
+        let above20percent = System.Math.Round((float above20 * 100.0) / (float above20 + float below20), 2).ToString() + "%"
+        let above200percent = System.Math.Round((float above200 * 100.0) / (float above200 + float below200), 2).ToString() + "%"
+
+        let totals =
+            div [ _class "columns" ] [
+                div [ _class "column" ] [
+                    b [] [ str "20 SMA" ]
+                    str $": {above20}/{above20 + below20}, "
+                    b [] [ str above20percent]
+                ]
+                div [ _class "column" ] [
+                    b [] [ str "200 SMA" ]
+                    str $": {above200}/{above200 + below200}, "
+                    b [] [ str above200percent]
+                ]
+            ]
+
         let view = [
             div [_class "content"] [
                 h1 [] [str "Industry SMA Above/Below"]
             ]
+            totals
             industryTrendTable
             jobStatusRow
         ]
