@@ -25,7 +25,7 @@ let containsArgument toFind =
     | Some _ -> true
 
 let runIndustrySMAUpdates() =
-    containsArgument "--industry-updates"
+    containsArgument "--industry-sma-breakdowns"
 
 let runScreeners() =
     containsArgument "--screeners"
