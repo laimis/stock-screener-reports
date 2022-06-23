@@ -152,7 +152,7 @@ type StorageTests(output:ITestOutputHelper) =
         let date = "2022-04-01"
         let days = 20
 
-        Storage.saveIndustryUpdates date ("airlines",days,10,50)
+        Storage.saveIndustrySMACounts date ("airlines",days,10,50)
         |> ignore
 
         let updates = date |> Storage.getIndustryUpdates days

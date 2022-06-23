@@ -91,7 +91,7 @@ match runIndustryUpdates() with
             |> List.iter(fun r ->
                 let (industry, days, _, _) = r
                 Console.WriteLine($"Saving industry {industry} {days} days sma")
-                Storage.saveIndustryUpdates (FinvizConfig.getRunDate()) r |> ignore
+                Storage.saveIndustrySMACounts (FinvizConfig.getRunDate()) r |> ignore
             )
         )
         |> Seq.length

@@ -192,3 +192,14 @@ type ReportTests(output:ITestOutputHelper) =
         Assert.Equal("USA", country)
         Assert.True(count > 1000)
         Assert.True(count < 8000)
+
+    [<Fact>]
+    let ``get stock SMA breakdown works`` () =
+        let (above20, below20) = FinvizScraper.Storage.Reports.getStockSMABreakdown 20
+        let (above200, below200) = FinvizScraper.Storage.Reports.getStockSMABreakdown 200
+
+        Assert.True(above20 > 0)
+        Assert.True(below20 > 0)
+        Assert.True(above200 > 0)
+        Assert.True(below200 > 0)
+        Assert.Equal(above20 + below20, above200 + below200)

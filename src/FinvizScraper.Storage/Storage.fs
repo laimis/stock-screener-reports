@@ -221,7 +221,7 @@ module Storage =
         |> Sql.query "SELECT DISTINCT industry FROM stocks ORDER BY industry"
         |> Sql.execute (fun reader -> reader.string "industry")
 
-    let saveSMACounts date  (industry,days,above:int,below:int) =
+    let saveIndustrySMACounts date  (industry,days,above:int,below:int) =
         let sql = @"
             DELETE FROM industryupdates WHERE industry = @industry AND date = date(@date) AND days = @days;
 
