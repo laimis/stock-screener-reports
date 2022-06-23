@@ -29,7 +29,7 @@ let webApp =
                 routef "/stocks/%s" StockDashboard.handler
 
                 routef "/sectors/%s" SectorDashboard.handler
-                route "/industries/trends" >=> warbler (fun _ -> IndustryTrends.handler())
+                route "/industries/trends" >=> warbler (fun _ -> IndustriesDashboard.handler())
                 routef "/industries/%s" IndustryDashboard.handler
 
                 route "/countries" >=> warbler (fun _ -> Countries.handler())

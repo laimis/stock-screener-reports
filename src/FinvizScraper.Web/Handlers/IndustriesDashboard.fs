@@ -1,6 +1,6 @@
 namespace FinvizScraper.Web.Handlers
 
-module IndustryTrends =
+module IndustriesDashboard =
     open FinvizScraper.Web.Shared
     open Giraffe.ViewEngine.HtmlElements
     open FinvizScraper.Storage
