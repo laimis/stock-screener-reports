@@ -31,7 +31,6 @@ module IndustriesDashboard =
                 let toSMACells (update:FinvizScraper.Core.IndustryUpdate) =
                     [
                         td [] [ update.above.ToString() |> str  ]
-                        td [] [ update.total.ToString() |> str ]
                         td [] [ System.String.Format("{0:N2}%", update.percentAbove) |> str ]
                     ]
 
@@ -48,6 +47,7 @@ module IndustriesDashboard =
                             iu.industry |> Links.industryFinvizLink |> generateHrefNewTab "finviz" 
                         ]
                     ]
+                    td [] [(iu.total).ToString() |> str]
                 ]
 
                 let cells = List.append (List.append commonCells sma20Cells) sma200Cells
@@ -57,8 +57,11 @@ module IndustriesDashboard =
 
         let industry20And200Header = tr [] [
             th [] [ str "Industry" ]
-            th [ _colspan "3"] [ str "20sma" ]
-            th [ _colspan "3"] [ str "200sma" ]
+            th [] [ str "# Stocks" ]
+            th [] [ str "20 sma" ]
+            th [] [ str "20 sma %" ]
+            th [] [ str "200 sma" ]
+            th [] [ str "200 sma %" ]
         ]
 
         industry20And200Header::industry20And200Rows |> fullWidthTable
@@ -96,7 +99,7 @@ module IndustriesDashboard =
 
         let view = [
             div [_class "content"] [
-                h1 [] [str "Industry SMA Above/Below"]
+                h1 [] [str "Industries"]
             ]
             totals
             industryTrendTable
