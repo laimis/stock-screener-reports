@@ -25,15 +25,15 @@ module IndustryDashboard =
             ]
             
         let trendsDiv = div [] [
-            (industryName |> Storage.getMostRecentIndustrySMABreakdown 20 |> createTrendSpan)
-            (industryName |> Storage.getMostRecentIndustrySMABreakdown 200 |> createTrendSpan)
+            (industryName |> Reports.getMostRecentIndustrySMABreakdown 20 |> createTrendSpan)
+            (industryName |> Reports.getMostRecentIndustrySMABreakdown 200 |> createTrendSpan)
             span [ _class "mx-1"] [industryName |> Links.industryFinvizLink |> generateHref "Finviz"]
         ]
 
         let industryTrendCharts =
             let industryTrendChartsInternal days =
                 industryName
-                |> Storage.getIndustrySMABreakdownsForIndustry days
+                |> Reports.getIndustrySMABreakdownsForIndustry days
                 |> List.map (fun u -> (u.date,System.Math.Round(u.percentAbove, 0)))
                 |> Charts.convertNameCountsToChart $"{days} EMA Trend" Charts.Line (Some 100) Charts.smallChart FinvizConfig.getBackgroundColorDefault 
 

@@ -8,11 +8,11 @@ module IndustriesDashboard =
     open Giraffe.ViewEngine
 
     let private generateIndustry20And200Table() =
-        let date = Storage.getIndustrySMABreakdownLatestDate() |> FinvizScraper.Core.FinvizConfig.formatRunDate
+        let date = Reports.getIndustrySMABreakdownLatestDate() |> FinvizScraper.Core.FinvizConfig.formatRunDate
 
         let getIndustrySMABreakdownsAndTurnToMap (days:int) =
             date 
-            |> Storage.getIndustrySMABreakdowns days
+            |> Reports.getIndustrySMABreakdowns days
             |> List.map (fun x -> (x.industry, x))
             |> Map.ofList
         
