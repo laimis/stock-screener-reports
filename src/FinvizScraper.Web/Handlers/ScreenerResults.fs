@@ -21,7 +21,7 @@ module ScreenerResults =
             result.price |> dollarFormatted |> toTd
             result.change |> percentFormatted |> toTd
             result.volume |> volumeFormatted |> toTd
-            result.ticker |> Links.tradingViewLink |> generateHref "link" |> toTdWithNode
+            result.ticker |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
         ]
 
     let toBreakdownTable breakdownTitle linkFunction (breakdown:seq<string * list<ScreenerResultReportItem>>) =
@@ -69,7 +69,7 @@ module ScreenerResults =
             "Price"
             "Change"
             "Volume"
-            "Link"
+            "Chart"
         ]
 
         let headerCells = headers |> List.map toHeaderCell
