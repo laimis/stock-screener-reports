@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+
+    <script>
+        function renderChart(labels, closes, volume, sma)
+        {    
+            var transactions = [
+                { price: 25.21, volume: 80, date: '2022-05-12', type: 'buy' },
+                { price: 27.37, volume: 25, date: '2022-05-13', type: 'sell' },
+                { price: 28.99, volume: 27, date: '2022-05-16', type: 'sell' },
+                { price: 34.01, volume: 28, date: '2022-06-23', type: 'sell' }
+            ]
+
+            // map data to annotation format
+            const annotations = transactions.map(function(d) {
+                return {
+                    type: 'point',
+                    xValue: d.date,
+                    yValue: d.price,
+                    backgroundColor: d.type === 'buy' ? "#0000FF" : '#ff0000',
+                    radius: 5
+                }
+            })
+
+            const options = {
+                plugins: {
+                    autocolors: false,
+                    annotation: {
+                        annotations: annotations,
+                        radius: 2
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'logarithmic',
+                    }
+                }
+            };
+
+            const config = {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'STNG',
+                            data: closes,
+                            fill: false,
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1
+                        },
+                        {
+                            label: 'SMA',
+                            data: sma,
+                            fill: false,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options
+            };
+
+            const ctx = document.getElementById('mychart').getContext('2d');
+            const mychart = new Chart(ctx, config);
+        }
+
+        function createChart()
+        {
+            fetch('./stng_2y_closeonly.json')
+                .then(response => response.json())
+                .then(data => {
+                    
+                    // take only last 100 closes
+                    var labels = data.slice(-100).map(item => item.date)
+                    var closes = data.slice(-100).map(item => item.close)
+                    var volume = data.slice(-100).map(item => item.volume)
+
+                    // simple moving average of 150 days closes
+                    var sma = data.map((item, i) => {
+                        if (i < 150)
+                            return null;
+                        var sliceOfInterest = data.slice(i - 150, i).map(m => m.close);
+                        var sum = sliceOfInterest.reduce((a, b) => a + b);
+                        return sum / 150;
+                    }).slice(-100);
+                    
+                    renderChart(labels, closes, volume, sma)
+                })
+        }
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+    <div>
+        <canvas style="height: 600px; width: 100%" id="mychart" aria-label="Chart for 20 EMA Trend" role="img">
+            <p>Chart for 20 EMA Trend</p>
+        </canvas>
+        <script>
+            createChart()
+        </script>
+    </div>
+    <script>
+
+    </script>
+</body>
+
+</html>

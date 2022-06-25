@@ -6,3 +6,5 @@ cache/
 .fake
 .vscode/
 *secret*
+
+*.json

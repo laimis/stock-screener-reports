@@ -23,6 +23,10 @@ module ScreenersTrends =
         FinvizConfig.dayRange
             |> Reports.getDailyAverageVolumeForScreener screener.id
 
+    let private getSCreenerDailyTotalVolume screener =
+        FinvizConfig.dayRange
+            |> Reports.getDailyTotalVolumeForScreener screener.id
+
     let private getScreenerCountMapByDate screener screenerDataSource =
         let mapped = 
             screener
@@ -54,7 +58,7 @@ module ScreenersTrends =
 
         let volumeByScreenerByDate =
             screeners
-            |> List.map (fun s -> getScreenerCountMapByDate s getScreenerDailyAverageVolume)
+            |> List.map (fun s -> getScreenerCountMapByDate s getSCreenerDailyTotalVolume)
             |> Map.ofList
 
         let findScreener screenerId =
@@ -112,7 +116,7 @@ module ScreenersTrends =
         let volumePartial = 
             div [_class "content"] [
                 h1 [] [
-                    str "Average Volume for Each Screener"
+                    str "Total Volume for Each Screener"
                 ]
             ]::volumeCharts        
 
