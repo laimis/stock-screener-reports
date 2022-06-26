@@ -99,7 +99,8 @@
                     // take only last 100 closes
                     var labels = data.slice(-100).map(item => item.date)
                     var closes = data.slice(-100).map(item => item.close)
-                    var volume = data.slice(-100).map(item => item.volume)
+                    
+                    // var volume = data.slice(-100).map(item => item.volume)
 
                     // simple moving average of 150 days closes
                     var sma150 = calculateSMA(150, data).slice(-100);
@@ -113,25 +114,32 @@
                             label: 'STNG',
                             data: closes,
                             borderColor: 'rgb(75, 192, 192)',
-                            tension: 0.1
+                            tension: 0.1,
+                            pointStyle: 'line'
                         },
                         {
                             label: '150 SMA',
                             data: sma150,
                             tension: 0.1,
-                            borderColor: "#3260a8"
+                            borderColor: "#3260a8",
+                            pointStyle: 'line',
+                            borderWidth: 0.5
                         },
                         {
                             label: '50 SMA',
                             data: sma50,
                             tension: 0.1,
-                            borderColor: "#32a84a"
+                            borderColor: "#32a84a",
+                            pointStyle: 'line',
+                            borderWidth: 0.5
                         },
                         {
                             label: '20 EMA',
                             data: sma20.slice(-100),
                             tension: 0.1,
-                            borderColor: "#ff0000"
+                            borderColor: "#ff0000",
+                            pointStyle: 'line',
+                            borderWidth: 0.5
                         }
                     
                     ]
@@ -145,7 +153,7 @@
 
 <body>
     <div>
-        <canvas style="height: 900px; width: 100%" id="mychart" aria-label="Chart for 20 EMA Trend" role="img">
+        <canvas id="mychart" aria-label="Chart for 20 EMA Trend" role="img">
             <p>Chart for 20 EMA Trend</p>
         </canvas>
         <script>
