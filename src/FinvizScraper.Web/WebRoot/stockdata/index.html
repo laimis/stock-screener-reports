@@ -9,54 +9,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
 
     <script>
-        function renderChart(canvasId, labels, datasets)
-        {    
-            var transactions = [
-                { price: 25.21, volume: 80, date: '2022-05-12', type: 'buy' },
-                { price: 27.37, volume: 25, date: '2022-05-13', type: 'sell' },
-                { price: 28.99, volume: 27, date: '2022-05-16', type: 'sell' },
-                { price: 34.01, volume: 28, date: '2022-06-23', type: 'sell' }
-            ]
-
-            // map data to annotation format
-            const annotations = transactions.map(function(d) {
-                return {
-                    type: 'point',
-                    xValue: d.date,
-                    yValue: d.price,
-                    backgroundColor: d.type === 'buy' ? "#0000FF" : '#ff0000',
-                    radius: 5
-                }
-            })
-
-            const options = {
-                plugins: {
-                    autocolors: false,
-                    annotation: {
-                        annotations: annotations,
-                        radius: 2
-                    }
-                },
-                scales: {
-                    y: {
-                        type: 'logarithmic',
-                    }
-                }
-            };
-
-            const config = {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: datasets
-                },
-                options
-            };
-
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            const mychart = new Chart(ctx, config);
-        }
-
         function calculateSMA(interval, data)
         {
             return data.map((item, i) => {
@@ -90,61 +42,121 @@
             return ema;
         }
 
-        function createChart(canvasId)
+        function renderOnChart(canvasId, data, annotations)
         {
-            fetch('./stng_2y_closeonly.json')
-                .then(response => response.json())
+            // how many points to take
+            var numPoints = 300;
+
+            // take only last 100 closes
+            var labels = data.slice(-numPoints).map(item => item.date)
+            var closes = data.slice(-numPoints).map(item => item.close)
+            
+            // var volume = data.slice(-100).map(item => item.volume)
+
+            // simple moving average of 150 days closes
+            var sma150 = calculateSMA(150, data).slice(-numPoints);
+            var sma50 = calculateSMA(50, data).slice(-numPoints);
+            var sma20 = calculateSMA(20, data).slice(-numPoints);
+
+            var datasets = [
+                {
+                    label: 'STNG',
+                    data: closes,
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1,
+                    pointStyle: 'line'
+                },
+                {
+                    label: '150 SMA',
+                    data: sma150,
+                    tension: 0.1,
+                    borderColor: "#3260a8",
+                    pointStyle: 'line',
+                    borderWidth: 0.5
+                },
+                {
+                    label: '50 SMA',
+                    data: sma50,
+                    tension: 0.1,
+                    borderColor: "#32a84a",
+                    pointStyle: 'line',
+                    borderWidth: 0.5
+                },
+                {
+                    label: '20 EMA',
+                    data: sma20,
+                    tension: 0.1,
+                    borderColor: "#ff0000",
+                    pointStyle: 'line',
+                    borderWidth: 0.5
+                }
+                
+            ]
+
+            var minimumValue = Math.min(...closes) - 20;
+            var maximumValue = Math.max(...closes) + 10;
+            
+            const options = {
+                plugins: {
+                    autocolors: false,
+                    annotation: {
+                        annotations: annotations,
+                        radius: 2
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'logarithmic',
+                        min: minimumValue,
+                        max: maximumValue
+                    }
+                }
+            };
+
+            const config = {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options
+            };
+
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            const mychart = new Chart(ctx, config);
+        }
+
+        function createChart(canvasId, ticker)
+        {
+            fetch("./" + ticker + "_transactions.json")
+                .then(response => {
+                    // check if successful
+                    if (response.ok)
+                    {
+                        return response.json();
+                    }
+                    else
+                    {
+                        // retun promise with empty array
+                        return Promise.resolve([]);
+                    }
+                })
                 .then(data => {
-                    
-                    // take only last 100 closes
-                    var labels = data.slice(-100).map(item => item.date)
-                    var closes = data.slice(-100).map(item => item.close)
-                    
-                    // var volume = data.slice(-100).map(item => item.volume)
-
-                    // simple moving average of 150 days closes
-                    var sma150 = calculateSMA(150, data).slice(-100);
-                    var sma50 = calculateSMA(50, data).slice(-100);
-                    var sma20 = calculateSMA(20, data);
-
-                    var ema20 = calculateEMA(20, sma20).slice(-100);
-
-                    var datasets = [
-                        {
-                            label: 'STNG',
-                            data: closes,
-                            borderColor: 'rgb(75, 192, 192)',
-                            tension: 0.1,
-                            pointStyle: 'line'
-                        },
-                        {
-                            label: '150 SMA',
-                            data: sma150,
-                            tension: 0.1,
-                            borderColor: "#3260a8",
-                            pointStyle: 'line',
-                            borderWidth: 0.5
-                        },
-                        {
-                            label: '50 SMA',
-                            data: sma50,
-                            tension: 0.1,
-                            borderColor: "#32a84a",
-                            pointStyle: 'line',
-                            borderWidth: 0.5
-                        },
-                        {
-                            label: '20 EMA',
-                            data: sma20.slice(-100),
-                            tension: 0.1,
-                            borderColor: "#ff0000",
-                            pointStyle: 'line',
-                            borderWidth: 0.5
+                    annotations = data.map(function(d) {
+                        return {
+                            type: 'point',
+                            xValue: d.date,
+                            yValue: d.price,
+                            backgroundColor: d.type === 'buy' ? "#0000FF" : '#ff0000',
+                            radius: 5
                         }
-                    
-                    ]
-                    
-                    renderChart(canvasId, labels, datasets)
+                    })
+
+                    fetch('./' + ticker + '.json')
+                        .then(response => response.json())
+                        .then(data => {
+                            renderOnChart(canvasId, data, annotations);
+                        })
                 })
         }
     </script>
@@ -157,7 +169,7 @@
             <p>Chart for 20 EMA Trend</p>
         </canvas>
         <script>
-            createChart('mychart');
+            createChart('mychart', "wfg");
         </script>
     </div>
     <script>
