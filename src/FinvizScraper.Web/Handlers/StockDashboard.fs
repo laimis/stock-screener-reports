@@ -57,7 +57,7 @@ module StockDashboard =
 
         let days = 30
 
-        let recentScreenerResults = getScreenerResultsForTicker stock.ticker days
+        let recentScreenerResults = getScreenerResultsForTickerDayRange stock.ticker days
 
         // group recent screenerresults by date
         let recentScreenerResultsByDate = 
@@ -75,9 +75,15 @@ module StockDashboard =
                     | None -> [tr [] [td [_colspan "6"] [date.ToString("yyyy-MM-dd") |> str]]]
             )
 
+        // another table that's just all the screener hits without day limit in case we need to see older ones
+        let allScreenerResults = getScreenerResultsForTicker stock.ticker 100
+        let allScreenerResultsRows = allScreenerResults |> List.map screenerResultToRow
+
         [
             header
             tableHeader::rows |> fullWidthTable
+            div [] [h2 [] [str "All Screener Results"]]
+            tableHeader::allScreenerResultsRows |> fullWidthTable
         ]
 
     let renderTicker (stock:Stock) =
