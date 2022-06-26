@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
 
     <script>
-        function renderChart(labels, closes, volume, sma)
+        function renderChart(canvasId, labels, datasets)
         {    
             var transactions = [
                 { price: 25.21, volume: 80, date: '2022-05-12', type: 'buy' },
@@ -48,30 +48,49 @@
                 type: 'line',
                 data: {
                     labels: labels,
-                    datasets: [
-                        {
-                            label: 'STNG',
-                            data: closes,
-                            fill: false,
-                            borderColor: 'rgb(75, 192, 192)',
-                            tension: 0.1
-                        },
-                        {
-                            label: 'SMA',
-                            data: sma,
-                            fill: false,
-                            tension: 0.1
-                        }
-                    ]
+                    datasets: datasets
                 },
                 options
             };
 
-            const ctx = document.getElementById('mychart').getContext('2d');
+            const ctx = document.getElementById(canvasId).getContext('2d');
             const mychart = new Chart(ctx, config);
         }
 
-        function createChart()
+        function calculateSMA(interval, data)
+        {
+            return data.map((item, i) => {
+                if (i < interval)
+                    return null;
+
+                var sliceOfInterest = data.slice(i - interval, i).map(m => m.close);
+                var sum = sliceOfInterest.reduce((a, b) => a + b);
+                return sum / interval;
+            })
+        }
+
+        function calculateEMA(interval, data)
+        {
+            var multiplier = 2 / (interval + 1);
+            var ema = [];
+            for (i=0; i<data.length-1; i++)
+            {
+                if (i <= interval)
+                {
+                    ema.push(data[i]);
+                    continue;
+                }
+
+                var prevEma = ema[i-1];
+                var currVal = data[i];
+                var newEma = currVal * multiplier + prevEma*(1-multiplier);
+                ema.push(newEma);
+            }
+            
+            return ema;
+        }
+
+        function createChart(canvasId)
         {
             fetch('./stng_2y_closeonly.json')
                 .then(response => response.json())
@@ -83,15 +102,41 @@
                     var volume = data.slice(-100).map(item => item.volume)
 
                     // simple moving average of 150 days closes
-                    var sma = data.map((item, i) => {
-                        if (i < 150)
-                            return null;
-                        var sliceOfInterest = data.slice(i - 150, i).map(m => m.close);
-                        var sum = sliceOfInterest.reduce((a, b) => a + b);
-                        return sum / 150;
-                    }).slice(-100);
+                    var sma150 = calculateSMA(150, data).slice(-100);
+                    var sma50 = calculateSMA(50, data).slice(-100);
+                    var sma20 = calculateSMA(20, data);
+
+                    var ema20 = calculateEMA(20, sma20).slice(-100);
+
+                    var datasets = [
+                        {
+                            label: 'STNG',
+                            data: closes,
+                            borderColor: 'rgb(75, 192, 192)',
+                            tension: 0.1
+                        },
+                        {
+                            label: '150 SMA',
+                            data: sma150,
+                            tension: 0.1,
+                            borderColor: "#3260a8"
+                        },
+                        {
+                            label: '50 SMA',
+                            data: sma50,
+                            tension: 0.1,
+                            borderColor: "#32a84a"
+                        },
+                        {
+                            label: '20 EMA',
+                            data: sma20.slice(-100),
+                            tension: 0.1,
+                            borderColor: "#ff0000"
+                        }
                     
-                    renderChart(labels, closes, volume, sma)
+                    ]
+                    
+                    renderChart(canvasId, labels, datasets)
                 })
         }
     </script>
@@ -100,11 +145,11 @@
 
 <body>
     <div>
-        <canvas style="height: 600px; width: 100%" id="mychart" aria-label="Chart for 20 EMA Trend" role="img">
+        <canvas style="height: 900px; width: 100%" id="mychart" aria-label="Chart for 20 EMA Trend" role="img">
             <p>Chart for 20 EMA Trend</p>
         </canvas>
         <script>
-            createChart()
+            createChart('mychart');
         </script>
     </div>
     <script>
