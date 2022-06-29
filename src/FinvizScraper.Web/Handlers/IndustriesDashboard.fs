@@ -56,12 +56,12 @@ module IndustriesDashboard =
             )
 
         let industry20And200Header = tr [] [
-            th [] [ str "Industry" ]
-            th [] [ str "# Stocks" ]
-            th [] [ str "20 sma" ]
-            th [] [ str "20 sma %" ]
-            th [] [ str "200 sma" ]
-            th [] [ str "200 sma %" ]
+            toSortableHeaderCell "Industry"
+            toSortableHeaderCell "# Stocks"
+            toSortableHeaderCell "20 sma"
+            toSortableHeaderCell "20 sma %"
+            toSortableHeaderCell "200 sma"
+            toSortableHeaderCell "200 sma %"
         ]
 
         industry20And200Header::industry20And200Rows |> fullWidthTable

@@ -61,6 +61,12 @@ module Views =
 
     let toHeaderCell title =
         th [] [str title]
+
+    let toSortableHeaderCell title = 
+        th [ 
+            _onclick $"sortBy(this)"
+            _style "cursor: pointer"
+        ] [str title]
     
     let generateHrefWithAttrs title link attributes =
         let finalAttributes = (_href link) :: attributes
@@ -160,6 +166,7 @@ module Views =
 
                 script [ Links.chartJsLink |> _src ] []
                 script [ Links.chartJsDatalabelsLink |> _src ] []
+                script [ Links.sortingJsLink |> _src ] []
 
                 meta [
                     _name "viewport"

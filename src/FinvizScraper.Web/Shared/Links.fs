@@ -10,6 +10,8 @@ module Links =
 
     let chartJsLink = "https://cdn.jsdelivr.net/npm/chart.js"
 
+    let sortingJsLink = "/scripts/sorting.js"
+
     let chartJsDatalabelsLink = "https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"
 
 
