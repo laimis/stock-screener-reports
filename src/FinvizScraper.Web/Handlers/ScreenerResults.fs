@@ -72,7 +72,7 @@ module ScreenerResults =
             "Chart"
         ]
 
-        let headerCells = headers |> List.map toHeaderCell
+        let headerCells = headers |> List.map toSortableHeaderCell
 
         results
             |> List.map screenerResultToTr
