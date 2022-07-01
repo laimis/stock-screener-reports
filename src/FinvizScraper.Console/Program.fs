@@ -109,6 +109,8 @@ match runSMAUpdates() with
 
 match runTestReports() with
 | true -> 
+
+    // used this to migrate some data, but it's not needed anymore
     [0..60]
     |> List.map (fun i -> DateTime.UtcNow.AddDays(-i))
     |> List.filter (fun date -> (date.DayOfWeek = System.DayOfWeek.Sunday |> not) && (date.DayOfWeek = System.DayOfWeek.Saturday |> not))  // business days only
@@ -124,12 +126,11 @@ match runTestReports() with
                 Console.WriteLine($"No {days} day SMA breakdowns for {date}")
         )
     )
-    // let results = Constants.NewHighsScreenerId |> Reports.getTopIndustriesForScreener 14
-    // Console.WriteLine(results)
 
-    // let results = Constants.NewLowsScreenerId |> Reports.getTopIndustriesForScreener 14
-    // Console.WriteLine(results)
-    
-    ()
+    let results = Constants.NewHighsScreenerId |> Reports.getTopIndustriesForScreener 14
+    Console.WriteLine(results)
+
+    let results = Constants.NewLowsScreenerId |> Reports.getTopIndustriesForScreener 14
+    Console.WriteLine(results)
 
 | false -> ()
