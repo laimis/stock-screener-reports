@@ -43,7 +43,7 @@ create table industryupdates (
     above numeric not null,
     below numeric not null,
     UNIQUE(industry, "date")
-);quit
+);
 
 alter table industryupdates add column days numeric;
 UPDATE industryupdates SET days = 20;
@@ -64,3 +64,22 @@ create table industrysmabreakdowns ( like industryupdates INCLUDING DEFAULTS INC
 insert into industrysmabreakdowns SELECT * FROM industryupdates;
 
 drop table industryupdates cascade;
+
+create sequence industrysmabreakdowns_id_seq;
+alter table industrysmabreakdowns alter column id set default nextval('industrysmabreakdowns_id_seq');
+
+-- set industrysmabreakdowns_id_seq to be max id value of industrysmabreakdowns
+select setval('industrysmabreakdowns_id_seq', (select max(id) from industrysmabreakdowns));
+
+-- set id as primary key of industrysmabreakdowns
+alter table industrysmabreakdowns add primary key (id);
+
+
+create table dailysmabreakdowns (
+    id serial primary key,
+    "date" timestamp not null,
+    above numeric not null,
+    below numeric not null,
+    days numeric not null,
+    UNIQUE(days, "date")
+);

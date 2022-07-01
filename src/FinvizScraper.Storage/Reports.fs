@@ -58,10 +58,22 @@ module Reports =
     let private industrySMABreakdownMapper (reader:RowReader) : FinvizScraper.Core.IndustrySMABreakdown =
         {
             industry = reader.string "industry";
-            date = reader.dateTime "date";
-            days = reader.int "days";
-            above = reader.int "above";
-            below = reader.int "below";
+            breakdown = (
+                {
+                    date = (reader.dateTime "date");
+                    days = (reader.int "days");
+                    above = (reader.int "above");
+                    below = (reader.int "below");
+                }
+            );
+        }
+
+    let private smaBreakdownMapper (reader:RowReader) : FinvizScraper.Core.SMABreakdown =
+        {
+            date = (reader.dateTime "date");
+            days = (reader.int "days");
+            above = (reader.int "above");
+            below = (reader.int "below");
         }
 
     let private topGrouping screenerId date grouping =
@@ -526,13 +538,31 @@ module Reports =
                 )
             )
 
+    let getDailySMABreakdown days limit = 
+            
+            let sql = @$"
+               SELECT date,days,above,below
+                FROM DailySMABreakdowns
+                WHERE days = @days
+                ORDER BY date DESC
+                LIMIT @limit"
+    
+            cnnString
+                |> Sql.connect
+                |> Sql.query sql
+                |> Sql.parameters [
+                    "@days", Sql.int days;
+                    "@limit", Sql.int limit
+                ]
+                |> Sql.execute smaBreakdownMapper
+
     let getStockSMABreakdown days = 
 
         let sql = @$"
             SELECT 
                 sum(above) as above,sum(below) as below
-            FROM industrysmabreakdowns
-            WHERE date = (select max(date) from industrysmabreakdowns where days = @days)
+            FROM dailysmabreakdowns
+            WHERE date = (select max(date) from dailysmabreakdowns where days = @days)
             AND days = @days"
 
         let result = 

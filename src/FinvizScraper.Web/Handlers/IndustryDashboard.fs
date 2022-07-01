@@ -16,9 +16,9 @@ module IndustryDashboard =
                 match trend with
                 | None -> "No 20 SMA trends found"
                 | Some t -> 
-                    let total = t.above + t.below
-                    let pct = System.Math.Round((double t.above) * 100.0 / (double total), 2)
-                    $"<b>{pct}%%</b> ({t.above} / {total}) above {t.days} SMA"
+                    let total = t.breakdown.above + t.breakdown.below
+                    let pct = System.Math.Round((double t.breakdown.above) * 100.0 / (double total), 2)
+                    $"<b>{pct}%%</b> ({t.breakdown.above} / {total}) above {t.breakdown.days} SMA"
 
             span [ _class "mx-1"] [
                 rawText desc
@@ -34,7 +34,7 @@ module IndustryDashboard =
             let industryTrendChartsInternal days =
                 industryName
                 |> Reports.getIndustrySMABreakdownsForIndustry days
-                |> List.map (fun u -> (u.date,System.Math.Round(u.percentAbove, 0)))
+                |> List.map (fun u -> (u.breakdown.date,System.Math.Round(u.breakdown.percentAbove, 0)))
                 |> Charts.convertNameCountsToChart $"{days} EMA Trend" Charts.Line (Some 100) Charts.smallChart FinvizConfig.getBackgroundColorDefault 
 
             (industryTrendChartsInternal 20) @ (industryTrendChartsInternal 200)

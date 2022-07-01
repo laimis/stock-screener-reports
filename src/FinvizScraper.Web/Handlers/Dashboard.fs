@@ -6,7 +6,6 @@ module Dashboard =
     open FinvizScraper.Storage.Reports
     open FinvizScraper.Web.Shared
     open FinvizScraper.Core
-    open FinvizScraper.Storage.Storage
 
     let private generateScreenerResultSection (screener:ScreenerResultReport) = 
         
@@ -105,6 +104,23 @@ module Dashboard =
             ]
         ]
 
+    let private generateSMATrendRows() =
+
+        let numberOfPoints = 40
+        let sma20 = getDailySMABreakdown 20 numberOfPoints
+        let sma200 = getDailySMABreakdown 200 numberOfPoints
+    
+        [ ("SMA 20", sma20); ("SMA 200", sma200) ]
+            |> List.map (fun (title, data) ->
+                data
+                |> List.rev
+                |> List.map (fun breakdown ->
+                    (breakdown.date, System.Math.Round(breakdown.percentAbove, 0))
+                )
+                |> Charts.convertNameCountsToChart title Charts.Line (Some 100) Charts.smallChart FinvizConfig.getBackgroundColorDefault
+                |> div [_class "block"] 
+            )
+
     let private createView (screeners:list<ScreenerResultReport>) =
         
         let screenerRows = screeners |> List.map generateScreenerResultSection
@@ -112,9 +128,11 @@ module Dashboard =
         let industryTrendRows = generateIndustryTrendsRow FinvizConfig.industryTrendDayRange
         let sectorTrendRows = generateSectorTrendsRow FinvizConfig.sectorTrendDayRange
 
+        let smaTrendRows = generateSMATrendRows()
+
         let jobStatusRow = generateJobStatusRow()
 
-        screenerRows @ industryTrendRows @ sectorTrendRows @ [ jobStatusRow ]
+        screenerRows @ smaTrendRows @ industryTrendRows @ sectorTrendRows @ [ jobStatusRow ]
 
     let handler()  = 
         

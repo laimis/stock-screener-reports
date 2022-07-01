@@ -116,16 +116,22 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``Date range sector grouping works``() =
+        let start = new DateTime(2022, 6, 1)
+        let ending = new DateTime(2022, 6, 30)
+
         "Energy" |> topGroupingTest (
             fun x -> 
-                Reports.topSectorsOverDays x.id (getTestStartDate()) (getTestEndDate())
+                Reports.topSectorsOverDays x.id start ending
             )
 
     [<Fact>]
     let ``Date range industry grouping works``() =
+        let start = new DateTime(2022, 6, 1)
+        let ending = new DateTime(2022, 6, 30)
+
         "Biotechnology" |> topGroupingTest (
             fun x -> 
-                Reports.topIndustriesOverDays x.id (getTestStartDate()) (getTestEndDate())
+                Reports.topIndustriesOverDays x.id start ending
             )
 
     [<Fact>]
@@ -143,7 +149,7 @@ type ReportTests(output:ITestOutputHelper) =
         let screener = getTestScreener
         let sector = getTestSector
 
-        let results = Reports.getDailyCountsForScreenerAndSector screener.Value.id sector 7
+        let results = Reports.getDailyCountsForScreenerAndSector screener.Value.id sector 14
         
         Assert.NotEmpty(results)
 
@@ -152,7 +158,7 @@ type ReportTests(output:ITestOutputHelper) =
         let screener = getTestScreener
         let industry = getTestIndustry
 
-        let results = Reports.getDailyCountsForScreenerAndIndustry screener.Value.id industry 30
+        let results = Reports.getDailyCountsForScreenerAndIndustry screener.Value.id industry 60
         
         Assert.NotEmpty(results)
 
@@ -195,7 +201,7 @@ type ReportTests(output:ITestOutputHelper) =
         Assert.True(count < 8000)
 
     [<Fact>]
-    let ``industry updates end to end works`` () =
+    let ``industry sma breakdowns end to end works`` () =
         let date = "2022-04-01"
         let days = 20
 
@@ -207,12 +213,12 @@ type ReportTests(output:ITestOutputHelper) =
         let update = Assert.Single(updates)
 
         Assert.Equal("airlines", update.industry)
-        Assert.Equal(10, update.above)
-        Assert.Equal(50, update.below)
+        Assert.Equal(10, update.breakdown.above)
+        Assert.Equal(50, update.breakdown.below)
 
     
     [<Fact>]
-    let ``latest industry update works`` () =
+    let ``latest industry sma breakdow works`` () =
         let update =
             StorageTests.testStockIndustry
             |> Reports.getMostRecentIndustrySMABreakdown 20
@@ -221,12 +227,12 @@ type ReportTests(output:ITestOutputHelper) =
             | Some update ->
                 Assert.Equal(StorageTests.testStockIndustry, update.industry)
             | None ->
-                Assert.True(false, "Expected industry update to be found")
+                Assert.True(false, "Expected industry sma breakdown to be found")
 
     [<Fact>]
-    let ``latest industry update date works`` () =
+    let ``latest sma breakdown date works`` () =
         let date = Reports.getIndustrySMABreakdownLatestDate()
-        Assert.True(date > System.DateTime.MinValue)
+        Assert.True(date > DateTime.MinValue)
 
 
     [<Fact>]
@@ -243,4 +249,9 @@ type ReportTests(output:ITestOutputHelper) =
         Assert.True(below20 > 0)
         Assert.True(above200 > 0)
         Assert.True(below200 > 0)
-        Assert.Equal(above20 + below20, above200 + below200)
+        Assert.True(Math.Abs(above20 + below20 - above200 - below200) <= 1) // sometimes they are off by one, something finviz
+
+    [<Fact>]
+    let ``get daily SMA breakdowns works`` () =
+        let results = Reports.getDailySMABreakdown 20 20
+        Assert.NotEmpty(results)

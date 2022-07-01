@@ -52,6 +52,8 @@ type FinvizConfig =
     static member dayRange = 61
     static member industryTrendDayRange = 14
     static member sectorTrendDayRange = 14
+
+    static member getBackgroundColorDefault = "#FF6586"
     
     static member getBackgroundColorForScreenerId id =
         match id with
@@ -60,9 +62,7 @@ type FinvizConfig =
             | Constants.TopGainerScreenerId -> "#4DBEF7" // top gainer
             | Constants.TopLoserScreenerId -> "#C54A8B" // top loser
             | Constants.NewLowsScreenerId -> "#90323C" // new low
-            | _ -> raise (new System.Exception($"Unknown screener id {id} for screener tags")) // otherwise blow up
-
-    static member getBackgroundColorDefault = "#FF6586"
+            | _ -> FinvizConfig.getBackgroundColorDefault // otherwise return default
 
 type ScreenerResult = {
     ticker:StockTicker.T;
@@ -91,9 +91,8 @@ type Screener = {
     url: string;
 }
 
-type IndustrySMABreakdown =
+type SMABreakdown =
     {
-        industry: string;
         date: System.DateTime;
         days: int;
         above: int;
@@ -106,6 +105,12 @@ type IndustrySMABreakdown =
         match this.total with
             | 0 -> 0.0
             | _ -> (float this.above ) * 100.0 / (float this.total)
+
+type IndustrySMABreakdown = 
+    {
+        industry: string;
+        breakdown: SMABreakdown;
+    }
 
 type JobStatus =
     | Success
