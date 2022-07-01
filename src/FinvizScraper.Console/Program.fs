@@ -24,7 +24,7 @@ let containsArgument toFind =
     | None -> false
     | Some _ -> true
 
-let runIndustrySMAUpdates() =
+let runSMAUpdates() =
     containsArgument "--industry-sma-breakdowns"
 
 let runScreeners() =
@@ -76,9 +76,12 @@ match runScreeners() with
 | false -> ()
 
 
-match runIndustrySMAUpdates() with
+match runSMAUpdates() with
 | true ->     
-    let updateCount =
+    let date = FinvizConfig.getRunDate()
+    
+    // pull above and below 20 and 200 for each industry, and store the results
+    let industriesUpdated =
         Storage.getIndustries()
         |> List.toSeq
         |> Seq.map (fun industry -> 
@@ -91,22 +94,42 @@ match runIndustrySMAUpdates() with
             |> List.iter(fun r ->
                 let (industry, days, _, _) = r
                 Console.WriteLine($"Saving industry {industry} {days} days sma")
-                Storage.saveIndustrySMABreakdowns (FinvizConfig.getRunDate()) r |> ignore
+                Storage.saveIndustrySMABreakdowns date r |> ignore
             )
         )
         |> Seq.length
+
+    Storage.updateSMABreakdowns date 20 |> ignore
+    Storage.updateSMABreakdowns date 200 |> ignore
     
-    Storage.saveJobStatus IndustryTrendsJob (DateTimeOffset.UtcNow) Success $"Updated trends for {updateCount} industries" |> ignore
+    Storage.saveJobStatus IndustryTrendsJob (DateTimeOffset.UtcNow) Success $"Updated trends for {industriesUpdated} industries" |> ignore
 
 | false -> ()
 
 
 match runTestReports() with
 | true -> 
-    let results = Constants.NewHighsScreenerId |> Reports.getTopIndustriesForScreener 14
-    Console.WriteLine(results)
+    [0..60]
+    |> List.map (fun i -> DateTime.UtcNow.AddDays(-i))
+    |> List.filter (fun date -> (date.DayOfWeek = System.DayOfWeek.Sunday |> not) && (date.DayOfWeek = System.DayOfWeek.Saturday |> not))  // business days only
+    |> List.map FinvizConfig.formatRunDate
+    |> List.iter (fun date ->
+        [20;200]
+        |> List.iter (fun days ->
+            let count = Storage.updateSMABreakdowns date days
 
-    let results = Constants.NewLowsScreenerId |> Reports.getTopIndustriesForScreener 14
-    Console.WriteLine(results)
+            if count > 0 then
+                ()
+            else
+                Console.WriteLine($"No {days} day SMA breakdowns for {date}")
+        )
+    )
+    // let results = Constants.NewHighsScreenerId |> Reports.getTopIndustriesForScreener 14
+    // Console.WriteLine(results)
+
+    // let results = Constants.NewLowsScreenerId |> Reports.getTopIndustriesForScreener 14
+    // Console.WriteLine(results)
+    
+    ()
 
 | false -> ()

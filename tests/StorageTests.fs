@@ -162,3 +162,17 @@ type StorageTests(output:ITestOutputHelper) =
 
         Assert.Equal(message, latestMessage)
         Assert.Equal(timestamp.DateTime, latestTimestamp.DateTime, (System.TimeSpan.FromMilliseconds(1)))
+
+    [<Fact>]
+    let ``daily sma breakdown works`` () =
+
+        // go back to the previous business day
+        let date =
+            match System.DateTime.UtcNow.DayOfWeek with
+            | System.DayOfWeek.Monday -> System.DateTime.UtcNow.AddDays(-3)
+            | System.DayOfWeek.Sunday -> System.DateTime.UtcNow.AddDays(-2)
+            | _ -> System.DateTime.UtcNow.AddDays(-1)
+
+        let updated = Storage.updateSMABreakdowns (date |> FinvizConfig.formatRunDate) 20
+
+        Assert.Equal(1, updated)

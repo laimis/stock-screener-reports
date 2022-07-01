@@ -24,14 +24,14 @@ module IndustriesDashboard =
             |> Map.toList
             |> List.sortByDescending (fun (key, update200) -> 
                 let update20 = industrySMABreakdowns20[key]
-                (update200.percentAbove, update20.percentAbove)
+                (update200.breakdown.percentAbove, update20.breakdown.percentAbove)
             )
             |> List.map (fun (key, iu) ->
 
                 let toSMACells (update:FinvizScraper.Core.IndustrySMABreakdown) =
                     [
-                        td [] [ update.above.ToString() |> str  ]
-                        td [] [ System.String.Format("{0:N2}%", update.percentAbove) |> str ]
+                        td [] [ update.breakdown.above.ToString() |> str  ]
+                        td [] [ System.String.Format("{0:N2}%", update.breakdown.percentAbove) |> str ]
                     ]
 
                 let sma20Cells = toSMACells (industrySMABreakdowns20[key])
@@ -47,7 +47,7 @@ module IndustriesDashboard =
                             iu.industry |> Links.industryFinvizLink |> generateHrefNewTab "finviz" 
                         ]
                     ]
-                    td [] [(iu.total).ToString() |> str]
+                    td [] [(iu.breakdown.total).ToString() |> str]
                 ]
 
                 let cells = List.append (List.append commonCells sma20Cells) sma200Cells

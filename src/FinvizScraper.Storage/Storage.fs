@@ -212,6 +212,43 @@ module Storage =
         |> Sql.query "SELECT DISTINCT industry FROM stocks ORDER BY industry"
         |> Sql.execute (fun reader -> reader.string "industry")
 
+    let updateSMABreakdowns date days =
+        let sql = @"SELECT sum(above) as above,sum(below) as below,@days
+            FROM industrysmabreakdowns
+            WHERE date = date(@date) AND days = @days"
+
+        let (above,below) = 
+            cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters [
+                "@date", Sql.string date;
+                "@days", Sql.int days
+            ]
+            |> Sql.executeRow (fun reader ->
+                ((reader.intOrNone "above"), (reader.intOrNone "below"))
+            )
+
+        // check above and below are not null
+        match above,below with
+        | (Some above, Some below) -> 
+            let sql = @"
+                INSERT INTO dailysmabreakdowns (date,above,below,days)
+                VALUES (date(@date),@above,@below,@days)
+                ON CONFLICT (date,days) DO UPDATE SET above = @above, below = @below"
+
+            cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters [
+                "@date", Sql.string date;
+                "@above", Sql.int above;
+                "@below", Sql.int below;
+                "@days", Sql.int days
+            ]
+            |> Sql.executeNonQuery
+        | _ -> 0
+
     let saveIndustrySMABreakdowns date  (industry,days,above:int,below:int) =
         let sql = @"
             DELETE FROM IndustrySMABreakdowns WHERE industry = @industry AND date = date(@date) AND days = @days;
