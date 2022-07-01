@@ -62,7 +62,7 @@ type FinvizConfig =
             | Constants.TopGainerScreenerId -> "#4DBEF7" // top gainer
             | Constants.TopLoserScreenerId -> "#C54A8B" // top loser
             | Constants.NewLowsScreenerId -> "#90323C" // new low
-            | _ -> FinvizConfig.getBackgroundColorDefault // otherwise blow up
+            | _ -> FinvizConfig.getBackgroundColorDefault // otherwise return default
 
 type ScreenerResult = {
     ticker:StockTicker.T;
