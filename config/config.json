@@ -1,11 +1,3 @@
 {
-    "screeners": [
-        {
-            "name": "Top Gainers",
-            "url": "https://finviz.com/screener.ashx?v=111&s=ta_topgainers",
-            "filename": "output-topgainers.html"
-        }
-    ],
-    "outputPath": "output.html",
     "dbConnectionString": ".... postgresql connection string ..."
 }

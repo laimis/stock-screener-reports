@@ -185,13 +185,13 @@ module Storage =
             | Some stock -> stock
             | None -> saveStock ticker name sector industry country
 
-    let getOrSaveScreener (input:ScreenerInput) =
-        let screenerOption = getScreenerByName input.name
+    let getOrSaveScreener screener =
+        let screenerOption = getScreenerByName screener.name
         match screenerOption with
             | Some screener -> screener
-            | None -> saveScreener input.name input.url
+            | None -> saveScreener screener.name screener.url
 
-    let saveScreenerResults date (input:ScreenerInput,results:seq<ScreenerResult>) =
+    let saveScreenerResults date (input:Screener,results:seq<ScreenerResult>) =
         
         let screener = getOrSaveScreener input
         

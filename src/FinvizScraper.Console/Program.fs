@@ -33,7 +33,7 @@ let runScreeners() =
 let runTestReports() =
     containsArgument "--test-reports"
 
-let fetchScreenerResults (input:ScreenerInput) =
+let fetchScreenerResults input =
     Console.WriteLine("Processing " + input.name)
     Console.WriteLine("fetching results...")
     let results = FinvizClient.getResults input.url
@@ -44,12 +44,13 @@ let saveToFile (filepath:string) content =
     IO.Directory.CreateDirectory(directory) |> ignore
     IO.File.WriteAllText(filepath,content)
 
-let saveToDb (screenerResults:list<ScreenerInput * 'a>) =
+let saveToDb (screenerResults:list<Screener * 'a>) =
 
     System.Console.WriteLine("Saveing to db " + screenerResults.Length.ToString() + " screener results")
     let date = FinvizConfig.getRunDate()
     screenerResults
-    |> Seq.iter (fun x -> Storage.saveScreenerResults date x)
+    |> List.iter (fun x -> Storage.saveScreenerResults date x)
+    screenerResults
 
 let config = readConfig()
 
@@ -63,14 +64,12 @@ match config.dbConnectionString with
 
 match runScreeners() with
 | true ->
+    
     let screenerResults =
-        config.screeners 
-        |> Seq.map fetchScreenerResults
-        |> Seq.toList
-
-    screenerResults
-            |> saveToDb
-
+        Storage.getScreeners()
+        |> List.map fetchScreenerResults
+        |> saveToDb
+    
     Storage.saveJobStatus ScreenerJob (DateTimeOffset.UtcNow) Success $"Ran {screenerResults.Length} screeners" |> ignore
 
 | false -> ()
