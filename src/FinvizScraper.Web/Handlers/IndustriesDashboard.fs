@@ -1,23 +1,32 @@
 namespace FinvizScraper.Web.Handlers
 
 module IndustriesDashboard =
+    open Giraffe
     open FinvizScraper.Web.Shared
     open Giraffe.ViewEngine.HtmlElements
     open FinvizScraper.Storage
     open FinvizScraper.Web.Shared.Views
     open Giraffe.ViewEngine
+    open FinvizScraper.Core
+    
 
     let private generateIndustry20And200Table() =
-        let date = Reports.getIndustrySMABreakdownLatestDate() |> FinvizScraper.Core.FinvizConfig.formatRunDate
+        let latestDate = Reports.getIndustrySMABreakdownLatestDate()
+        let formattedDate = latestDate |> FinvizConfig.formatRunDate
 
-        let getIndustrySMABreakdownsAndTurnToMap (days:int) =
+        let thirtyDaysAgo = Utils.addDaysToClosestBusinessDay latestDate -30 |> FinvizConfig.formatRunDate
+        let sixtyDaysAgo = Utils.addDaysToClosestBusinessDay latestDate -60 |> FinvizConfig.formatRunDate
+
+        let getIndustrySMABreakdownsAndTurnToMap date (days:int) =
             date 
             |> Reports.getIndustrySMABreakdowns days
             |> List.map (fun x -> (x.industry, x))
             |> Map.ofList
         
-        let industrySMABreakdowns20 = getIndustrySMABreakdownsAndTurnToMap 20
-        let industrySMABreakdown200 = getIndustrySMABreakdownsAndTurnToMap 200
+        let industrySMABreakdowns20 = getIndustrySMABreakdownsAndTurnToMap formattedDate 20
+        let industrySMABreakdown200 = getIndustrySMABreakdownsAndTurnToMap formattedDate 200
+        let smaBreakdown200_30days = getIndustrySMABreakdownsAndTurnToMap thirtyDaysAgo 200
+        let smaBreakdown200_60days = getIndustrySMABreakdownsAndTurnToMap sixtyDaysAgo 200
 
         let industry20And200Rows =
             industrySMABreakdown200
@@ -30,12 +39,22 @@ module IndustriesDashboard =
 
                 let toSMACells (update:FinvizScraper.Core.IndustrySMABreakdown) =
                     [
-                        td [] [ update.breakdown.above.ToString() |> str  ]
+                        td [] [ $"{update.breakdown.above} / {update.breakdown.total}" |> str  ]
                         td [] [ System.String.Format("{0:N2}%", update.breakdown.percentAbove) |> str ]
                     ]
 
                 let sma20Cells = toSMACells (industrySMABreakdowns20[key])
                 let sma200Cells = toSMACells (iu)
+
+                let breakdownDiff breakdownMap =
+                    let toCompare =
+                        match (breakdownMap |> Map.tryFind key) with
+                        | Some update -> update
+                        | None -> iu
+
+                    let diff = iu.breakdown.percentAbove - toCompare.breakdown.percentAbove
+                    
+                    td [] [ System.Math.Round(diff, 0).ToString() |> str ]
 
                 let commonCells = [
                     td [] [ 
@@ -47,63 +66,48 @@ module IndustriesDashboard =
                             iu.industry |> Links.industryFinvizLink |> generateHrefNewTab "finviz" 
                         ]
                     ]
-                    td [] [(iu.breakdown.total).ToString() |> str]
                 ]
 
-                let cells = List.append (List.append commonCells sma20Cells) sma200Cells
+                let diffCells = [
+                    breakdownDiff smaBreakdown200_30days
+                    breakdownDiff smaBreakdown200_60days
+                ]
+
+                let cells = commonCells @ sma20Cells @ sma200Cells @ diffCells
 
                 tr [] cells
             )
 
         let industry20And200Header = tr [] [
             toSortableHeaderCell "Industry"
-            toSortableHeaderCell "# Stocks"
             toSortableHeaderCell "20 sma"
             toSortableHeaderCell "20 sma %"
             toSortableHeaderCell "200 sma"
             toSortableHeaderCell "200 sma %"
+            toSortableHeaderCell "30 day diff"
+            toSortableHeaderCell "60 day diff"
         ]
 
         industry20And200Header::industry20And200Rows |> fullWidthTable
 
-    let handler()  =
-        
-        let industryTrendTable = generateIndustry20And200Table()
+    let handler : HttpHandler  =
+        fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
 
-        let jobStatusRow =
-            div [ _class "columns" ] [
-                div [ _class "column" ] [ 
-                    FinvizScraper.Core.IndustryTrendsJob |> genericJobStatusGet |> str 
+            let industryTrendTable = generateIndustry20And200Table()
+
+            let jobStatusRow =
+                div [ _class "columns" ] [
+                    div [ _class "column" ] [ 
+                        IndustryTrendsJob |> genericJobStatusGet |> str 
+                    ]
                 ]
-            ]
 
-        let (above20, below20) = Reports.getStockSMABreakdown 20
-        let (above200, below200) = Reports.getStockSMABreakdown 200
-
-        let above20percent = System.Math.Round((float above20 * 100.0) / (float above20 + float below20), 2).ToString() + "%"
-        let above200percent = System.Math.Round((float above200 * 100.0) / (float above200 + float below200), 2).ToString() + "%"
-
-        let totals =
-            div [ _class "columns" ] [
-                div [ _class "column" ] [
-                    b [] [ str "20 SMA" ]
-                    str $": {above20}/{above20 + below20}, "
-                    b [] [ str above20percent]
+            let view = [
+                div [_class "content"] [
+                    h1 [] [str "Industries"]
                 ]
-                div [ _class "column" ] [
-                    b [] [ str "200 SMA" ]
-                    str $": {above200}/{above200 + below200}, "
-                    b [] [ str above200percent]
-                ]
+                industryTrendTable
+                jobStatusRow
             ]
-
-        let view = [
-            div [_class "content"] [
-                h1 [] [str "Industries"]
-            ]
-            totals
-            industryTrendTable
-            jobStatusRow
-        ]
-        
-        view |> mainLayout $"Industry Trends" 
+            
+            (view |> mainLayout $"Industries") next ctx

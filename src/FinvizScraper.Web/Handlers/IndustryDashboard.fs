@@ -27,7 +27,7 @@ module IndustryDashboard =
         let trendsDiv = div [] [
             (industryName |> Reports.getMostRecentIndustrySMABreakdown 20 |> createTrendSpan)
             (industryName |> Reports.getMostRecentIndustrySMABreakdown 200 |> createTrendSpan)
-            span [ _class "mx-1"] [industryName |> Links.industryFinvizLink |> generateHref "Finviz"]
+            span [ _class "mx-1"] [industryName |> Links.industryFinvizLink |> generateHrefNewTab "Finviz"]
         ]
 
         let industryTrendCharts =
@@ -78,7 +78,7 @@ module IndustryDashboard =
                     td [] [ screenerResult.price |> dollarFormatted |> str ]
                     td [] [ screenerResult.change |> percentFormatted |> str ]
                     td [] [ screenerResult.volume |> volumeFormatted |> str ]
-                    td [] [ screenerResult.ticker |> Links.tradingViewLink |> generateHref "chart" ]
+                    td [] [ screenerResult.ticker |> Links.tradingViewLink |> generateHrefNewTab "chart" ]
                 ]
             )
 
@@ -104,12 +104,12 @@ module IndustryDashboard =
             |> List.map (fun stock ->
                 tr [] [
                     td [] [
-                        stock.ticker |> FinvizScraper.Core.StockTicker.value |> generateTickerLink
+                        stock.ticker |> StockTicker.value |> generateTickerLink
                     ]
                     td [] [str stock.company]
                     td [] [ generateHref stock.sector (Links.sectorLink stock.sector) ]
                     td [] [ generateHref stock.industry (Links.industryLink stock.industry) ]
-                    td [] [ stock.ticker |> FinvizScraper.Core.StockTicker.value |> Links.tradingViewLink |> generateHref "Trading View" ]
+                    td [] [ stock.ticker |> StockTicker.value |> Links.tradingViewLink |> generateHref "Trading View" ]
                 ]
             )
             |> fullWidthTable
