@@ -109,27 +109,75 @@ match runSMAUpdates() with
 match runTestReports() with
 | true -> 
 
-    // used this to migrate some data, but it's not needed anymore
-    [0..60]
-    |> List.map (fun i -> DateTime.UtcNow.AddDays(-i))
-    |> List.filter (fun date -> (date.DayOfWeek = System.DayOfWeek.Sunday |> not) && (date.DayOfWeek = System.DayOfWeek.Saturday |> not))  // business days only
-    |> List.map FinvizConfig.formatRunDate
-    |> List.iter (fun date ->
-        [20;200]
-        |> List.iter (fun days ->
-            let count = Storage.updateSMABreakdowns date days
+    Console.WriteLine("Enter industry name:")
 
-            if count > 0 then
+    let input = Console.ReadLine()
+
+    let industry = 
+        match input with
+        | "" ->
+            Console.Error.WriteLine("No industry name entered, defaulting to 'Consulting Services'")
+            "Consulting Services"
+        | value ->
+            value
+
+
+    let smaBreakdowns = Reports.getIndustrySMABreakdownsForIndustry 20 industry
+
+    let mutable latestValue = Option<float>.None
+    let mutable direction = Option<int>.None
+    let mutable streak = 1
+    let mutable endReached = false
+    let mutable firstDate = DateTime.UtcNow
+    let mutable lastDate = DateTime.UtcNow
+
+    smaBreakdowns
+        |> List.rev
+        |> List.iter (fun x ->
+
+            if endReached then
                 ()
             else
-                Console.WriteLine($"No {days} day SMA breakdowns for {date}")
+                match (latestValue, direction) with
+                // case where we are seeing the first value
+                | (None, None) -> 
+                    latestValue <- Some x.breakdown.percentAbove
+                    firstDate <- x.breakdown.date
+
+                // case where we are seeing the second value
+                | (Some v, None) -> (
+                    if x.breakdown.percentAbove > latestValue.Value then
+                        direction <- Some -1
+                    else
+                        direction <- Some 1
+                    )
+
+                // case where we are now iterating
+                | (Some _, Some _) ->
+                    let newDirection =
+                        match x.breakdown.percentAbove > latestValue.Value with
+                        | true -> -1
+                        | false -> 1
+                    
+                    if newDirection = direction.Value then
+                        streak <- streak + 1
+                        latestValue <- Some x.breakdown.percentAbove
+                        lastDate <- x.breakdown.date
+                    else
+                        endReached <- true
+
+                | (None, Some _) -> raise (new Exception("should not happen where latestValue is None and direction is not"))
         )
-    )
 
-    let results = Constants.NewHighsScreenerId |> Reports.getTopIndustriesForScreener 14
-    Console.WriteLine(results)
+    let directionString = 
+        match direction with
+        | None -> "None"
+        | Some d ->
+            match d with
+            | -1 -> "down"
+            | 1 -> "up"
+            | _ -> "unknown"
 
-    let results = Constants.NewLowsScreenerId |> Reports.getTopIndustriesForScreener 14
-    Console.WriteLine(results)
+    Console.WriteLine($"{industry} {20} days sma streak: {streak} day {directionString} from {firstDate} to {lastDate}")
 
 | false -> ()
