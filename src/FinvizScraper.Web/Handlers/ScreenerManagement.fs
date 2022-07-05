@@ -15,9 +15,6 @@ module ScreenerManagement =
             url: string
         }
 
-    // type CsvType = CsvProvider<Schema = "ticker (string)",
-    //     HasHeaders=false>
-
     type ScreenerExportType =   CsvProvider<
         Schema = "date, ticker, name, sector (string), industry (string), country (string), marketCap (decimal), price (decimal), change (decimal), volume (decimal)",
         HasHeaders=false>
@@ -85,8 +82,10 @@ module ScreenerManagement =
             |> List.map ( fun screener ->
                 tr [] [
                     td [] [str (screener.id.ToString())]
-                    td [] [str screener.name]
-                    td [] [screener.url |> Views.generateHref "Finviz" ]
+                    td [] [
+                        div [] [str screener.name]
+                        div [] [screener.url |> Views.generateHrefNewTab screener.url]
+                    ]
                     td [] [
                         form [
                             _method "POST"
@@ -119,7 +118,6 @@ module ScreenerManagement =
                 tr [] [
                     th [] [ str "Id" ]
                     th [] [ str "Name" ]
-                    th [] [ str "Url" ]
                     th [] []
                 ]
             ]
