@@ -6,11 +6,13 @@ open Xunit.Abstractions
 
 type ParsingTests(output:ITestOutputHelper) =
 
+    let screenerUrl = "https://finviz.com/screener.ashx?v=111&f=cap_mega,sh_price_50to100&ft=4" // megastocks with price between 50 and 100
+
     // all time high screener
     [<Fact>]
     let ``End to end fetch works`` () =
         let results =
-            StorageTests.screenerUrl
+            screenerUrl
             |> FinvizClient.getResults
 
         Assert.NotEmpty(results)
@@ -18,7 +20,7 @@ type ParsingTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``Fetch count works`` () =
         let count = 
-            StorageTests.screenerUrl
+            screenerUrl
             |> FinvizClient.getResultCount
 
         Assert.True(count > 0, "Result count for test screener should be greater than 0")

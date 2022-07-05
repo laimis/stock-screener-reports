@@ -63,14 +63,19 @@ type ReportTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``Screener result list works``() =
         
-        let expectedScreenerCount = 
+        let screenerSet = 
             Storage.getScreeners()
             |> List.filter (fun x -> x.name.StartsWith("screener") |> not)
-            |> Seq.length
+            |> List.map (fun x -> x.id)
+            |> Set.ofList
 
         let screenerResults = Reports.getLatestScreeners()
 
-        Assert.Equal(expectedScreenerCount, screenerResults.Length)
+        let filteredList =
+            screenerResults
+            |> List.filter (fun x -> screenerSet.Contains(x.screenerid) |> not)
+
+        Assert.Empty(filteredList)
 
     [<Fact>]
     let ``Particular screener results list works``() =
@@ -146,10 +151,13 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``getting daily counts for screeners filtered by sector works``() =
-        let screener = getTestScreener
-        let sector = getTestSector
+        let screener = FinvizScraper.Core.Constants.TopGainerScreenerId
 
-        let results = Reports.getDailyCountsForScreenerAndSector screener.Value.id sector 14
+        let screenerResult = Reports.getScreenerResultsForDays screener 7
+
+        let sector = screenerResult.Item(0).sector 
+
+        let results = Reports.getDailyCountsForScreenerAndSector screener sector 14
         
         Assert.NotEmpty(results)
 
