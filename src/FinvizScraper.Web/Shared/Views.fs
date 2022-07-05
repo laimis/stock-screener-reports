@@ -91,7 +91,7 @@ module Views =
         header::rows
 
     let fullWidthTable rows =
-        table [ _class "table is-fullwidth" ] rows
+        table [ _class "table is-fullwidth is-striped" ] rows
 
     let toNameCountTable title maxNumberOfRows listOfNameCountPairs =
         listOfNameCountPairs |> toNameCountRows title maxNumberOfRows (fun name -> str name) |> fullWidthTable

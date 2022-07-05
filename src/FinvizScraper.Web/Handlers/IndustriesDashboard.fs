@@ -28,6 +28,8 @@ module IndustriesDashboard =
         let smaBreakdown200_30days = getIndustrySMABreakdownsAndTurnToMap thirtyDaysAgo 200
         let smaBreakdown200_60days = getIndustrySMABreakdownsAndTurnToMap sixtyDaysAgo 200
 
+        let mutable counter = 0
+
         let industry20And200Rows =
             industrySMABreakdown200
             |> Map.toList
@@ -43,6 +45,8 @@ module IndustriesDashboard =
                         td [] [ System.String.Format("{0:N2}%", update.breakdown.percentAbove) |> str ]
                     ]
 
+                counter <- counter + 1
+
                 let sma20Cells = toSMACells (industrySMABreakdowns20[key])
                 let sma200Cells = toSMACells (iu)
 
@@ -57,6 +61,7 @@ module IndustriesDashboard =
                     td [] [ System.Math.Round(diff, 0).ToString() |> str ]
 
                 let commonCells = [
+                    td [] [ counter.ToString() |> str ]
                     td [] [ 
                         span [ _class "mr-2"] [
                             iu.industry |> Links.industryLink |> generateHref iu.industry
@@ -79,6 +84,7 @@ module IndustriesDashboard =
             )
 
         let industry20And200Header = tr [] [
+            th [] []
             toSortableHeaderCell "Industry"
             toSortableHeaderCell "20 sma"
             toSortableHeaderCell "20 sma %"
