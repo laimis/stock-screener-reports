@@ -44,7 +44,11 @@ namespace FinvizScraper.Core
                             if newDirection = direction.Value then
                                 streak <- streak + 1
                                 latestValue <- Some x.breakdown.percentAbove
-                                // lastDate <- x.breakdown.date
+                                
+                                if latestValue.Value = 0m then
+                                    endReached <- true
+                                else
+                                    ()
                             else
                                 endReached <- true
 

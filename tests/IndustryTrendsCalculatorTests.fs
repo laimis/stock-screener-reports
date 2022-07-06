@@ -31,21 +31,33 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
         [(6, 10); (7, 10); (8, 10)]
         |> generateBreakdowns
 
+    let trendFromZero =
+        [(0, 10); (0, 10); (0, 10); (7, 10); (8, 10)]
+        |> generateBreakdowns
+
 
     [<Fact>]
     let ``trending down works`` () =
             
-            let (streak, direction, change) = IndustryTrendsCalculator.calculate testDataDecreasingTrend
-            
-            Assert.Equal(1, streak)
-            Assert.Equal(Down, direction)
-            Assert.Equal(-10m, System.Math.Round(change, 2))
+        let (streak, direction, change) = IndustryTrendsCalculator.calculate testDataDecreasingTrend
+        
+        Assert.Equal(1, streak)
+        Assert.Equal(Down, direction)
+        Assert.Equal(-10m, System.Math.Round(change, 2))
 
     [<Fact>]
     let ``trending up works`` () =
             
-            let (streak, direction, change) = IndustryTrendsCalculator.calculate testDataIncreasingTrend
-            
-            Assert.Equal(2, streak)
-            Assert.Equal(Up, direction)
-            Assert.Equal(20m, System.Math.Round(change, 2))
+        let (streak, direction, change) = IndustryTrendsCalculator.calculate testDataIncreasingTrend
+        
+        Assert.Equal(2, streak)
+        Assert.Equal(Up, direction)
+        Assert.Equal(20m, System.Math.Round(change, 2))
+
+    [<Fact>]
+    let ``encountering zero should stop``() =
+        let (streak, direction, change) = IndustryTrendsCalculator.calculate trendFromZero
+
+        Assert.Equal(2, streak)
+        Assert.Equal(Up, direction)
+        Assert.Equal(80m, System.Math.Round(change, 2))

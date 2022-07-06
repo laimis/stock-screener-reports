@@ -95,15 +95,6 @@ match runSMAUpdates() with
                 let (industry, days, _, _) = r
                 Console.WriteLine($"Saving industry {industry} {days} days sma")
                 Storage.saveIndustrySMABreakdowns date r |> ignore
-
-                Console.WriteLine($"Calculating industry {industry} trends")
-                let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry days
-
-                let (streak, direction, change) = breakdowns |> IndustryTrendsCalculator.calculate
-
-                Console.WriteLine($"Saving industry {industry} trend: {direction} {streak} days with change of {change}")
-            
-                Storage.updateIndustryTrend industry date streak direction change days |> ignore
             )
         )
         |> Seq.length
@@ -120,7 +111,9 @@ match runSMAUpdates() with
                 
                 let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry days
 
-                let (streak, direction, change) = breakdowns |> FinvizScraper.Core.IndustryTrendsCalculator.calculate
+                let (streak, direction, change) = breakdowns |> IndustryTrendsCalculator.calculate
+
+                Console.WriteLine($"Saving industry {industry} trend: {direction} {streak} days with change of {change}")
 
                 Storage.updateIndustryTrend industry date streak direction change days
             )
@@ -128,7 +121,12 @@ match runSMAUpdates() with
         )
         |> Seq.sum
     
-    Storage.saveJobStatus IndustryTrendsJob (DateTimeOffset.UtcNow) Success $"Updated sma breakdowns for {industriesUpdated} industries and calculated {trendsUpdated} trends" |> ignore
+    Storage.saveJobStatus
+        IndustryTrendsJob
+        (DateTimeOffset.UtcNow)
+        Success
+        $"Updated sma breakdowns for {industriesUpdated} industries and calculated {trendsUpdated} trends"
+    |> ignore
 
 | false -> ()
 
