@@ -177,6 +177,6 @@ type StorageTests(output:ITestOutputHelper) =
 
         let date = System.DateTime.UtcNow |> FinvizConfig.formatRunDate
 
-        let updated = Storage.updateIndustryTrend "testindustry" date 7 Up 20
+        let updated = Storage.updateIndustryTrend "testindustry" date 7 Up 121m 20
 
         Assert.Equal(1, updated)

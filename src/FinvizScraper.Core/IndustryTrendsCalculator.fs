@@ -49,6 +49,6 @@ namespace FinvizScraper.Core
                         | (None, Some _) -> raise (new Exception("should not happen where latestValue is None and direction is not"))
                 )
 
-            let change = latestValue.Value - firstValue
+            let change = firstValue - latestValue.Value
             
             (streak, direction.Value, change)

@@ -275,5 +275,5 @@ type ReportTests(output:ITestOutputHelper) =
 
         Assert.True(streak > 0)
         Assert.True(direction = FinvizScraper.Core.TrendDirection.Up || direction = FinvizScraper.Core.TrendDirection.Down)
-        Assert.True(change > 0)
-        Assert.True(change <= 100)
+        Assert.True(change > 0m)
+        Assert.True(change <= 100m)
