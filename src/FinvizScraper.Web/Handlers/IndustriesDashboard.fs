@@ -52,7 +52,8 @@ module IndustriesDashboard =
                     [
                         td [] [ $"{update.breakdown.above} / {update.breakdown.total}" |> str  ]
                         td [] [ System.String.Format("{0:N2}%", update.breakdown.percentAbove) |> str ]
-                        td [] [ System.String.Format("{0:N2}", trend.change) |> str ]
+                        td [] [ System.String.Format("{0:N0}", trend.change) |> str ]
+                        td [] [ System.String.Format("{0:N0}", trend.streak) |> str ]
                     ]
 
                 counter <- counter + 1
@@ -98,10 +99,12 @@ module IndustriesDashboard =
             toSortableHeaderCell "Industry"
             toSortableHeaderCell "20 sma"
             toSortableHeaderCell "20 sma %"
-            toSortableHeaderCell "20 Trend"
+            toSortableHeaderCell "Trend Change"
+            toSortableHeaderCell "Trend Streak"
             toSortableHeaderCell "200 sma"
             toSortableHeaderCell "200 sma %"
-            toSortableHeaderCell "200 Trend"
+            toSortableHeaderCell "Trend Change"
+            toSortableHeaderCell "Trend Streak"
             toSortableHeaderCell "30 diff"
             toSortableHeaderCell "60 diff"
         ]
