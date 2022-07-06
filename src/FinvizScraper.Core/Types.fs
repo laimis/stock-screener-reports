@@ -121,6 +121,7 @@ type IndustryTrend =
         industry: string;
         streak: int;
         direction: TrendDirection;
+        change: decimal;
         days: int;
         date: System.DateTime;
     }

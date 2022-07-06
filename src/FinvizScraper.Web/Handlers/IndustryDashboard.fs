@@ -11,10 +11,10 @@ module IndustryDashboard =
     let handler industryName =
         
         // load industry trends
-        let createTrendSpan (trend:option<FinvizScraper.Core.IndustrySMABreakdown>) =
+        let createBreakdownSpan (breakdown:option<FinvizScraper.Core.IndustrySMABreakdown>) =
             let desc = 
-                match trend with
-                | None -> "No 20 SMA trends found"
+                match breakdown with
+                | None -> "No SMA breakdown found"
                 | Some t -> 
                     let total = t.breakdown.above + t.breakdown.below
                     let pct = System.Math.Round((double t.breakdown.above) * 100.0 / (double total), 2)
@@ -24,20 +24,37 @@ module IndustryDashboard =
                 rawText desc
             ]
             
-        let trendsDiv = div [] [
-            (industryName |> Reports.getMostRecentIndustrySMABreakdown 20 |> createTrendSpan)
-            (industryName |> Reports.getMostRecentIndustrySMABreakdown 200 |> createTrendSpan)
+        let breakdownDiv = div [] [
+            (industryName |> Reports.getMostRecentIndustrySMABreakdown 20 |> createBreakdownSpan)
+            (industryName |> Reports.getMostRecentIndustrySMABreakdown 200 |> createBreakdownSpan)
             span [ _class "mx-1"] [industryName |> Links.industryFinvizLink |> generateHrefNewTab "Finviz"]
         ]
 
-        let industryTrendCharts =
-            let industryTrendChartsInternal days =
+        let createTrendSpan trend =
+            let desc =
+                match trend with
+                | None -> "No trend found"
+                | Some t ->
+                    let pct = System.Math.Round(t.change, 2)
+                    $"<b>{pct}</b> change {t.direction} for {t.streak} days"
+
+            span [ _class "mx-1"] [
+                rawText desc
+            ]
+
+        let trendDiv = div [] [
+            industryName |> Reports.getIndustryTrend 20 |> createTrendSpan
+            industryName |> Reports.getIndustryTrend 200 |> createTrendSpan
+        ]
+
+        let smaBreakdownCharts =
+            let smaBreakdownChartsInternal days =
                 industryName
                 |> Reports.getIndustrySMABreakdownsForIndustry days
                 |> List.map (fun u -> (u.breakdown.date,System.Math.Round(u.breakdown.percentAbove, 0)))
                 |> Charts.convertNameCountsToChart $"{days} EMA Trend" Charts.Line (Some 100) Charts.smallChart FinvizConfig.getBackgroundColorDefault 
 
-            (industryTrendChartsInternal 20) @ (industryTrendChartsInternal 200)
+            (smaBreakdownChartsInternal 20) @ (smaBreakdownChartsInternal 200)
         
         // load charts for each screener
         let screeners = Storage.getScreeners()
@@ -119,7 +136,8 @@ module IndustryDashboard =
                 h1 [] [
                     str industryName
                 ]
-                trendsDiv
-            ]::industryTrendCharts @ screenerCharts @ [screenerResultsTable; stockTable]
+                breakdownDiv
+                trendDiv
+            ]::smaBreakdownCharts @ screenerCharts @ [screenerResultsTable; stockTable]
         
         view |> mainLayout $"Industry Dashboard for {industryName}" 

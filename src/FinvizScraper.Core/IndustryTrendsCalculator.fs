@@ -6,13 +6,13 @@ namespace FinvizScraper.Core
         let calculate smaBreakdowns =
             
             let mutable latestValue = Option<decimal>.None
-            let mutable firstValue = (smaBreakdowns |> List.head).breakdown.percentAbove
+            let mutable firstValue = Option<decimal>.None
             let mutable direction = Option<TrendDirection>.None
             let mutable streak = 1
             let mutable endReached = false
 
             smaBreakdowns
-                |> List.rev
+                |> List.sortByDescending (fun b -> b.breakdown.date)
                 |> List.iter (fun x ->
 
                     if endReached then
@@ -22,12 +22,14 @@ namespace FinvizScraper.Core
                         // case where we are seeing the first value
                         | (None, None) -> 
                             latestValue <- Some x.breakdown.percentAbove
+                            firstValue <- Some x.breakdown.percentAbove
                             // firstDate <- x.breakdown.date
 
                         // case where we are seeing the second value
                         | (Some _, None) -> (
                             if x.breakdown.percentAbove > latestValue.Value then
                                 direction <- Some Down
+                                latestValue <- Some x.breakdown.percentAbove
                             else
                                 direction <- Some Up
                             )
@@ -49,6 +51,6 @@ namespace FinvizScraper.Core
                         | (None, Some _) -> raise (new Exception("should not happen where latestValue is None and direction is not"))
                 )
 
-            let change = firstValue - latestValue.Value
+            let change = firstValue.Value - latestValue.Value
             
             (streak, direction.Value, change)

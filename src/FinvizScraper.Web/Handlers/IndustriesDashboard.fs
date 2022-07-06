@@ -28,6 +28,15 @@ module IndustriesDashboard =
         let smaBreakdown200_30days = getIndustrySMABreakdownsAndTurnToMap thirtyDaysAgo 200
         let smaBreakdown200_60days = getIndustrySMABreakdownsAndTurnToMap sixtyDaysAgo 200
 
+        let getIndustryTrendsANdTurnToMap (days:int) =
+            days
+            |> Reports.getIndustryTrends
+            |> List.map (fun x -> (x.industry, x))
+            |> Map.ofList
+
+        let industryTrend20 = getIndustryTrendsANdTurnToMap 20
+        let industryTrend200 = getIndustryTrendsANdTurnToMap 200
+
         let mutable counter = 0
 
         let industry20And200Rows =
@@ -39,16 +48,17 @@ module IndustriesDashboard =
             )
             |> List.map (fun (key, iu) ->
 
-                let toSMACells (update:FinvizScraper.Core.IndustrySMABreakdown) =
+                let toSMACells (update:FinvizScraper.Core.IndustrySMABreakdown) trend =
                     [
                         td [] [ $"{update.breakdown.above} / {update.breakdown.total}" |> str  ]
                         td [] [ System.String.Format("{0:N2}%", update.breakdown.percentAbove) |> str ]
+                        td [] [ System.String.Format("{0:N2}", trend.change) |> str ]
                     ]
 
                 counter <- counter + 1
 
-                let sma20Cells = toSMACells (industrySMABreakdowns20[key])
-                let sma200Cells = toSMACells (iu)
+                let sma20Cells = toSMACells (industrySMABreakdowns20[key]) (industryTrend20[key])
+                let sma200Cells = toSMACells (iu) (industryTrend200[key])
 
                 let breakdownDiff breakdownMap =
                     let toCompare =
@@ -88,10 +98,12 @@ module IndustriesDashboard =
             toSortableHeaderCell "Industry"
             toSortableHeaderCell "20 sma"
             toSortableHeaderCell "20 sma %"
+            toSortableHeaderCell "20 Trend"
             toSortableHeaderCell "200 sma"
             toSortableHeaderCell "200 sma %"
-            toSortableHeaderCell "30 day diff"
-            toSortableHeaderCell "60 day diff"
+            toSortableHeaderCell "200 Trend"
+            toSortableHeaderCell "30 diff"
+            toSortableHeaderCell "60 diff"
         ]
 
         industry20And200Header::industry20And200Rows |> fullWidthTable
@@ -99,7 +111,7 @@ module IndustriesDashboard =
     let handler : HttpHandler  =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
 
-            let industryTrendTable = generateIndustry20And200Table()
+            let industriesTable = generateIndustry20And200Table()
 
             let jobStatusRow =
                 div [ _class "columns" ] [
@@ -112,7 +124,7 @@ module IndustriesDashboard =
                 div [_class "content"] [
                     h1 [] [str "Industries"]
                 ]
-                industryTrendTable
+                industriesTable
                 jobStatusRow
             ]
             
