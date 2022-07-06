@@ -32,6 +32,11 @@ module Storage =
             | IndustryTrendsJob _ -> "industrytrendsjob"
             | TestJob _ -> "testjob"
 
+    let private toTrendDirectionString (trendDirection:TrendDirection) =
+        match trendDirection with
+            | Up _ -> "up"
+            | Down _ -> "down"
+
     let private toJobStatusString status =
         match status with
             | Success _ -> "success"
@@ -211,6 +216,22 @@ module Storage =
         |> Sql.connect
         |> Sql.query "SELECT DISTINCT industry FROM stocks ORDER BY industry"
         |> Sql.execute (fun reader -> reader.string "industry")
+
+    let updateIndustryTrend industry date streak (direction:TrendDirection) change days =
+        cnnString
+        |> Sql.connect
+        |> Sql.query @"INSERT INTO industrytrends (industry,date,streak,direction,change,days)
+            VALUES (@industry,date(@date),@streak,@direction,@change,@days)
+            ON CONFLICT (industry,days) DO UPDATE SET streak = @streak, direction = @direction, change = @change days = @days"
+        |> Sql.parameters [
+            "@industry", Sql.string industry;
+            "@date", Sql.string date;
+            "@streak", Sql.int streak;
+            "@direction", direction |> toTrendDirectionString |> Sql.string;
+            "@days", Sql.int days;
+            "@change", Sql.decimal change
+        ]
+        |> Sql.executeNonQuery
 
     let updateSMABreakdowns date days =
         let sql = @"SELECT sum(above) as above,sum(below) as below,@days

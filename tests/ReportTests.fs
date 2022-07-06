@@ -65,7 +65,6 @@ type ReportTests(output:ITestOutputHelper) =
         
         let screenerSet = 
             Storage.getScreeners()
-            |> List.filter (fun x -> x.name.StartsWith("screener") |> not)
             |> List.map (fun x -> x.id)
             |> Set.ofList
 
@@ -263,3 +262,18 @@ type ReportTests(output:ITestOutputHelper) =
     let ``get daily SMA breakdowns works`` () =
         let results = Reports.getDailySMABreakdown 20 20
         Assert.NotEmpty(results)
+
+    [<Fact>]
+    let ``get industry trends works`` () =
+        let results = Reports.getIndustryTrends()
+        Assert.NotEmpty(results)
+
+    [<Fact>]
+    let ``calculate industry trends works`` () =
+        let smaBreakdowns = Reports.getIndustrySMABreakdownsForIndustry 20 StorageTests.testStockIndustry
+        let (streak,direction, change) = FinvizScraper.Core.IndustryTrendsCalculator.calculate smaBreakdowns
+
+        Assert.True(streak > 0)
+        Assert.True(direction = FinvizScraper.Core.TrendDirection.Up || direction = FinvizScraper.Core.TrendDirection.Down)
+        Assert.True(change > 0)
+        Assert.True(change <= 100)

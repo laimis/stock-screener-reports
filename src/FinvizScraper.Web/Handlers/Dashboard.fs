@@ -30,7 +30,7 @@ module Dashboard =
             ]
         ]
 
-    let generateTrendsTable title nameCounts industrySMABreakdowns =
+    let generateTrendsTable title nameCounts (industrySMABreakdowns:list<IndustrySMABreakdown>) =
         let rows =
             nameCounts
             |> List.truncate 10

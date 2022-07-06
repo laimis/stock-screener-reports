@@ -80,9 +80,10 @@ match runSMAUpdates() with
     let date = FinvizConfig.getRunDate()
     
     // pull above and below 20 and 200 for each industry, and store the results
+    let knownIndustries = Storage.getIndustries()
+
     let industriesUpdated =
-        Storage.getIndustries()
-        |> List.toSeq
+        knownIndustries
         |> Seq.map (fun industry -> 
             let (above20,below20) = industry |> FinvizClient.getResultCountForIndustryAboveAndBelowSMA 20
             let (above200,below200) = industry |> FinvizClient.getResultCountForIndustryAboveAndBelowSMA 200
@@ -94,14 +95,40 @@ match runSMAUpdates() with
                 let (industry, days, _, _) = r
                 Console.WriteLine($"Saving industry {industry} {days} days sma")
                 Storage.saveIndustrySMABreakdowns date r |> ignore
+
+                Console.WriteLine($"Calculating industry {industry} trends")
+                let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry days
+
+                let (streak, direction, change) = breakdowns |> FinvizScraper.Core.IndustryTrendsCalculator.calculate
+
+                Console.WriteLine($"Saving industry {industry} trend: {direction} {streak} days with change of {change}")
+            
+                Storage.updateIndustryTrend industry date streak direction days |> ignore
             )
         )
         |> Seq.length
 
     Storage.updateSMABreakdowns date 20 |> ignore
     Storage.updateSMABreakdowns date 200 |> ignore
+
+    let trendsUpdated =
+        knownIndustries
+        |> Seq.map (fun industry -> 
+            
+            [20; 200]
+            |> List.map(fun days -> 
+                
+                let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry days
+
+                let (streak, direction, change) = breakdowns |> FinvizScraper.Core.IndustryTrendsCalculator.calculate
+
+                Storage.updateIndustryTrend industry date streak direction change days
+            )
+            |> List.sum
+        )
+        |> Seq.sum
     
-    Storage.saveJobStatus IndustryTrendsJob (DateTimeOffset.UtcNow) Success $"Updated trends for {industriesUpdated} industries" |> ignore
+    Storage.saveJobStatus IndustryTrendsJob (DateTimeOffset.UtcNow) Success $"Updated sma breakdowns for {industriesUpdated} industries and calculated {trendsUpdated} trends" |> ignore
 
 | false -> ()
 

@@ -83,3 +83,14 @@ create table dailysmabreakdowns (
     days numeric not null,
     UNIQUE(days, "date")
 );
+
+create table industrytrends (
+    id serial primary key,
+    industry text not null,
+    "date" timestamp not null,
+    streak numeric not null,
+    direction text not null,
+    change numeric not null,
+    days numeric not null,
+    UNIQUE(industry, days)
+);

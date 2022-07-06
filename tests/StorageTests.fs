@@ -171,3 +171,12 @@ type StorageTests(output:ITestOutputHelper) =
         let updated = Storage.updateSMABreakdowns (date |> FinvizConfig.formatRunDate) 20
 
         Assert.Equal(1, updated)
+
+    [<Fact>]
+    let ``updating industry trend works`` () =
+
+        let date = System.DateTime.UtcNow |> FinvizConfig.formatRunDate
+
+        let updated = Storage.updateIndustryTrend "testindustry" date 7 Up 20
+
+        Assert.Equal(1, updated)

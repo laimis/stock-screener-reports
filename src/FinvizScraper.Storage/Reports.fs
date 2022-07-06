@@ -68,6 +68,20 @@ module Reports =
             );
         }
 
+    let private industryTrendMapper (reader:RowReader) : FinvizScraper.Core.IndustryTrend =
+        {
+            industry = reader.string "industry";
+            streak = reader.int "streak";
+            direction = (
+                match reader.string "direction" with
+                    | "up" -> FinvizScraper.Core.Up
+                    | "down" -> FinvizScraper.Core.Down
+                    | _ -> FinvizScraper.Core.Up
+            );
+            days = reader.int "days";
+            date = reader.dateTime "date";
+        }
+
     let private smaBreakdownMapper (reader:RowReader) : FinvizScraper.Core.SMABreakdown =
         {
             date = (reader.dateTime "date");
@@ -634,3 +648,13 @@ module Reports =
         |> Sql.connect
         |> Sql.query "SELECT MAX(date) as date FROM IndustrySMABreakdowns"
         |> Sql.executeRow (fun reader -> reader.dateTime "date")
+
+    let getIndustryTrends() =
+        let sql = @"
+            SELECT industry,date,streak,direction,days FROM industrytrends
+            ORDER BY industry"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.execute industryTrendMapper
