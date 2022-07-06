@@ -7,67 +7,29 @@ open System
 
 type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
 
+    let generateBreakdowns list =
+        list
+        |> List.indexed
+        |> List.map (fun (index,pairs) ->
+
+            let (above,total) = pairs
+            {
+                industry = "technology"
+                breakdown = {
+                    above = above;
+                    below = total - above;
+                    date = DateTime.UtcNow.AddDays(index);
+                    days = 200;
+                }
+            }
+        )
     let testDataDecreasingTrend =
-        [
-            {
-                industry = "Technology"
-                breakdown = {
-                    above = 1
-                    below = 14
-                    date = DateTime.Parse("1/1/2019")
-                    days = 20
-                }
-            };
-            {
-                industry = "Technology"
-                breakdown = {
-                    above = 8
-                    below = 7
-                    date = DateTime.Parse("1/2/2019")
-                    days = 20
-                }
-            };
-            {
-                industry = "Technology"
-                breakdown = {
-                    above = 7
-                    below = 8
-                    date = DateTime.Parse("1/3/2019")
-                    days = 20
-                }
-            };
-        ]
+        [(1, 10); (8, 10); (7, 10)]
+        |> generateBreakdowns
 
     let testDataIncreasingTrend =
-        [
-            {
-                industry = "Technology"
-                breakdown = {
-                    above = 6
-                    below = 9
-                    date = DateTime.Parse("1/1/2019")
-                    days = 20
-                }
-            };
-            {
-                industry = "Technology"
-                breakdown = {
-                    above = 7
-                    below = 8
-                    date = DateTime.Parse("1/2/2019")
-                    days = 20
-                }
-            };
-            {
-                industry = "Technology"
-                breakdown = {
-                    above = 8
-                    below = 7
-                    date = DateTime.Parse("1/3/2019")
-                    days = 20
-                }
-            };
-        ]
+        [(6, 10); (7, 10); (8, 10)]
+        |> generateBreakdowns
 
 
     [<Fact>]
@@ -77,7 +39,7 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
             
             Assert.Equal(1, streak)
             Assert.Equal(Down, direction)
-            Assert.Equal(-6.67m, System.Math.Round(change, 2))
+            Assert.Equal(-10m, System.Math.Round(change, 2))
 
     [<Fact>]
     let ``trending up works`` () =
@@ -86,4 +48,4 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
             
             Assert.Equal(2, streak)
             Assert.Equal(Up, direction)
-            Assert.Equal(13.33m, System.Math.Round(change, 2))
+            Assert.Equal(20m, System.Math.Round(change, 2))

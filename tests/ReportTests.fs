@@ -265,7 +265,7 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``get industry trends works`` () =
-        let results = Reports.getIndustryTrends()
+        let results = Reports.getIndustryTrends 200
         Assert.NotEmpty(results)
 
     [<Fact>]
