@@ -68,6 +68,21 @@ module Reports =
             );
         }
 
+    let private industryTrendMapper (reader:RowReader) : FinvizScraper.Core.IndustryTrend =
+        {
+            industry = reader.string "industry";
+            streak = reader.int "streak";
+            direction = (
+                match reader.string "direction" with
+                    | "up" -> FinvizScraper.Core.Up
+                    | "down" -> FinvizScraper.Core.Down
+                    | _ -> FinvizScraper.Core.Up
+            );
+            days = reader.int "days";
+            date = reader.dateTime "date";
+            change = reader.decimal "change";
+        }
+
     let private smaBreakdownMapper (reader:RowReader) : FinvizScraper.Core.SMABreakdown =
         {
             date = (reader.dateTime "date");
@@ -634,3 +649,32 @@ module Reports =
         |> Sql.connect
         |> Sql.query "SELECT MAX(date) as date FROM IndustrySMABreakdowns"
         |> Sql.executeRow (fun reader -> reader.dateTime "date")
+
+    let getIndustryTrends days =
+        let sql = @"
+            SELECT industry,date,streak,direction,change,days FROM industrytrends
+            WHERE days = @days
+            ORDER BY industry"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@days", Sql.int days;
+        ]
+        |> Sql.execute industryTrendMapper
+
+    let getIndustryTrend days industry =
+        let sql = @"
+            SELECT industry,date,streak,direction,change,days FROM industrytrends
+            WHERE industry = @industry AND days = @days"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@industry", Sql.string industry;
+            "@days", Sql.int days;
+        ]
+        |> Sql.execute industryTrendMapper
+        |> Storage.singleOrThrow "More than one industry trend for the same industry and days"

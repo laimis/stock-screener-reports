@@ -80,9 +80,10 @@ match runSMAUpdates() with
     let date = FinvizConfig.getRunDate()
     
     // pull above and below 20 and 200 for each industry, and store the results
+    let knownIndustries = Storage.getIndustries()
+
     let industriesUpdated =
-        Storage.getIndustries()
-        |> List.toSeq
+        knownIndustries
         |> Seq.map (fun industry -> 
             let (above20,below20) = industry |> FinvizClient.getResultCountForIndustryAboveAndBelowSMA 20
             let (above200,below200) = industry |> FinvizClient.getResultCountForIndustryAboveAndBelowSMA 200
@@ -100,8 +101,32 @@ match runSMAUpdates() with
 
     Storage.updateSMABreakdowns date 20 |> ignore
     Storage.updateSMABreakdowns date 200 |> ignore
+
+    let trendsUpdated =
+        knownIndustries
+        |> Seq.map (fun industry -> 
+            
+            [20; 200]
+            |> List.map(fun days -> 
+                
+                let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry days
+
+                let (streak, direction, change) = breakdowns |> IndustryTrendsCalculator.calculate
+
+                Console.WriteLine($"Saving industry {industry} trend: {direction} {streak} days with change of {change}")
+
+                Storage.updateIndustryTrend industry date streak direction change days
+            )
+            |> List.sum
+        )
+        |> Seq.sum
     
-    Storage.saveJobStatus IndustryTrendsJob (DateTimeOffset.UtcNow) Success $"Updated trends for {industriesUpdated} industries" |> ignore
+    Storage.saveJobStatus
+        IndustryTrendsJob
+        (DateTimeOffset.UtcNow)
+        Success
+        $"Updated sma breakdowns for {industriesUpdated} industries and calculated {trendsUpdated} trends"
+    |> ignore
 
 | false -> ()
 
@@ -124,60 +149,8 @@ match runTestReports() with
 
     let smaBreakdowns = Reports.getIndustrySMABreakdownsForIndustry 20 industry
 
-    let mutable latestValue = Option<float>.None
-    let mutable direction = Option<int>.None
-    let mutable streak = 1
-    let mutable endReached = false
-    let mutable firstDate = DateTime.UtcNow
-    let mutable lastDate = DateTime.UtcNow
+    let (streak, direction, change) = smaBreakdowns |> IndustryTrendsCalculator.calculate
 
-    smaBreakdowns
-        |> List.rev
-        |> List.iter (fun x ->
-
-            if endReached then
-                ()
-            else
-                match (latestValue, direction) with
-                // case where we are seeing the first value
-                | (None, None) -> 
-                    latestValue <- Some x.breakdown.percentAbove
-                    firstDate <- x.breakdown.date
-
-                // case where we are seeing the second value
-                | (Some v, None) -> (
-                    if x.breakdown.percentAbove > latestValue.Value then
-                        direction <- Some -1
-                    else
-                        direction <- Some 1
-                    )
-
-                // case where we are now iterating
-                | (Some _, Some _) ->
-                    let newDirection =
-                        match x.breakdown.percentAbove > latestValue.Value with
-                        | true -> -1
-                        | false -> 1
-                    
-                    if newDirection = direction.Value then
-                        streak <- streak + 1
-                        latestValue <- Some x.breakdown.percentAbove
-                        lastDate <- x.breakdown.date
-                    else
-                        endReached <- true
-
-                | (None, Some _) -> raise (new Exception("should not happen where latestValue is None and direction is not"))
-        )
-
-    let directionString = 
-        match direction with
-        | None -> "None"
-        | Some d ->
-            match d with
-            | -1 -> "down"
-            | 1 -> "up"
-            | _ -> "unknown"
-
-    Console.WriteLine($"{industry} {20} days sma streak: {streak} day {directionString} from {firstDate} to {lastDate}")
+    Console.WriteLine($"{industry} {20} days sma streak: {streak} day {direction} with change of {change}")
 
 | false -> ()

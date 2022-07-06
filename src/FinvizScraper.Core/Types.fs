@@ -103,13 +103,27 @@ type SMABreakdown =
 
     member this.percentAbove =
         match this.total with
-            | 0 -> 0.0
-            | _ -> (float this.above ) * 100.0 / (float this.total)
+            | 0 -> 0.0m
+            | _ -> (decimal this.above ) * 100.0m / (decimal this.total)
 
 type IndustrySMABreakdown = 
     {
         industry: string;
         breakdown: SMABreakdown;
+    }
+
+type TrendDirection =
+    | Up
+    | Down
+
+type IndustryTrend =
+    {
+        industry: string;
+        streak: int;
+        direction: TrendDirection;
+        change: decimal;
+        days: int;
+        date: System.DateTime;
     }
 
 type JobStatus =
