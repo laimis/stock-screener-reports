@@ -129,7 +129,7 @@ module Views =
 
                     generateHrefWithAttr
                         "Industries"
-                        Links.industryTrends
+                        Links.industries
                         (_class "button is-small is-primary is-pulled-right mx-1")
 
                     generateHrefWithAttr

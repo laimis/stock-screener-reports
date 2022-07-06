@@ -44,7 +44,7 @@ module Links =
     let screenersExport id = $"/screeners/{id}/export"
     
     let screenerTrends = "/screeners/trends"
-    let industryTrends = "/industries/trends"
+    let industries = "/industries"
 
     let countries = "/countries"
 
