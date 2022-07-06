@@ -56,6 +56,9 @@ module ScreenerDashboard =
                 h1 [] [
                     str $"Screener: {screener.name}"
                 ]
+                small [] [
+                    screener.url |> Views.generateHrefNewTab screener.url
+                ]
             ]
 
         let dailyChart =
