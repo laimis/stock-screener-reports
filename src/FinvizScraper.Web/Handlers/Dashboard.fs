@@ -106,20 +106,29 @@ module Dashboard =
 
     let private generateSMATrendRows() =
 
-        let numberOfPoints = 40
-        let sma20 = getDailySMABreakdown 20 numberOfPoints
-        let sma200 = getDailySMABreakdown 200 numberOfPoints
-    
-        [ ("SMA 20", sma20); ("SMA 200", sma200) ]
-            |> List.map (fun (title, data) ->
-                data
-                |> List.rev
-                |> List.map (fun breakdown ->
-                    (breakdown.date, System.Math.Round(breakdown.percentAbove, 0))
-                )
-                |> Charts.convertNameCountsToChart title Charts.Line (Some 100) Charts.smallChart FinvizConfig.getBackgroundColorDefault
-                |> div [_class "block"] 
-            )
+        let numberOfDays = 40
+        let sma20 = getDailySMABreakdown 20 numberOfDays
+        let sma200 = getDailySMABreakdown 200 numberOfDays
+
+        let datasets:list<Charts.DataSet<decimal>> = [
+            {
+                data = sma20 |> List.map (fun breakdown -> breakdown.percentAboveRounded)
+                title = "SMA 20"
+                color = Constants.ColorRed
+            };
+            {
+                data = sma200 |> List.map (fun breakdown -> breakdown.percentAboveRounded)
+                title = "SMA 200"
+                color = Constants.ColorBlue
+            }
+        ]
+
+        let labels = sma20 |> List.map (fun breakdown -> breakdown.date.ToString("MM/dd"))
+
+        [
+            div [_class "block"]
+                (Charts.generateChartElements "SMA breakdown" Charts.ChartType.Line (Some 100) Charts.smallChart labels datasets)
+        ]
 
     let private createView (screeners:list<ScreenerResultReport>) =
         

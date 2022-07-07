@@ -12,17 +12,20 @@ module Charts =
 
     let smallChart = Some (ChartHeight "80")
 
+    type DataSet<'a> =
+        {
+            data: list<'a>
+            title: string
+            color: string
+        }
+
     let private generateJSForChart
-        title
         chartType
         (maxYValue:option<int>)
         chartCanvasId
         labels
-        data
-        color =
-
-        let formattedLabels = labels |> List.map (fun l -> $"'{l}'") |> String.concat ","
-        let formattedData = data |> List.map (fun d -> $"{d}") |> String.concat ","
+        (datasets:list<DataSet<'a>>)
+        =
 
         let chartTypeString =
             match chartType with
@@ -53,17 +56,29 @@ module Charts =
                     }
                 }"
 
+        let datasetsString = 
+            datasets
+            |> List.map ( fun dataset -> 
+                let formattedData = dataset.data |> List.map (fun d -> $"{d}") |> String.concat ","
+
+                """{
+                    label: '""" + dataset.title + """',
+                    backgroundColor: '""" + dataset.color + """',
+                    borderColor: '""" + dataset.color + """',
+                    tension: 0.1,
+                    data: [""" + formattedData + """],
+                }"""
+            )
+            |> String.concat ","
+
+        let formattedLabels = labels |> List.map (fun l -> $"'{l}'") |> String.concat ","
+
         rawText ("""
             const config""" + chartCanvasId + """ = {
                 type: '""" + chartTypeString + """',
                 data: {
                     labels: [""" + formattedLabels + """],
-                    datasets: [{
-                        label: '""" + title + """',
-                        backgroundColor: '""" + color + """',
-                        borderColor: '""" + color + """',
-                        data: [""" + formattedData + """],
-                    }]
+                    datasets: [""" + datasetsString + """]
                 },
                 plugins: [ChartDataLabels],
                 options: """ + options + """
@@ -75,14 +90,14 @@ module Charts =
             """)
 
     
-    let private generateChartElements
+    let generateChartElements
         title
         chartType
         (maxYValue:option<int>)
         (height:option<ChartHeight>)
         labels
-        data
-        color =
+        datasets =
+
         let chartGuid = Guid.NewGuid().ToString("N")
         let canvasId = $"chart{chartGuid}"
 
@@ -104,7 +119,7 @@ module Charts =
         ]
 
         let chartScript = script [_type "application/javascript"] [
-            generateJSForChart title chartType maxYValue canvasId labels data color
+            generateJSForChart chartType maxYValue canvasId labels datasets
         ]
 
         [
@@ -119,7 +134,16 @@ module Charts =
         height
         color
         listOfNameCountPairs =
+
         let labels = listOfNameCountPairs |> List.map (fun ((name:DateTime),_) -> name.ToString("MMM/dd"))
         let data = listOfNameCountPairs |> List.map (fun (_,count) -> count)
 
-        generateChartElements title chartType maxYValue height labels data color
+        let datasets = [
+            {
+                data = data
+                title = title
+                color = color
+            }
+        ]
+
+        generateChartElements title chartType maxYValue height labels datasets

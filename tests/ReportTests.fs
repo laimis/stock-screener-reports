@@ -263,6 +263,12 @@ type ReportTests(output:ITestOutputHelper) =
         let results = Reports.getDailySMABreakdown 20 20
         Assert.NotEmpty(results)
 
+        // check order
+        let first = results.Item(0)
+        let last = results.Item(results.Length - 1)
+
+        Assert.True(first.date < last.date)
+
     [<Fact>]
     let ``get industry trends works`` () =
         let results = Reports.getIndustryTrends 200

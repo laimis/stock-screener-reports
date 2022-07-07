@@ -7,6 +7,7 @@ module IndustryDashboard =
     open FinvizScraper.Core
     open Giraffe.ViewEngine.Attributes
     open FinvizScraper.Web.Shared.Views
+    open FinvizScraper.Web.Shared.Charts
 
     let handler industryName =
         
@@ -48,13 +49,32 @@ module IndustryDashboard =
         ]
 
         let smaBreakdownCharts =
-            let smaBreakdownChartsInternal days =
-                industryName
-                |> Reports.getIndustrySMABreakdownsForIndustry days
-                |> List.map (fun u -> (u.breakdown.date,System.Math.Round(u.breakdown.percentAbove, 0)))
-                |> Charts.convertNameCountsToChart $"{days} EMA Trend" Charts.Line (Some 100) Charts.smallChart FinvizConfig.getBackgroundColorDefault 
+            
+            let createDataset days : DataSet<decimal> =
+                let data =
+                    industryName
+                    |> Reports.getIndustrySMABreakdownsForIndustry days
+                    |> List.map (fun u -> System.Math.Round(u.breakdown.percentAbove, 0))
 
-            (smaBreakdownChartsInternal 20) @ (smaBreakdownChartsInternal 200)
+                let color = 
+                    match days with
+                    | 20 -> Constants.ColorRed
+                    | _ -> Constants.ColorBlue
+                 
+                {
+                    data = data
+                    title = $"{days} EMA Trend"
+                    color = color
+                }
+
+            let datasets = [
+                createDataset 20;
+                createDataset 200
+            ]
+
+            let labels = industryName |> Reports.getIndustrySMABreakdownsForIndustry 20 |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
+            
+            generateChartElements "sma breakdown chart" ChartType.Line (Some 100) Charts.smallChart labels datasets
         
         // load charts for each screener
         let screeners = Storage.getScreeners()

@@ -28,13 +28,18 @@ module Constants =
     [<Literal>] 
     let NewLowsScreenerId = 31
 
+    [<Literal>]
+    let ColorBlue = "#0074D9"
+    
+    [<Literal>]
+    let ColorRed = "#FF4136"
+
 
 type ScreenerInput = {
     name:string;
     url:string;
     filename:string;
 }
-
 
 type FinvizConfig =
     {
@@ -105,6 +110,9 @@ type SMABreakdown =
         match this.total with
             | 0 -> 0.0m
             | _ -> (decimal this.above ) * 100.0m / (decimal this.total)
+
+    member this.percentAboveRounded =
+        System.Math.Round(this.percentAbove, 0)
 
 type IndustrySMABreakdown = 
     {

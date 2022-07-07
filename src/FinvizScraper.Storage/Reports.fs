@@ -559,8 +559,8 @@ module Reports =
                SELECT date,days,above,below
                 FROM DailySMABreakdowns
                 WHERE days = @days
-                ORDER BY date DESC
-                LIMIT @limit"
+                AND date >= current_date - @limit
+                ORDER BY date"
     
             cnnString
                 |> Sql.connect
