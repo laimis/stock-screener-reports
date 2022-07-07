@@ -87,6 +87,12 @@ module ScreenerManagement =
                         div [] [screener.url |> Views.generateHrefNewTab screener.url]
                     ]
                     td [] [
+                        
+                        Views.generateHrefWithAttr
+                            "Results"
+                            (screener.id |> Links.screenerLink)
+                            (_class "button is-primary is-small is-light is-pulled-left mr-2")
+
                         form [
                             _method "POST"
                             _action (Links.screenersExport screener.id)
@@ -117,7 +123,7 @@ module ScreenerManagement =
             thead [] [
                 tr [] [
                     th [] [ str "Id" ]
-                    th [] [ str "Name" ]
+                    th [ _width "400" ] [ str "Name" ]
                     th [] []
                 ]
             ]
