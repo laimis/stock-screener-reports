@@ -29,6 +29,9 @@ module Constants =
     let NewLowsScreenerId = 31
 
     [<Literal>]
+    let LargeCapCrossing200ScreenerId = 313
+
+    [<Literal>]
     let ColorBlue = "#0074D9"
     
     [<Literal>]

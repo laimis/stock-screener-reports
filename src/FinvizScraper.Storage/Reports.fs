@@ -594,12 +594,13 @@ module Reports =
             | Some (above,below) -> (above,below)
             | None -> (0,0)
 
-    let getIndustrySMABreakdownsForIndustry days industry =
+    let getIndustrySMABreakdownsForIndustry days dayOffset industry =
         let sql = @"
             SELECT industry,date,days,above,below
             FROM IndustrySMABreakdowns
             WHERE industry = @industry
             AND days = @days
+            AND date >= current_date - @dayOffset
             ORDER BY date"
 
         cnnString
@@ -608,6 +609,7 @@ module Reports =
         |> Sql.parameters [
             "@industry", Sql.string industry;
             "@days", Sql.int days;
+            "@dayOffset", Sql.int dayOffset
         ]
         |> Sql.execute industrySMABreakdownMapper
 

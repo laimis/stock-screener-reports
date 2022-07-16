@@ -48,22 +48,22 @@ module IndustryDashboard =
             industryName |> Reports.getIndustryTrend 200 |> createTrendSpan
         ]
 
-        let smaBreakdownCharts =
+        let smaBreakdownCharts (dayOffset:int) =
             
-            let createDataset days : DataSet<decimal> =
+            let createDataset smaInterval  : DataSet<decimal> =
                 let data =
                     industryName
-                    |> Reports.getIndustrySMABreakdownsForIndustry days
+                    |> Reports.getIndustrySMABreakdownsForIndustry smaInterval dayOffset
                     |> List.map (fun u -> System.Math.Round(u.breakdown.percentAbove, 0))
 
                 let color = 
-                    match days with
+                    match smaInterval with
                     | 20 -> Constants.ColorRed
                     | _ -> Constants.ColorBlue
                  
                 {
                     data = data
-                    title = $"{days} EMA Trend"
+                    title = $"{smaInterval} EMA Trend"
                     color = color
                 }
 
@@ -72,7 +72,7 @@ module IndustryDashboard =
                 createDataset 200
             ]
 
-            let labels = industryName |> Reports.getIndustrySMABreakdownsForIndustry 20 |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
+            let labels = industryName |> Reports.getIndustrySMABreakdownsForIndustry 20 dayOffset |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
             
             generateChartElements "sma breakdown chart" ChartType.Line (Some 100) Charts.smallChart labels datasets
         
@@ -83,23 +83,34 @@ module IndustryDashboard =
 
         let list = days |> Logic.businessDatesWithZeroPairs
 
-        let screenerCharts = 
+        let labels = list |> List.map (fun (u,_) -> u.ToString("MMM/dd"))
+
+        let datasets = 
             screeners
+            |> List.filter (fun u -> u.id = Constants.LargeCapCrossing200ScreenerId |> not)
             |> List.map (fun screener ->
-                let data = Reports.getDailyCountsForScreenerAndIndustry screener.id industryName days
+                let dailyCounts = Reports.getDailyCountsForScreenerAndIndustry screener.id industryName days
 
-                let mapped = data |> Map.ofList
+                let mapped = dailyCounts |> Map.ofList
 
-                list
-                |> List.map(fun (date,count) ->
-                    let found = mapped.TryFind date
-                    match found with
-                    | Some c -> (date,c)
-                    | None -> (date,count)
-                )
-                |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart (FinvizConfig.getBackgroundColorForScreenerId screener.id)
-                |> div [_class "block"] 
+                let data =
+                    list
+                    |> List.map(fun (date,count) ->
+                        let found = mapped.TryFind date
+                        match found with
+                        | Some c -> c
+                        | None -> 0
+                    )
+                
+                {
+                    data = data
+                    title = screener.name
+                    color = screener.id |> FinvizConfig.getBackgroundColorForScreenerId
+                }
             )
+
+        let screenerChart = 
+            div [ _class "block"] (generateChartElements "screener chart" Bar None smallChart labels datasets)
 
         let resultRows =
             industryName
@@ -158,6 +169,6 @@ module IndustryDashboard =
                 ]
                 breakdownDiv
                 trendDiv
-            ]::smaBreakdownCharts @ screenerCharts @ [screenerResultsTable; stockTable]
+            ]::(smaBreakdownCharts days) @ [screenerChart; screenerResultsTable; stockTable]
         
         view |> mainLayout $"Industry Dashboard for {industryName}" 
