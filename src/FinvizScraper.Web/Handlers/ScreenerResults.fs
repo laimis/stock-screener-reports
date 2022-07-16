@@ -6,14 +6,16 @@ module ScreenerResults =
     open FinvizScraper.Storage.Reports
     open FinvizScraper.Web.Shared
     open FinvizScraper.Web.Shared.Views
+    open FinvizScraper.Core
 
     let screenerResultToTr (result:ScreenerResultReportItem) =
         
         let rowAttributes = [_height "50px"]
 
         tr rowAttributes [
-            toTdWithNode (generateTickerLink result.ticker)
-            toTd result.name
+            result.date |> Utils.convertToDateString |> str |> toTdWithNode
+            result.ticker |> generateTickerLink |> toTdWithNode
+            result.name |> toTd 
             result.sector |> Links.sectorLink |> generateHref result.sector |> toTdWithNode
             result.industry |> Links.industryLink |> generateHref result.industry |> toTdWithNode
             result.country |> Links.countryLink |> generateHref result.country |> toTdWithNode
@@ -43,23 +45,24 @@ module ScreenerResults =
             )
             |> Seq.toList
         
-        headerRow::valueRows |> Views.fullWidthTable
+        headerRow::valueRows |> fullWidthTable
         
-    let calculateBreakdowns screenerResults =
+    let calculateBreakdowns (screenerResults:list<ScreenerResultReportItem>) =
         
         let convertToBreakdown (name, linkFunction, groupByProperty) =
             (name, linkFunction, (screenerResults |> List.groupBy groupByProperty |> List.sortByDescending (fun (_, list) -> list.Length)))
 
         let breakdowns = [
-            ("Sectors", Links.sectorLink, fun a -> a.sector);
-            ("Industries", Links.industryLink, fun a -> a.industry);
-            ("Countries", Links.countryLink, fun a -> a.country);
+            ("Sectors", Links.sectorLink, fun (a:ScreenerResultReportItem) -> a.sector);
+            ("Industries", Links.industryLink, fun (a:ScreenerResultReportItem) -> a.industry);
+            ("Countries", Links.countryLink, fun (a:ScreenerResultReportItem) -> a.country);
         ]
         
         breakdowns |> List.map convertToBreakdown
 
     let generateScreenerResultTable results =
-        let headers = [ 
+        let headers = [
+            "Date" 
             "Ticker"
             "Company"
             "Sector"

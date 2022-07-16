@@ -8,6 +8,7 @@ module StockDashboard =
     open Giraffe.ViewEngine.Attributes
     open Giraffe.ViewEngine.HtmlElements
     open FinvizScraper.Web.Shared.Links
+    open FinvizScraper.Web.Shared
 
 
     let private renderStockInternal (stock:Stock) =
@@ -35,12 +36,12 @@ module StockDashboard =
 
         let tableHeader =
             tr [] [
-                th [] [str "date"]
-                th [] [str "screener"]
-                th [] [str "market cap"]
-                th [] [str "price"]
-                th [] [str "change"]
-                th [] [str "volume"]
+                "date" |> toSortableHeaderCell
+                "screener" |> toSortableHeaderCell
+                "market cap" |> toSortableHeaderCell
+                "price" |> toSortableHeaderCell
+                "change" |> toSortableHeaderCell
+                "volume" |> toSortableHeaderCell
             ]
 
         let screenerResultToRow screenerResult =
@@ -55,50 +56,63 @@ module StockDashboard =
                 td [] [ screenerResult.volume |> volumeFormatted |> str ]
             ]
 
-        let days = 30
+        let days = FinvizConfig.dayRange
 
-        let recentScreenerResults = getScreenerResultsForTickerDayRange stock.ticker days
+        let businessDays = Logic.businessDatesWithZeroPairs days
 
         // group recent screenerresults by date
-        let recentScreenerResultsByDate = 
-            recentScreenerResults
-            |> List.groupBy (fun screenerResult -> screenerResult.date)
+        let recentScreenerResultsByScreener = 
+            days
+            |> getScreenerResultsForTickerDayRange stock.ticker
+            |> List.groupBy (fun screenerResult -> (screenerResult.screenerid, screenerResult.screenername))
             |> Map.ofList
+            
+        let labels = businessDays |> List.map (fun (date, _) -> date |> Utils.convertToDateString)
 
-        let rows = 
-            FinvizScraper.Web.Shared.Logic.businessDatesWithZeroPairs days
-            |> List.rev
-            |> List.collect (fun (date,_) ->
-                let screenerResults = Map.tryFind date recentScreenerResultsByDate
-                match screenerResults with
-                    | Some l -> l |> List.map screenerResultToRow
-                    | None -> [tr [] [td [_colspan "6"] [date |> Utils.convertToDateString |> str]]]
+        let datasets:list<Charts.DataSet<int>> = 
+            recentScreenerResultsByScreener
+            |> Map.toList
+            |> List.map( fun ((screenerid,screenername),results) ->
+                let data =
+                    businessDays
+                    |> List.map (fun (date, _) ->
+                        let resultsByDate =
+                            results
+                            |> List.groupBy (fun screenerResult -> screenerResult.date)
+                            |> Map.ofList
+
+                        let m = resultsByDate |> Map.tryFind date
+
+                        match m with
+                        | Some list -> list.Length
+                        | None -> 0
+                    )
+                
+                {
+                    data = data
+                    title = screenername
+                    color = screenerid |> FinvizConfig.getBackgroundColorForScreenerId
+                }
             )
+
+        let chart = Charts.generateChartElements "Screener hits" Charts.Bar (Some 1) Charts.smallChart labels datasets
 
         // another table that's just all the screener hits without day limit in case we need to see older ones
         let allScreenerResults = getScreenerResultsForTicker stock.ticker 100
         let allScreenerResultsRows = allScreenerResults |> List.map screenerResultToRow
 
-        [
-            header
-            tableHeader::rows |> fullWidthTable
+        header::chart @ [
             div [] [h2 [] [str "All Screener Results"]]
             tableHeader::allScreenerResultsRows |> fullWidthTable
         ]
-
-    let renderTicker (stock:Stock) =
-        
-        let view = renderStockInternal stock
-
-        let pageTitle = (stock.ticker |> StockTicker.value) + " - " + stock.company
-
-        view |> mainLayout pageTitle
 
     let handler ticker =
         let stockTicker = StockTicker.create ticker
         let stock = Storage.getStockByTicker stockTicker
         match stock with
         | Some stock ->
-            renderTicker stock
+            let view = renderStockInternal stock
+            let pageTitle = (stock.ticker |> StockTicker.value) + " - " + stock.company
+            view |> mainLayout pageTitle
         | None -> 
             notFound $"Stock with {ticker} symbol not found"

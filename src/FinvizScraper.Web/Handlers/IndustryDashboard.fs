@@ -130,19 +130,20 @@ module IndustryDashboard =
                 ]
             )
 
-        let tableHeader =
-            tr [] [
-                th [] [str "date"]
-                th [] [str "screener"]
-                th [] [str "ticker"]
-                th [] [str "market cap"]
-                th [] [str "price"]
-                th [] [str "change"]
-                th [] [str "volume"]
-                th [] [str "trading view"]
-            ]
+        let headerNames = [
+            "date";
+            "screener";
+            "ticker";
+            "market cap";
+            "price";
+            "change";
+            "volume";
+            "trading view"
+        ] 
+        
+        let tableHeader = tr [] (headerNames |> List.map (fun u -> u |> toSortableHeaderCell))
 
-        let screenerResultsTable = tableHeader::resultRows |> Views.fullWidthTable
+        let screenerResultsTable = tableHeader::resultRows |> fullWidthTable
         
         // get stocks in industry
         let stocks = Storage.getStocksByIndustry industryName
@@ -151,13 +152,11 @@ module IndustryDashboard =
             stocks
             |> List.map (fun stock ->
                 tr [] [
-                    td [] [
-                        stock.ticker |> StockTicker.value |> generateTickerLink
-                    ]
-                    td [] [str stock.company]
-                    td [] [ generateHref stock.sector (Links.sectorLink stock.sector) ]
-                    td [] [ generateHref stock.industry (Links.industryLink stock.industry) ]
-                    td [] [ stock.ticker |> StockTicker.value |> Links.tradingViewLink |> generateHref "Trading View" ]
+                    stock.ticker |> StockTicker.value |> generateTickerLink |> toTdWithNode
+                    stock.company |> toTd
+                    stock.sector |> Links.sectorLink |> generateHref stock.sector |> toTdWithNode
+                    stock.industry |> Links.industryLink |> generateHref stock.industry |> toTdWithNode
+                    stock.ticker |> StockTicker.value |> Links.tradingViewLink |> generateHref "Trading View" |> toTdWithNode
                 ]
             )
             |> fullWidthTable
