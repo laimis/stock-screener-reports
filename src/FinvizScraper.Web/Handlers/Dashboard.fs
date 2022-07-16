@@ -9,7 +9,7 @@ module Dashboard =
 
     let private generateScreenerResultSection (screener:ScreenerResultReport) = 
         
-        let screenerDate = screener.date.ToString("yyyy-MM-dd")
+        let screenerDate = screener.date |> Utils.convertToDateString
         
         div [_class "content"] [
             h2 [] [
@@ -74,7 +74,7 @@ module Dashboard =
 
         let industrySMABreakdowns = 
             getIndustrySMABreakdownLatestDate()
-            |> FinvizConfig.formatRunDate
+            |> Utils.convertToDateString
             |> getIndustrySMABreakdowns 200
 
         [

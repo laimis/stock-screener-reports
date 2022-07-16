@@ -51,12 +51,6 @@ type FinvizConfig =
         dbConnectionString:string;
     }
 
-    static member formatRunDate (date:System.DateTime) =
-        date.ToString("yyyy-MM-dd")
-
-    static member getRunDate() =
-        System.DateTime.Now |> FinvizConfig.formatRunDate 
-
     static member dayRange = 61
     static member industryTrendDayRange = 14
     static member sectorTrendDayRange = 14

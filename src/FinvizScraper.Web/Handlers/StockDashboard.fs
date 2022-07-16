@@ -45,7 +45,7 @@ module StockDashboard =
 
         let screenerResultToRow screenerResult =
             tr [] [
-                td [] [ screenerResult.date.ToString("yyyy-MM-dd") |> str ]
+                td [] [ screenerResult.date |> Utils.convertToDateString |> str ]
                 td [] [ 
                     (screenerResult.screenerid,screenerResult.screenername) |> generateScreenerTags
                 ]
@@ -72,7 +72,7 @@ module StockDashboard =
                 let screenerResults = Map.tryFind date recentScreenerResultsByDate
                 match screenerResults with
                     | Some l -> l |> List.map screenerResultToRow
-                    | None -> [tr [] [td [_colspan "6"] [date.ToString("yyyy-MM-dd") |> str]]]
+                    | None -> [tr [] [td [_colspan "6"] [date |> Utils.convertToDateString |> str]]]
             )
 
         // another table that's just all the screener hits without day limit in case we need to see older ones

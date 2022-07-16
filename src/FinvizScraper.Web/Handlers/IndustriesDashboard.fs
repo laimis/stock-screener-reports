@@ -12,10 +12,10 @@ module IndustriesDashboard =
 
     let private generateIndustry20And200Table() =
         let latestDate = Reports.getIndustrySMABreakdownLatestDate()
-        let formattedDate = latestDate |> FinvizConfig.formatRunDate
+        let formattedDate = latestDate |> Utils.convertToDateString
 
-        let thirtyDaysAgo = Utils.addDaysToClosestBusinessDay latestDate -30 |> FinvizConfig.formatRunDate
-        let sixtyDaysAgo = Utils.addDaysToClosestBusinessDay latestDate -60 |> FinvizConfig.formatRunDate
+        let thirtyDaysAgo = Utils.addDaysToClosestBusinessDay latestDate -30 |> Utils.convertToDateString
+        let sixtyDaysAgo = Utils.addDaysToClosestBusinessDay latestDate -60 |> Utils.convertToDateString
 
         let getIndustrySMABreakdownsAndTurnToMap date (days:int) =
             date 

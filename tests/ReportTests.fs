@@ -81,7 +81,7 @@ type ReportTests(output:ITestOutputHelper) =
 
         let screener = Reports.getLatestScreeners().Head
 
-        let results = Reports.getScreenerResults screener.screenerid (screener.date.ToString("yyyy-MM-dd"))
+        let results = screener.date |> Utils.convertToDateString |> Reports.getScreenerResults screener.screenerid
 
         Assert.NotEmpty(results)
 

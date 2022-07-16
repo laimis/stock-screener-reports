@@ -15,3 +15,9 @@ namespace FinvizScraper.Core
             | DayOfWeek.Saturday -> newDate.AddDays(2)
             | DayOfWeek.Sunday -> newDate.AddDays(1)
             | _ -> newDate
+
+        let convertToDateString (date:DateTime) =
+            date.ToString("yyyy-MM-dd")
+
+        let getRunDate() =
+            DateTime.Now |> convertToDateString 

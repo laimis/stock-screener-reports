@@ -38,7 +38,7 @@ module CountryDashboard =
             |> Reports.getScreenerResultsForCountry 50
             |> List.map (fun screenerResult ->
                 tr [] [
-                    td [] [ screenerResult.date.ToString("yyyy-MM-dd") |> str ]
+                    td [] [ screenerResult.date |> Utils.convertToDateString |> str ]
                     td [] [
                         (screenerResult.screenerid,screenerResult.screenername) |> generateScreenerTags
                     ]
