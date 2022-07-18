@@ -4,6 +4,7 @@ open Xunit
 open Xunit.Abstractions
 open System
 open FinvizScraper.Storage
+open FinvizScraper.Core
 
 type ReportTests(output:ITestOutputHelper) =
     do
@@ -244,7 +245,7 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``get industry trends for industry`` () =
-        let trends = StorageTests.testStockIndustry |> Reports.getIndustrySMABreakdownsForIndustry 20
+        let trends = StorageTests.testStockIndustry |> Reports.getIndustrySMABreakdownsForIndustry 20 FinvizConfig.dayRange
         Assert.NotEmpty(trends)
 
     [<Fact>]
@@ -276,11 +277,11 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``calculate industry trends works`` () =
-        let smaBreakdowns = Reports.getIndustrySMABreakdownsForIndustry 20 StorageTests.testStockIndustry
-        let (streak,direction, change) = FinvizScraper.Core.IndustryTrendsCalculator.calculate smaBreakdowns
+        let smaBreakdowns = StorageTests.testStockIndustry |> Reports.getIndustrySMABreakdownsForIndustry 20 FinvizConfig.dayRange
+        let (streak,direction, change) = IndustryTrendsCalculator.calculate smaBreakdowns
 
         Assert.True(streak > 0)
-        Assert.True(direction = FinvizScraper.Core.TrendDirection.Up || direction = FinvizScraper.Core.TrendDirection.Down)
+        Assert.True(direction = Up || direction = Down)
         Assert.True(change > -100m)
         Assert.True(change < 100m)
 

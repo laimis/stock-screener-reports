@@ -47,7 +47,7 @@ let saveToFile (filepath:string) content =
 let saveToDb (screenerResults:list<Screener * 'a>) =
 
     System.Console.WriteLine("Saveing to db " + screenerResults.Length.ToString() + " screener results")
-    let date = FinvizConfig.getRunDate()
+    let date = Utils.getRunDate()
     screenerResults
     |> List.iter (fun x -> Storage.saveScreenerResults date x)
     screenerResults
@@ -77,7 +77,7 @@ match runScreeners() with
 
 match runSMAUpdates() with
 | true ->     
-    let date = FinvizConfig.getRunDate()
+    let date = Utils.getRunDate()
     
     // pull above and below 20 and 200 for each industry, and store the results
     let knownIndustries = Storage.getIndustries()
@@ -109,7 +109,7 @@ match runSMAUpdates() with
             [20; 200]
             |> List.map(fun days -> 
                 
-                let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry days
+                let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry days FinvizConfig.dayRange
 
                 let (streak, direction, change) = breakdowns |> IndustryTrendsCalculator.calculate
 
@@ -147,7 +147,7 @@ match runTestReports() with
             value
 
 
-    let smaBreakdowns = Reports.getIndustrySMABreakdownsForIndustry 20 industry
+    let smaBreakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry 20 FinvizConfig.dayRange
 
     let (streak, direction, change) = smaBreakdowns |> IndustryTrendsCalculator.calculate
 
