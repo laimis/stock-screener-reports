@@ -4,7 +4,8 @@ module Links =
 
     // external links
     let tradingViewLink ticker =
-        $"https://tradingview.com/chart/kQn4rgoA/?symbol={ticker}"
+        $"https://tradingview.com/chart/EddvXZVA/?symbol={ticker}"
+        // $"https://tradingview.com/chart/kQn4rgoA/?symbol={ticker}"
 
     let bulmaCssLink = "https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css"
 
