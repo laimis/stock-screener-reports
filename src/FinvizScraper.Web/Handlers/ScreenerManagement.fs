@@ -16,10 +16,10 @@ module ScreenerManagement =
         }
 
     type ScreenerExportType =   CsvProvider<
-        Schema = "date, ticker, name, sector (string), industry (string), country (string), marketCap (decimal), price (decimal), change (decimal), volume (decimal)",
+        Schema = "date, ticker, name, sector (string), industry (string), country (string), marketCap (decimal), price (decimal), change (decimal), volume (decimal), url (string)",
         HasHeaders=false>
 
-    let header = "date, ticker, name, sector, industry, country, marketCap, price, change, volume"
+    let header = "date, ticker, name, sector, industry, country, marketCap, price, change, volume, url"
 
     let deleteHandler id =
         let screener = Storage.getScreenerById id
@@ -57,7 +57,8 @@ module ScreenerManagement =
                         r.marketCap,
                         r.price,
                         r.change,
-                        r.volume
+                        r.volume,
+                        r.ticker |> Links.tradingViewLink
                     )
                 )
 
