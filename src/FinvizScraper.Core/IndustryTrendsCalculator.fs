@@ -57,4 +57,7 @@ namespace FinvizScraper.Core
 
             let change = firstValue.Value - latestValue.Value
             
-            (streak, direction.Value, change)
+            match direction with
+            | Some s -> (streak, s, change)
+            | None -> (0, Up, 0m)
+            

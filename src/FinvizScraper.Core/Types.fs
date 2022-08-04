@@ -131,6 +131,11 @@ type IndustryTrend =
         date: System.DateTime;
     }
 
+    member this.streakRate =
+        match this.streak with
+            | 0 -> 0.0m
+            | _ -> (decimal this.change ) / (decimal this.streak)
+
 type JobStatus =
     | Success
     | Failure
