@@ -146,3 +146,10 @@ module FinvizClient =
         let below20 = $"ta_sma{days}_pb" |> fetchCountWithTA
 
         (above20,below20)
+
+    let getEarnings() =
+        
+        let before = getResults "https://finviz.com/screener.ashx?v=111&s=n_earningsbefore" |> List.map (fun r -> r.ticker, BeforeMarket)
+        let after = getResults "https://finviz.com/screener.ashx?v=111&s=n_earningsafter" |> List.map (fun r -> r.ticker, AfterMarket)
+
+        List.concat [before; after]

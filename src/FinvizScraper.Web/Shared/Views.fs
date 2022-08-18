@@ -164,6 +164,11 @@ module Views =
                     Links.bulmaCssLink |> _href
                 ]
 
+                link [
+                    _rel "stylesheet"
+                    "/node_modules/@fortawesome/fontawesome-free/css./all.min.css" |> _href
+                ]
+
                 script [ Links.chartJsLink |> _src ] []
                 script [ Links.chartJsDatalabelsLink |> _src ] []
                 script [ Links.sortingJsLink |> _src ] []

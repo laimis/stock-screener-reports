@@ -144,3 +144,7 @@ type JobName =
     | ScreenerJob
     | IndustryTrendsJob
     | TestJob
+
+type EarningsTime =
+    | BeforeMarket
+    | AfterMarket

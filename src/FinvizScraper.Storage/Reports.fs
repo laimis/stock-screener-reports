@@ -203,6 +203,19 @@ module Reports =
                 mapScreenerResultReportItem reader
             )
 
+    let getTickersWithEarnings date =
+        let sql = @$"SELECT ticker FROM earnings
+            WHERE date = date(@date)"
+        let results =
+            cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters [
+                "@date", Sql.string date
+            ]
+            |> Sql.execute (fun reader -> reader.string "ticker")
+        results
+    
     let getScreenerResults id date =
 
         let sql = @$"
