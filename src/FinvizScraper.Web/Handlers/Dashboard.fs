@@ -69,8 +69,8 @@ module Dashboard =
 
     let private generateIndustryTrendsRow days =
 
-        let gainers = Constants.NewHighsScreenerId |> getTopIndustriesForScreener days |> List.take 5
-        let losers = Constants.NewLowsScreenerId |> getTopIndustriesForScreener days |> List.take 5
+        let gainers = [Constants.NewHighsScreenerId] |> getTopIndustriesForScreeners days |> List.take 5
+        let losers = [Constants.NewLowsScreenerId] |> getTopIndustriesForScreeners days |> List.take 5
 
         let industrySMABreakdowns = 
             getIndustrySMABreakdownLatestDate()
@@ -80,10 +80,10 @@ module Dashboard =
         [
             div [_class "columns"] [
                 div [ _class "column" ] [
-                    generateTrendsTable "Industries Trending Up" gainers industrySMABreakdowns
+                    generateTrendsTable "Industries with New Highs" gainers industrySMABreakdowns
                 ]
                 div [ _class "column" ] [
-                    generateTrendsTable "Industries Trending Down" losers industrySMABreakdowns
+                    generateTrendsTable "Industries with New Lows" losers industrySMABreakdowns
                 ]
             ]
         ]

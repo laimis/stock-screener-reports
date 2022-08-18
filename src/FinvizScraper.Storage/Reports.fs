@@ -493,7 +493,7 @@ module Reports =
             ]
             |> Sql.execute mapScreenerResultReportItem
 
-    let getTopIndustriesForScreener days screenerId =
+    let getTopIndustriesForScreeners days screenerIds =
 
         let sql = @$"
             SELECT 
@@ -501,7 +501,7 @@ module Reports =
             FROM screenerresults
             JOIN stocks ON stocks.id = screenerresults.stockid
             WHERE 
-                screenerresults.screenerid = @screenerid
+                screenerresults.screenerid = ANY(@screenerid)
                 AND screenerresults.date >= current_date - @days
             GROUP BY industry
             ORDER BY count DESC"
@@ -510,7 +510,7 @@ module Reports =
             |> Sql.connect
             |> Sql.query sql
             |> Sql.parameters [
-                "@screenerid", Sql.int screenerId;
+                "@screenerid", screenerIds |> List.toArray |> Sql.intArray;
                 "@days", Sql.int days
             ]
             |> Sql.execute (fun reader -> 

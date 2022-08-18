@@ -182,8 +182,8 @@ type ReportTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``getting trending industries works``() =
         let results = 
-            FinvizScraper.Core.Constants.NewHighsScreenerId
-            |> Reports.getTopIndustriesForScreener 14
+            [Constants.NewHighsScreenerId]
+            |> Reports.getTopIndustriesForScreeners 14
 
         Assert.NotEmpty(results)
 
