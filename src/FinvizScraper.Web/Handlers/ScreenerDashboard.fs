@@ -79,7 +79,7 @@ module ScreenerDashboard =
 
         let resultsTable =
             results
-            |> ScreenerResults.generateScreenerResultTable
+            |> ScreenerResults.generateScreenerResultTable []
 
         headerWithCharts @ breakdownElements @ [resultsTable]
 

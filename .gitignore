@@ -6,5 +6,6 @@ cache/
 .fake
 .vscode/
 *secret*
+node_modules/
 
 *.json

@@ -42,6 +42,11 @@ module Storage =
             | Success _ -> "success"
             | Failure _ -> "failure"
 
+    let private toEarningTimeString earningsTime =
+        match earningsTime with
+            | BeforeMarket _ -> "beforemarket"
+            | AfterMarket _ -> "aftermarket"
+
     let singleOrThrow message results =
         match results with
         | [] -> None
@@ -288,6 +293,19 @@ module Storage =
             "@days", Sql.int days;
             "@above", Sql.int above;
             "@below", Sql.int below;
+        ]
+        |> Sql.executeNonQuery
+
+    let saveEarningsDate ticker date earningsTime =
+        let sql = @"INSERT INTO earnings (ticker,date,earningsTime) VALUES (@ticker,date(@date),@earningsTime)
+            ON CONFLICT (ticker,date) DO NOTHING"
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@ticker", ticker |> StockTicker.value |> Sql.string;
+            "@date", Sql.string date;
+            "@earningsTime", earningsTime |> toEarningTimeString |> Sql.string
         ]
         |> Sql.executeNonQuery
 

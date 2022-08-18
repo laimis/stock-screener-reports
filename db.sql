@@ -94,3 +94,11 @@ create table industrytrends (
     days numeric not null,
     UNIQUE(industry, days)
 );
+
+
+create table earnings (
+    ticker text not null,
+    "date" timestamp not null,
+    earningstime text not null,
+    primary key (ticker, "date")
+);

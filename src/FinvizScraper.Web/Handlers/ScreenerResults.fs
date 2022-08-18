@@ -8,12 +8,20 @@ module ScreenerResults =
     open FinvizScraper.Web.Shared.Views
     open FinvizScraper.Core
 
-    let screenerResultToTr (result:ScreenerResultReportItem) =
+    let screenerResultToTr tickersWithEarnings (result:ScreenerResultReportItem) =
         
+        let hasEarnings = tickersWithEarnings |> List.contains result.ticker
+
+        let earningsIcon =
+            match hasEarnings with
+            | true -> i [_class "fa-solid fa-e"] []
+            | false -> i [] []
+
         let rowAttributes = [_height "50px"]
 
         tr rowAttributes [
             result.date |> Utils.convertToDateString |> str |> toTdWithNode
+            earningsIcon |> toTdWithNode
             result.ticker |> generateTickerLink |> toTdWithNode
             result.name |> toTd 
             result.sector |> Links.sectorLink |> generateHref result.sector |> toTdWithNode
@@ -60,9 +68,10 @@ module ScreenerResults =
         
         breakdowns |> List.map convertToBreakdown
 
-    let generateScreenerResultTable results =
+    let generateScreenerResultTable tickersWithEarnings results =
         let headers = [
-            "Date" 
+            "Date"
+            "" 
             "Ticker"
             "Company"
             "Sector"
@@ -78,13 +87,16 @@ module ScreenerResults =
         let headerCells = headers |> List.map toSortableHeaderCell
 
         results
-            |> List.map screenerResultToTr
+            |> List.map (fun r -> screenerResultToTr tickersWithEarnings r)
             |> List.append [tr [] headerCells]
             |> fullWidthTable
 
-    let private view (screener:FinvizScraper.Core.Screener) (results:list<ScreenerResultReportItem>) =
+    let private view
+        (screener:FinvizScraper.Core.Screener)
+        (results:list<ScreenerResultReportItem>)
+        (tickersWithEarnings:list<string>) =
 
-        let screenerTable = results |> generateScreenerResultTable
+        let screenerTable = results |> generateScreenerResultTable tickersWithEarnings
 
         let breakdowns = calculateBreakdowns results
                 
@@ -128,8 +140,16 @@ module ScreenerResults =
         let byIdOption = FinvizScraper.Storage.Storage.getScreenerById id
         match byIdOption with
         | Some screener -> 
+            let dateBefore = (Utils.subtractDaysToClosestBusinessDay (System.DateTime.Parse(date)) 1) |> Utils.convertToDateString
+
+            let earningsTickers =
+                date
+                |> getTickersWithEarnings
+                |> List.append (dateBefore |> getTickersWithEarnings)
+                |> List.distinct
+
             let screenerResults = getScreenerResults screener.id date
-            let view      = view screener screenerResults
-            view |> Views.mainLayout $"Screener: {screener.name}"
+            let view      = view screener screenerResults earningsTickers
+            view |> mainLayout $"Screener: {screener.name}"
         | None ->
-            Views.notFound "Screener not found"
+            notFound "Screener not found"

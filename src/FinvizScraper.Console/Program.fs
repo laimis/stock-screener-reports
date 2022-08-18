@@ -69,6 +69,14 @@ match runScreeners() with
         Storage.getScreeners()
         |> List.map fetchScreenerResults
         |> saveToDb
+
+    let earnings = FinvizClient.getEarnings()
+
+    earnings
+        |> List.iter (fun x ->
+            let (ticker,earningsTime) = x
+            Storage.saveEarningsDate ticker (Utils.getRunDate()) earningsTime |> ignore
+        )
     
     Storage.saveJobStatus ScreenerJob (DateTimeOffset.UtcNow) Success $"Ran {screenerResults.Length} screeners" |> ignore
 

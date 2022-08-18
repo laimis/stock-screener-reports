@@ -9,6 +9,7 @@
     <Compile Include="StorageTests.fs" />
     <Compile Include="ReportTests.fs" />
     <Compile Include="FinvizClientTests.fs" />
+    <Compile Include="UtilsTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

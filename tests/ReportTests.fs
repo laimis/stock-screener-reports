@@ -289,3 +289,8 @@ type ReportTests(output:ITestOutputHelper) =
     let ``get industry trend works`` () =
         let trend = Reports.getIndustryTrend 20 StorageTests.testStockIndustry
         Assert.True(trend.IsSome)
+
+    [<Fact>]
+    let ``get tickers with earnings works`` () =
+        let results = Reports.getTickersWithEarnings "2022-08-18"
+        Assert.NotEmpty(results)
