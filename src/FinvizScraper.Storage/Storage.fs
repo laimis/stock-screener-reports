@@ -298,7 +298,7 @@ module Storage =
 
     let saveEarningsDate ticker date earningsTime =
         let sql = @"INSERT INTO earnings (ticker,date,earningsTime) VALUES (@ticker,date(@date),@earningsTime)
-            ON CONFLICT (ticker) DO UPDATE SET earningsTime = @earningsTime, date = date(@date)"
+            ON CONFLICT (ticker,date) DO NOTHING"
         cnnString
         |> Sql.connect
         |> Sql.query sql

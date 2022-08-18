@@ -97,7 +97,8 @@ create table industrytrends (
 
 
 create table earnings (
-    ticker text not null primary key,
+    ticker text not null,
     "date" timestamp not null,
-    earningstime text not null
+    earningstime text not null,
+    primary key (ticker, "date")
 );

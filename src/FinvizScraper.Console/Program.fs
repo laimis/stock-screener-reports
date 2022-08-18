@@ -65,10 +65,10 @@ match config.dbConnectionString with
 match runScreeners() with
 | true ->
     
-    // let screenerResults =
-    //     Storage.getScreeners()
-    //     |> List.map fetchScreenerResults
-    //     |> saveToDb
+    let screenerResults =
+        Storage.getScreeners()
+        |> List.map fetchScreenerResults
+        |> saveToDb
 
     let earnings = FinvizClient.getEarnings()
 
@@ -78,7 +78,7 @@ match runScreeners() with
             Storage.saveEarningsDate ticker (Utils.getRunDate()) earningsTime |> ignore
         )
     
-    // Storage.saveJobStatus ScreenerJob (DateTimeOffset.UtcNow) Success $"Ran {screenerResults.Length} screeners" |> ignore
+    Storage.saveJobStatus ScreenerJob (DateTimeOffset.UtcNow) Success $"Ran {screenerResults.Length} screeners" |> ignore
 
 | false -> ()
 
