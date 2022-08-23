@@ -1,4 +1,4 @@
-﻿namespace FinvizScraper.Analysis
+﻿namespace StockScreenerReports.Analysis
 
 module Simulation =
 
