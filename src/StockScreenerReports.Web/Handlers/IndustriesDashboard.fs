@@ -7,7 +7,7 @@ module IndustriesDashboard =
     open StockScreenerReports.Storage
     open StockScreenerReports.Web.Shared.Views
     open Giraffe.ViewEngine
-    open FinvizScraper.Core
+    open StockScreenerReports.Core
     
 
     let private generateIndustry20And200Table() =
@@ -48,7 +48,7 @@ module IndustriesDashboard =
             )
             |> List.map (fun (key, iu) ->
 
-                let toSMACells (update:FinvizScraper.Core.IndustrySMABreakdown) trend =
+                let toSMACells (update:StockScreenerReports.Core.IndustrySMABreakdown) trend =
                     [
                         td [] [ $"{update.breakdown.above} / {update.breakdown.total}" |> str  ]
                         td [] [ System.String.Format("{0:N2}%", update.breakdown.percentAbove) |> str ]

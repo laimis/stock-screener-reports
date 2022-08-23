@@ -5,7 +5,7 @@ module CountryDashboard =
     open Giraffe.ViewEngine.HtmlElements
     open StockScreenerReports.Storage
     open Giraffe.ViewEngine.Attributes
-    open FinvizScraper.Core
+    open StockScreenerReports.Core
     open StockScreenerReports.Web.Shared.Views
 
     let handler countryName =

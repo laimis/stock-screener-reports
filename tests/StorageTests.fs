@@ -2,7 +2,7 @@ module StorageTests
 
 open Xunit
 open Xunit.Abstractions
-open FinvizScraper.Core
+open StockScreenerReports.Core
 open StockScreenerReports.Storage
 
 let testScreenerName    = "New Highs, 1.5x volume, >$10"

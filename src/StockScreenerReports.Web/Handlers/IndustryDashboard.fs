@@ -1,7 +1,7 @@
 namespace StockScreenerReports.Web.Handlers
 
 module IndustryDashboard =
-    open FinvizScraper.Core
+    open StockScreenerReports.Core
     open Giraffe.ViewEngine.Attributes
     open Giraffe.ViewEngine.HtmlElements
     open StockScreenerReports.Storage
@@ -12,7 +12,7 @@ module IndustryDashboard =
     let handler industryName =
         
         // load industry trends
-        let createBreakdownSpan (breakdown:option<FinvizScraper.Core.IndustrySMABreakdown>) =
+        let createBreakdownSpan (breakdown:option<StockScreenerReports.Core.IndustrySMABreakdown>) =
             let desc = 
                 match breakdown with
                 | None -> "No SMA breakdown found"

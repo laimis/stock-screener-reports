@@ -12,7 +12,7 @@ type Price = {
 type Position = {
     entry:DateTime;
     exit:DateTime;
-    ticker:FinvizScraper.Core.StockTicker.T;
+    ticker:StockScreenerReports.Core.StockTicker.T;
     entryPrice:decimal;
     exitPrice:decimal;
     numberOfShares:int

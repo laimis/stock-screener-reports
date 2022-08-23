@@ -1,5 +1,5 @@
 ﻿open System
-open FinvizScraper.Core
+open StockScreenerReports.Core
 open FinvizScraper.FinvizClient
 open StockScreenerReports.Storage
 

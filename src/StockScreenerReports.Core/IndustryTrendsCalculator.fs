@@ -1,4 +1,4 @@
-namespace FinvizScraper.Core
+namespace StockScreenerReports.Core
 
     module IndustryTrendsCalculator =
         open System

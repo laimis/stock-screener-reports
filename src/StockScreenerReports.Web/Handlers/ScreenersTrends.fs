@@ -5,7 +5,7 @@ module ScreenersTrends =
     open Giraffe.ViewEngine
     open StockScreenerReports.Web.Shared
     open StockScreenerReports.Storage
-    open FinvizScraper.Core
+    open StockScreenerReports.Core
     
     let private listOfBusinessDates days = 
             [-days .. 0]

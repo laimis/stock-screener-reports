@@ -6,7 +6,7 @@ module SectorDashboard =
     open StockScreenerReports.Storage
     open Giraffe.ViewEngine.Attributes
     open StockScreenerReports.Web.Shared.Views
-    open FinvizScraper.Core
+    open StockScreenerReports.Core
 
     let handler sectorName =
         let screeners = Storage.getScreeners()
@@ -72,7 +72,7 @@ module SectorDashboard =
             |> List.map (fun stock ->
                 tr [] [
                     td [] [
-                        stock.ticker |> FinvizScraper.Core.StockTicker.value |> Views.generateTickerLink
+                        stock.ticker |> StockScreenerReports.Core.StockTicker.value |> Views.generateTickerLink
                     ]
                     td [] [str stock.company]
                     td [] [ generateHref stock.sector (Links.sectorLink stock.sector) ]

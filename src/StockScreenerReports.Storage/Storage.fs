@@ -3,7 +3,7 @@ namespace StockScreenerReports.Storage
 module Storage =
 
     open Npgsql.FSharp
-    open FinvizScraper.Core
+    open StockScreenerReports.Core
 
     let private defaultLogger (message:string) = ()
 

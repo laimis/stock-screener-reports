@@ -6,7 +6,7 @@ module ScreenerResults =
     open StockScreenerReports.Storage.Reports
     open StockScreenerReports.Web.Shared
     open StockScreenerReports.Web.Shared.Views
-    open FinvizScraper.Core
+    open StockScreenerReports.Core
 
     let screenerResultToTr tickersWithEarnings (result:ScreenerResultReportItem) =
         
@@ -92,7 +92,7 @@ module ScreenerResults =
             |> fullWidthTable
 
     let private view
-        (screener:FinvizScraper.Core.Screener)
+        (screener:StockScreenerReports.Core.Screener)
         (results:list<ScreenerResultReportItem>)
         (tickersWithEarnings:list<string>) =
 

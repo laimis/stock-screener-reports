@@ -55,7 +55,7 @@ module Reports =
             screenername = (reader.string "screenername");
         }
 
-    let private industrySMABreakdownMapper (reader:RowReader) : FinvizScraper.Core.IndustrySMABreakdown =
+    let private industrySMABreakdownMapper (reader:RowReader) : StockScreenerReports.Core.IndustrySMABreakdown =
         {
             industry = reader.string "industry";
             breakdown = (
@@ -68,22 +68,22 @@ module Reports =
             );
         }
 
-    let private industryTrendMapper (reader:RowReader) : FinvizScraper.Core.IndustryTrend =
+    let private industryTrendMapper (reader:RowReader) : StockScreenerReports.Core.IndustryTrend =
         {
             industry = reader.string "industry";
             streak = reader.int "streak";
             direction = (
                 match reader.string "direction" with
-                    | "up" -> FinvizScraper.Core.Up
-                    | "down" -> FinvizScraper.Core.Down
-                    | _ -> FinvizScraper.Core.Up
+                    | "up" -> StockScreenerReports.Core.Up
+                    | "down" -> StockScreenerReports.Core.Down
+                    | _ -> StockScreenerReports.Core.Up
             );
             days = reader.int "days";
             date = reader.dateTime "date";
             change = reader.decimal "change";
         }
 
-    let private smaBreakdownMapper (reader:RowReader) : FinvizScraper.Core.SMABreakdown =
+    let private smaBreakdownMapper (reader:RowReader) : StockScreenerReports.Core.SMABreakdown =
         {
             date = (reader.dateTime "date");
             days = (reader.int "days");
@@ -372,7 +372,7 @@ module Reports =
     let getDailyCountsForScreenerAndCountry id country days =
         getDailyCountsForScreenerAndStockFilter id "country" country days
 
-    let getScreenerResultsForTickerDayRange (ticker:FinvizScraper.Core.StockTicker.T) days =
+    let getScreenerResultsForTickerDayRange (ticker:StockScreenerReports.Core.StockTicker.T) days =
             
         let sql = @$"
             SELECT 
@@ -391,12 +391,12 @@ module Reports =
             |> Sql.connect
             |> Sql.query sql
             |> Sql.parameters [
-                "@ticker", ticker |> FinvizScraper.Core.StockTicker.value |> Sql.string
+                "@ticker", ticker |> StockScreenerReports.Core.StockTicker.value |> Sql.string
                 "@days", Sql.int days
             ]
             |> Sql.execute mapScreenerResultReportItem
 
-    let getScreenerResultsForTicker (ticker:FinvizScraper.Core.StockTicker.T) limit =
+    let getScreenerResultsForTicker (ticker:StockScreenerReports.Core.StockTicker.T) limit =
             
         let sql = @$"
             SELECT 
@@ -415,7 +415,7 @@ module Reports =
             |> Sql.connect
             |> Sql.query sql
             |> Sql.parameters [
-                "@ticker", ticker |> FinvizScraper.Core.StockTicker.value |> Sql.string
+                "@ticker", ticker |> StockScreenerReports.Core.StockTicker.value |> Sql.string
                 "@limit", Sql.int limit
             ]
             |> Sql.execute mapScreenerResultReportItem

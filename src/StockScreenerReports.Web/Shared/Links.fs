@@ -51,6 +51,6 @@ module Links =
     let industryFinvizLink (industryName:string) =
         let value =
             industryName
-            |> FinvizScraper.Core.Utils.cleanIndustry
+            |> StockScreenerReports.Core.Utils.cleanIndustry
         
         $"https://finviz.com/screener.ashx?v=111&f=ind_" + value

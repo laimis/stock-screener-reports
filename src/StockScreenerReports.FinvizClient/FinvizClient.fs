@@ -1,7 +1,7 @@
 namespace FinvizScraper.FinvizClient
 
 module FinvizClient =
-    open FinvizScraper.Core
+    open StockScreenerReports.Core
 
     let private fetchScreenerHtml (url:string) =
         // make sure that we sleep a bit before each request
@@ -136,7 +136,7 @@ module FinvizClient =
             | _ -> System.Int32.Parse(totalText |> removeTotalMarker)
 
     let getResultCountForIndustryAboveAndBelowSMA days industry =
-        let cleaned = industry |> FinvizScraper.Core.Utils.cleanIndustry
+        let cleaned = industry |> StockScreenerReports.Core.Utils.cleanIndustry
 
         let fetchCountWithTA ta =
             $"https://finviz.com/screener.ashx?v=111&f=ind_{cleaned},{ta}"

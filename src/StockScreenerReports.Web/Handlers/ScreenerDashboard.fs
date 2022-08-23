@@ -2,7 +2,7 @@ namespace StockScreenerReports.Web.Handlers
 
 module ScreenerDashboard =
 
-    open FinvizScraper.Core
+    open StockScreenerReports.Core
     open Giraffe.ViewEngine
     open StockScreenerReports.Storage
     open StockScreenerReports.Web.Shared
@@ -47,7 +47,7 @@ module ScreenerDashboard =
             breakdownDiv
         ]
 
-    let generateLayoutForScreener (screener:FinvizScraper.Core.Screener) =
+    let generateLayoutForScreener (screener:StockScreenerReports.Core.Screener) =
 
         let days = FinvizConfig.dayRange
 

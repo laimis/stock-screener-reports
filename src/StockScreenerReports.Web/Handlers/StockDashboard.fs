@@ -1,7 +1,7 @@
 namespace StockScreenerReports.Web.Handlers
 
 module StockDashboard =
-    open FinvizScraper.Core
+    open StockScreenerReports.Core
     open StockScreenerReports.Storage
     open StockScreenerReports.Storage.Reports
     open StockScreenerReports.Web.Shared.Views

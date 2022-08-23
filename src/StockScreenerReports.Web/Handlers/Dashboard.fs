@@ -5,7 +5,7 @@ module Dashboard =
     open Giraffe.ViewEngine
     open StockScreenerReports.Storage.Reports
     open StockScreenerReports.Web.Shared
-    open FinvizScraper.Core
+    open StockScreenerReports.Core
 
     let private generateScreenerResultSection (screener:ScreenerResultReport) = 
         
