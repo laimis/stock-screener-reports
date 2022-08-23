@@ -1,4 +1,4 @@
-namespace FinvizScraper.FinvizClient
+namespace StockScreenerReports.FinvizClient
 
 module FinvizClient =
     open StockScreenerReports.Core

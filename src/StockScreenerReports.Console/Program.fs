@@ -1,6 +1,6 @@
 ﻿open System
 open StockScreenerReports.Core
-open FinvizScraper.FinvizClient
+open StockScreenerReports.FinvizClient
 open StockScreenerReports.Storage
 
 let readConfig() =

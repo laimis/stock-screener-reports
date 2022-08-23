@@ -1,4 +1,4 @@
-module FinvizScraper.Web.App
+module StockScreenerReports.Web.App
 
 open System
 open System.IO
