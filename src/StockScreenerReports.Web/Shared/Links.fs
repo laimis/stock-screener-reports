@@ -1,4 +1,4 @@
-namespace FinvizScraper.Web.Shared
+namespace StockScreenerReports.Web.Shared
 
 module Links =
 

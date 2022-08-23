@@ -1,12 +1,12 @@
-namespace FinvizScraper.Web.Handlers
+namespace StockScreenerReports.Web.Handlers
 
 module CountryDashboard =
-    open FinvizScraper.Web.Shared
+    open StockScreenerReports.Web.Shared
     open Giraffe.ViewEngine.HtmlElements
-    open FinvizScraper.Storage
+    open StockScreenerReports.Storage
     open Giraffe.ViewEngine.Attributes
     open FinvizScraper.Core
-    open FinvizScraper.Web.Shared.Views
+    open StockScreenerReports.Web.Shared.Views
 
     let handler countryName =
         let screeners = Storage.getScreeners()

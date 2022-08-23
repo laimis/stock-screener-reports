@@ -1,10 +1,10 @@
-namespace FinvizScraper.Web.Handlers
+namespace StockScreenerReports.Web.Handlers
 
 module ScreenersTrends =
 
     open Giraffe.ViewEngine
-    open FinvizScraper.Web.Shared
-    open FinvizScraper.Storage
+    open StockScreenerReports.Web.Shared
+    open StockScreenerReports.Storage
     open FinvizScraper.Core
     
     let private listOfBusinessDates days = 

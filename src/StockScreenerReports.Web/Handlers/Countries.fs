@@ -1,10 +1,10 @@
-namespace FinvizScraper.Web.Handlers
+namespace StockScreenerReports.Web.Handlers
 
 module Countries =
-    open FinvizScraper.Web.Shared
+    open StockScreenerReports.Web.Shared
     open Giraffe.ViewEngine.HtmlElements
     open Giraffe.ViewEngine.Attributes
-    open FinvizScraper.Storage
+    open StockScreenerReports.Storage
 
     let handler()  =
         

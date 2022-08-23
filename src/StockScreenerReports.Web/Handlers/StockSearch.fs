@@ -1,4 +1,4 @@
-namespace FinvizScraper.Web.Handlers
+namespace StockScreenerReports.Web.Handlers
 
 open Giraffe
 

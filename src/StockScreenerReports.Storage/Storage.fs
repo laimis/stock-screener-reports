@@ -1,4 +1,4 @@
-namespace FinvizScraper.Storage
+namespace StockScreenerReports.Storage
 
 module Storage =
 

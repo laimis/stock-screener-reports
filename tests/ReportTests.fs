@@ -3,7 +3,7 @@ module ReportTests
 open Xunit
 open Xunit.Abstractions
 open System
-open FinvizScraper.Storage
+open StockScreenerReports.Storage
 open FinvizScraper.Core
 
 type ReportTests(output:ITestOutputHelper) =

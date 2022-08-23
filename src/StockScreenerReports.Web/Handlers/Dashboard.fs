@@ -1,10 +1,10 @@
-namespace FinvizScraper.Web.Handlers
+namespace StockScreenerReports.Web.Handlers
 
 module Dashboard =
 
     open Giraffe.ViewEngine
-    open FinvizScraper.Storage.Reports
-    open FinvizScraper.Web.Shared
+    open StockScreenerReports.Storage.Reports
+    open StockScreenerReports.Web.Shared
     open FinvizScraper.Core
 
     let private generateScreenerResultSection (screener:ScreenerResultReport) = 

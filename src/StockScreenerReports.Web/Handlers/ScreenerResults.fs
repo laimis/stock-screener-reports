@@ -1,11 +1,11 @@
-namespace FinvizScraper.Web.Handlers
+namespace StockScreenerReports.Web.Handlers
 
 module ScreenerResults =
 
     open Giraffe.ViewEngine
-    open FinvizScraper.Storage.Reports
-    open FinvizScraper.Web.Shared
-    open FinvizScraper.Web.Shared.Views
+    open StockScreenerReports.Storage.Reports
+    open StockScreenerReports.Web.Shared
+    open StockScreenerReports.Web.Shared.Views
     open FinvizScraper.Core
 
     let screenerResultToTr tickersWithEarnings (result:ScreenerResultReportItem) =
@@ -137,7 +137,7 @@ module ScreenerResults =
     let handler ((id:int),(date:string))  = 
         
         // get screeners, render them in HTML
-        let byIdOption = FinvizScraper.Storage.Storage.getScreenerById id
+        let byIdOption = StockScreenerReports.Storage.Storage.getScreenerById id
         match byIdOption with
         | Some screener -> 
             let dateBefore = (Utils.subtractDaysToClosestBusinessDay (System.DateTime.Parse(date)) 1) |> Utils.convertToDateString

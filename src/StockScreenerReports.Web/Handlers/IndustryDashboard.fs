@@ -1,13 +1,13 @@
-namespace FinvizScraper.Web.Handlers
+namespace StockScreenerReports.Web.Handlers
 
 module IndustryDashboard =
-    open FinvizScraper.Web.Shared
-    open Giraffe.ViewEngine.HtmlElements
-    open FinvizScraper.Storage
     open FinvizScraper.Core
     open Giraffe.ViewEngine.Attributes
-    open FinvizScraper.Web.Shared.Views
-    open FinvizScraper.Web.Shared.Charts
+    open Giraffe.ViewEngine.HtmlElements
+    open StockScreenerReports.Storage
+    open StockScreenerReports.Web.Shared
+    open StockScreenerReports.Web.Shared.Charts
+    open StockScreenerReports.Web.Shared.Views
 
     let handler industryName =
         

@@ -1,11 +1,11 @@
-namespace FinvizScraper.Web.Handlers
+namespace StockScreenerReports.Web.Handlers
 
 module IndustriesDashboard =
     open Giraffe
-    open FinvizScraper.Web.Shared
+    open StockScreenerReports.Web.Shared
     open Giraffe.ViewEngine.HtmlElements
-    open FinvizScraper.Storage
-    open FinvizScraper.Web.Shared.Views
+    open StockScreenerReports.Storage
+    open StockScreenerReports.Web.Shared.Views
     open Giraffe.ViewEngine
     open FinvizScraper.Core
     

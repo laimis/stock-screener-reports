@@ -1,14 +1,14 @@
-namespace FinvizScraper.Web.Handlers
+namespace StockScreenerReports.Web.Handlers
 
 module StockDashboard =
     open FinvizScraper.Core
-    open FinvizScraper.Storage
-    open FinvizScraper.Storage.Reports
-    open FinvizScraper.Web.Shared.Views
+    open StockScreenerReports.Storage
+    open StockScreenerReports.Storage.Reports
+    open StockScreenerReports.Web.Shared.Views
     open Giraffe.ViewEngine.Attributes
     open Giraffe.ViewEngine.HtmlElements
-    open FinvizScraper.Web.Shared.Links
-    open FinvizScraper.Web.Shared
+    open StockScreenerReports.Web.Shared.Links
+    open StockScreenerReports.Web.Shared
 
 
     let private renderStockInternal (stock:Stock) =

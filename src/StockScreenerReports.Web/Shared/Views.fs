@@ -1,8 +1,8 @@
-namespace FinvizScraper.Web.Shared
+namespace StockScreenerReports.Web.Shared
 
 module Views =
     open Giraffe.ViewEngine
-    open FinvizScraper.Web.Shared
+    open StockScreenerReports.Web.Shared
 
     let billion = 1_000_000_000m
     let million = 1_000_000m
@@ -214,6 +214,6 @@ module Views =
         ]
 
     let genericJobStatusGet jobName =
-            match (FinvizScraper.Storage.Storage.getLatestJobStatus jobName) with
+            match (StockScreenerReports.Storage.Storage.getLatestJobStatus jobName) with
                 | Some (message, timestamp) -> $"{message} @ {timestamp}"
                 | None -> $"No results found for {jobName} found"

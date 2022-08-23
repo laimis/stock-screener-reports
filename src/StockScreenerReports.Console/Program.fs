@@ -1,7 +1,7 @@
 ﻿open System
 open FinvizScraper.Core
 open FinvizScraper.FinvizClient
-open FinvizScraper.Storage
+open StockScreenerReports.Storage
 
 let readConfig() =
     let args = Environment.GetCommandLineArgs()

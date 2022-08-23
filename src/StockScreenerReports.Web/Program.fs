@@ -9,9 +9,9 @@ open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.DependencyInjection
 open Giraffe
-open FinvizScraper.Web.Handlers
-open FinvizScraper.Storage
-open FinvizScraper.Web.Shared
+open StockScreenerReports.Web.Handlers
+open StockScreenerReports.Storage
+open StockScreenerReports.Web.Shared
 
 let webApp =
     choose [
