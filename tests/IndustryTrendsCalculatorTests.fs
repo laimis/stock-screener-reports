@@ -2,7 +2,7 @@ module IndustryTrendsCalculatorTests
 
 open Xunit.Abstractions
 open Xunit
-open FinvizScraper.Core
+open StockScreenerReports.Core
 open System
 
 type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =

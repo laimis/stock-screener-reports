@@ -3,7 +3,7 @@ module UtilsTests
 open Xunit
 open Xunit.Abstractions
 open System
-open FinvizScraper.Core
+open StockScreenerReports.Core
 
 type UtilsTests(output:ITestOutputHelper) =
 

@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>StockScreenerReports.Web.App</AssemblyName>
+    <EnableDefaultContentItems>false</EnableDefaultContentItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="FSharp.Data" Version="4.2.8" />
+    <PackageReference Include="Giraffe" Version="5.0.0" />
+    <PackageReference Include="Giraffe.ViewEngine" Version="1.4.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
+    <PackageReference Include="Ply" Version="0.3.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Shared\Links.fs" />
+    <Compile Include="Shared\Logic.fs" />
+    <Compile Include="Shared\Charts.fs" />
+    <Compile Include="Shared\Views.fs" />
+    <Compile Include="Handlers\Dashboard.fs" />
+    <Compile Include="Handlers\Countries.fs" />
+    <Compile Include="Handlers\CountryDashboard.fs" />
+    <Compile Include="Handlers\IndustryDashboard.fs" />
+    <Compile Include="Handlers\IndustriesDashboard.fs" />
+    <Compile Include="Handlers\ScreenerResults.fs" />
+    <Compile Include="Handlers\ScreenerDashboard.fs" />
+    <Compile Include="Handlers\ScreenerManagement.fs" />
+    <Compile Include="Handlers\ScreenersTrends.fs" />
+    <Compile Include="Handlers\SectorDashboard.fs" />
+    <Compile Include="Handlers\StockDashboard.fs" />
+    <Compile Include="Handlers\StockSearch.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="web.config" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="WebRoot\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\StockScreenerReports.Storage\StockScreenerReports.Storage.fsproj" />
+    <ProjectReference Include="..\StockScreenerReports.Core\StockScreenerReports.Core.fsproj" />
+  </ItemGroup>
+</Project>

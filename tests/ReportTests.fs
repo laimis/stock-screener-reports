@@ -3,8 +3,8 @@ module ReportTests
 open Xunit
 open Xunit.Abstractions
 open System
-open FinvizScraper.Storage
-open FinvizScraper.Core
+open StockScreenerReports.Storage
+open StockScreenerReports.Core
 
 type ReportTests(output:ITestOutputHelper) =
     do
@@ -145,13 +145,13 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``getting screener results for ticker works``() =
-        let ticker = FinvizScraper.Core.StockTicker.create "cutr"
+        let ticker = StockScreenerReports.Core.StockTicker.create "cutr"
         let results = Reports.getScreenerResultsForTicker ticker 100
         Assert.NotEmpty(results)
 
     [<Fact>]
     let ``getting daily counts for screeners filtered by sector works``() =
-        let screener = FinvizScraper.Core.Constants.TopGainerScreenerId
+        let screener = StockScreenerReports.Core.Constants.TopGainerScreenerId
 
         let screenerResult = Reports.getScreenerResultsForDays screener 7
 
@@ -190,7 +190,7 @@ type ReportTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``getting trending sectors works``() =
         let results = 
-            FinvizScraper.Core.Constants.NewHighsScreenerId
+            StockScreenerReports.Core.Constants.NewHighsScreenerId
             |> Reports.getTopSectorsForScreener 14
 
         Assert.NotEmpty(results)
