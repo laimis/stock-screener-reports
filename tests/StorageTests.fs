@@ -13,7 +13,7 @@ let testStockIndustry   = "Computer Hardware"
 let testStockCountry    = "United States"
 let testStockIndustryWithSpecialCharacters = "Furnishings, Fixtures & Appliances"
 
-let dbEnvironmentVariableName = "FINVIZ_CONNECTIONSTRING"
+let dbEnvironmentVariableName = "SSR_CONNECTIONSTRING"
 
 type StorageTests(output:ITestOutputHelper) =
     do

@@ -81,7 +81,7 @@ let configureServices (services : IServiceCollection) =
     services.AddCors()    |> ignore
     services.AddGiraffe() |> ignore
 
-    let cnnString = System.Environment.GetEnvironmentVariable("FINVIZ_CONNECTIONSTRING")
+    let cnnString = System.Environment.GetEnvironmentVariable("SSR_CONNECTIONSTRING")
     cnnString |> Storage.configureConnectionString
     cnnString |> Reports.configureConnectionString
 

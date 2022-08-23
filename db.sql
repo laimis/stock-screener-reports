@@ -1,6 +1,6 @@
-create user finviz  with encrypted password [enter password here];
-create database finviz;
-grant all privileges on database finviz to finviz;
+create user stockscreenerreports  with encrypted password [enter password here];
+create database stockscreenerreports;
+grant all privileges on database stockscreenerreports to stockscreenerreports;
 
 create table stocks (
   id serial primary key,
