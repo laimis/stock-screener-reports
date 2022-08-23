@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FinvizScraper.Core\FinvizScraper.Core.fsproj" />
+    <ProjectReference Include="..\StockScreenerReports.Core\StockScreenerReports.Core.fsproj" />
   </ItemGroup>
 
 </Project>

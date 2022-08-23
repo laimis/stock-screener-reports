@@ -5,19 +5,19 @@ VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A8AB1CAB-F284-4AB6-BC83-2BAD95BD5284}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FinvizScraper.Core", "src\FinvizScraper.Core\FinvizScraper.Core.fsproj", "{E4F61B3E-7DF9-4F2A-A7FF-7639B16B6091}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StockScreenerReports.Core", "src\StockScreenerReports.Core\StockScreenerReports.Core.fsproj", "{E4F61B3E-7DF9-4F2A-A7FF-7639B16B6091}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FinvizScraper.FinvizClient", "src\FinvizScraper.FinvizClient\FinvizScraper.FinvizClient.fsproj", "{7FAC3BDE-F8D5-45B4-8E83-9140CA0EB0F7}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StockScreenerReports.FinvizClient", "src\StockScreenerReports.FinvizClient\StockScreenerReports.FinvizClient.fsproj", "{7FAC3BDE-F8D5-45B4-8E83-9140CA0EB0F7}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FinvizScraper.Storage", "src\FinvizScraper.Storage\FinvizScraper.Storage.fsproj", "{B6E7435F-FA81-4B36-A703-5AD68CE65518}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StockScreenerReports.Storage", "src\StockScreenerReports.Storage\StockScreenerReports.Storage.fsproj", "{B6E7435F-FA81-4B36-A703-5AD68CE65518}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FinvizScraper.Console", "src\FinvizScraper.Console\FinvizScraper.Console.fsproj", "{6245E333-55B0-4CAA-A19C-8E910C2FE4C9}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StockScreenerReports.Console", "src\StockScreenerReports.Console\StockScreenerReports.Console.fsproj", "{6245E333-55B0-4CAA-A19C-8E910C2FE4C9}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FinvizScraper.Web", "src\FinvizScraper.Web\FinvizScraper.Web.fsproj", "{F69A8185-76A6-451C-8B57-D733EB55FE47}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StockScreenerReports.Web", "src\StockScreenerReports.Web\StockScreenerReports.Web.fsproj", "{F69A8185-76A6-451C-8B57-D733EB55FE47}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "tests", "tests\tests.fsproj", "{C6F495F6-8217-473D-A0AF-C460C9D7B1A2}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "FinvizScraper.Analysis", "src\FinvizScraper.Analysis\FinvizScraper.Analysis.fsproj", "{2F3E3048-CF36-4A9F-9FAF-4638CE41E401}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StockScreenerReports.Analysis", "src\StockScreenerReports.Analysis\StockScreenerReports.Analysis.fsproj", "{2F3E3048-CF36-4A9F-9FAF-4638CE41E401}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
