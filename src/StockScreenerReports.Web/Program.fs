@@ -34,6 +34,8 @@ let webApp =
 
                 route "/countries" >=> warbler (fun _ -> Countries.handler())
                 routef "/countries/%s" CountryDashboard.handler
+
+                route "/reports/adhoc" >=> warbler (fun _ -> AdhocReport.handler())
             ]
         POST >=>
             choose [
@@ -41,6 +43,8 @@ let webApp =
                 routef "/screeners/%i/delete" ScreenerManagement.deleteHandler
                 
                 routef "/screeners/%i/export" ScreenerManagement.exportHandler
+
+                route "/reports/adhoc/export" >=> warbler (fun _ -> AdhocReport.exportHandler())
             ]
         setStatusCode 404 >=> text "Not Found" ]
 

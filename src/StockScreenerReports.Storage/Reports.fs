@@ -215,6 +215,14 @@ module Reports =
             ]
             |> Sql.execute (fun reader -> reader.string "ticker")
         results
+
+    let getAllEarningsTickers() =
+        let sql = @$"SELECT ticker,date FROM earnings"
+        
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.execute (fun reader -> (reader.string "ticker", reader.dateTime "date"))
     
     let getScreenerResults id date =
 
@@ -693,3 +701,27 @@ module Reports =
         ]
         |> Sql.execute industryTrendMapper
         |> Storage.singleOrThrow "More than one industry trend for the same industry and days"
+
+    let getScreenerResultCombos screenerId1 screenerId2 =
+        let sql = @"
+            SELECT 
+                ticker, date
+            FROM screenerresults
+            JOIN stocks ON stocks.id = screenerresults.stockid
+            WHERE screenerid = @screenerid1
+            INTERSECT
+            SELECT 
+                ticker, date
+            FROM screenerresults
+            JOIN stocks ON stocks.id = screenerresults.stockid
+            WHERE screenerid = @screenerid2
+            ORDER BY date,ticker"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@screenerid1", Sql.int screenerId1;
+            "@screenerid2", Sql.int screenerId2;
+        ]
+        |> Sql.execute (fun reader -> (reader.string "ticker", reader.dateTime "date"))
