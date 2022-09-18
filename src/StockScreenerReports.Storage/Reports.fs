@@ -223,6 +223,20 @@ module Reports =
         |> Sql.connect
         |> Sql.query sql
         |> Sql.execute (fun reader -> (reader.string "ticker", reader.dateTime "date"))
+
+    let getEarningsTickers (startDate:DateTimeOffset) (endDate:DateTimeOffset) =
+        let sql = @$"SELECT ticker,date FROM earnings
+            WHERE date >= @start AND date <= @end
+            ORDER BY date ASC, ticker ASC"
+        
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@start", Sql.timestamptz startDate;
+            "@end", Sql.timestamptz endDate
+        ]
+        |> Sql.execute (fun reader -> (reader.string "ticker", reader.dateTime "date"))
     
     let getScreenerResults id date =
 
@@ -701,6 +715,25 @@ module Reports =
         ]
         |> Sql.execute industryTrendMapper
         |> Storage.singleOrThrow "More than one industry trend for the same industry and days"
+
+    let getTickersForScreenerAndDates screenerId (fromDate:DateTimeOffset) (endDate:DateTimeOffset) =
+        let sql = @"
+            SELECT DISTINCT s.ticker FROM screenerresults r
+            JOIN stocks s ON s.id = r.stockid
+            WHERE screenerid = @screenerid
+            AND date >= @fromDate
+            AND date <= @endDate"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@screenerid", Sql.int screenerId;
+            "@fromDate", Sql.timestamptz fromDate;
+            "@endDate", Sql.timestamptz endDate;
+        ]
+        |> Sql.execute (fun reader -> reader.string "ticker")
+    
 
     let getScreenerResultCombos screenerId1 screenerId2 =
         let sql = @"

@@ -76,10 +76,7 @@ module AdhocReport =
             data
             |> List.map (fun (index,hasEarnings,ticker,date) ->
                 
-                let earningsIcon =
-                    match hasEarnings with
-                    | true -> i [_class "fa-solid fa-e"] []
-                    | false -> i [] []
+                let earningsIcon = hasEarnings |> Views.generateEarningsIcon
                 
                 tr [] [
                     td [] [index.ToString() |> str]

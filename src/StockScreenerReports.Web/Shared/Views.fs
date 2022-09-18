@@ -21,6 +21,37 @@ module Views =
     let volumeFormatted (value:int) =
         value.ToString("N0")
 
+    let generateIcon classNames =
+
+        span [_class "icon"] [
+            i [_class classNames] []
+        ]
+
+    let generateEarningsIcon hasEarnings =
+        match hasEarnings with
+        | true -> "fa-solid fa-e" |> generateIcon
+        | false -> i [] []
+
+    let generateTopGainerIcon isTopGainer =
+        match isTopGainer with
+        | true -> "fa-solid fa-fire has-text-success" |> generateIcon
+        | false -> i [] []
+
+    let generateNewHighIcon isNewHigh =
+        match isNewHigh with
+        | true -> "fa-solid fa-arrow-up has-text-success" |> generateIcon
+        | false -> i [] []
+
+    let generateNewLowIcon isNewLow =
+        match isNewLow with
+        | true -> "fa-solid fa-arrow-down has-text-danger" |> generateIcon
+        | false -> i [] []
+
+    let generateTopLoserIcon isTopLoser =
+        match isTopLoser with
+        | true -> "fa-solid fa-fire has-text-danger" |> generateIcon
+        | false -> i [] []
+
     let generateTickerLink ticker =
         a [
             ticker |> Links.stockLink |> _href
@@ -55,6 +86,9 @@ module Views =
 
     let toTdWithNode node =
             td [] [ node ]
+
+    let toTdWithNodes nodes =
+            td [] nodes
 
     let toTd input =
         str input |> toTdWithNode

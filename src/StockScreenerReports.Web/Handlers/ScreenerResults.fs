@@ -8,20 +8,19 @@ module ScreenerResults =
     open StockScreenerReports.Web.Shared.Views
     open StockScreenerReports.Core
 
-    let screenerResultToTr tickersWithEarnings (result:ScreenerResultReportItem) =
+    let screenerResultToTr tickersWithEarnings topGainers (result:ScreenerResultReportItem) =
         
         let hasEarnings = tickersWithEarnings |> List.contains result.ticker
+        let isTopGainer = topGainers |> List.contains result.ticker
 
-        let earningsIcon =
-            match hasEarnings with
-            | true -> i [_class "fa-solid fa-e"] []
-            | false -> i [] []
-
+        let earningsIcon = hasEarnings |> generateEarningsIcon
+        let fireIcon = isTopGainer |> generateTopGainerIcon
+            
         let rowAttributes = [_height "50px"]
 
         tr rowAttributes [
             result.date |> Utils.convertToDateString |> str |> toTdWithNode
-            earningsIcon |> toTdWithNode
+            [earningsIcon; fireIcon] |> toTdWithNodes
             result.ticker |> generateTickerLink |> toTdWithNode
             result.name |> toTd 
             result.sector |> Links.sectorLink |> generateHref result.sector |> toTdWithNode
@@ -68,7 +67,7 @@ module ScreenerResults =
         
         breakdowns |> List.map convertToBreakdown
 
-    let generateScreenerResultTable tickersWithEarnings results =
+    let generateScreenerResultTable tickersWithEarnings topGainers results =
         let headers = [
             "Date"
             "" 
@@ -87,16 +86,17 @@ module ScreenerResults =
         let headerCells = headers |> List.map toSortableHeaderCell
 
         results
-            |> List.map (fun r -> screenerResultToTr tickersWithEarnings r)
+            |> List.map (fun r -> screenerResultToTr tickersWithEarnings topGainers r)
             |> List.append [tr [] headerCells]
             |> fullWidthTable
 
     let private view
         (screener:StockScreenerReports.Core.Screener)
         (results:list<ScreenerResultReportItem>)
-        (tickersWithEarnings:list<string>) =
+        (tickersWithEarnings:list<string>)
+        (topGainers:list<string>) =
 
-        let screenerTable = results |> generateScreenerResultTable tickersWithEarnings
+        let screenerTable = results |> generateScreenerResultTable tickersWithEarnings topGainers
 
         let breakdowns = calculateBreakdowns results
                 
@@ -148,8 +148,15 @@ module ScreenerResults =
                 |> List.append (dateBefore |> getTickersWithEarnings)
                 |> List.distinct
 
+            let topGainers =
+                match id with
+                | Constants.TopGainerScreenerId -> []
+                | _ -> date
+                    |> getScreenerResults Constants.TopGainerScreenerId
+                    |> List.map (fun r -> r.ticker)
+
             let screenerResults = getScreenerResults screener.id date
-            let view      = view screener screenerResults earningsTickers
+            let view      = view screener screenerResults earningsTickers topGainers
             view |> mainLayout $"Screener: {screener.name}"
         | None ->
             notFound "Screener not found"
