@@ -47,6 +47,7 @@ module Earnings =
                     td [] [topGainers]
                     td [] [topLosers]
                     td [] [newLows]
+                    td [] [ticker |> Links.tradingViewLink |> Views.generateHrefNewTab "link"]
                 ]
             )
 
@@ -60,6 +61,7 @@ module Earnings =
                         th [] [str "Top Gainer"]
                         th [] [str "Top Loser"]
                         th [] [str "New Low"]
+                        th [] [str "Trading View"]
                     ]
                 ]
                 tbody [] rows

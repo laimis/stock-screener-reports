@@ -99,6 +99,8 @@ module ScreenerResults =
         let screenerTable = results |> generateScreenerResultTable tickersWithEarnings topGainers
 
         let breakdowns = calculateBreakdowns results
+
+        let tickers = results |> List.map (fun r -> r.ticker)
                 
         let breakdownDivs = 
             breakdowns
@@ -127,6 +129,11 @@ module ScreenerResults =
                     generateHrefWithAttr
                         "Screener Details"
                         (screener.id |> Links.screenerLink)
+                        (_class "button is-primary mr-2")
+
+                    generateHrefWithAttr
+                        "NGTD Outcomes"
+                        (tickers |> Links.ngtdOutcomesReportLink)
                         (_class "button is-primary")
                 ]
             ]

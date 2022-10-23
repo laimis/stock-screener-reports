@@ -55,3 +55,7 @@ module Links =
             |> StockScreenerReports.Core.Utils.cleanIndustry
         
         $"https://finviz.com/screener.ashx?v=111&f=ind_" + value
+
+    let ngtdOutcomesReportLink tickers =
+        let commaSeperated = tickers |> String.concat ","
+        $"https://localhost:5002/reports/outcomes?tickers={commaSeperated}"
