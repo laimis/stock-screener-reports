@@ -7,6 +7,33 @@ module Earnings =
     open StockScreenerReports.Storage
     open StockScreenerReports.Core
 
+    let private createMapFromStocks stocks =
+        stocks
+        |> List.map (fun s -> s.ticker |> StockTicker.value, s)
+        |> Map.ofList
+    
+    let private createIndustryGrouping stockDatePairs (membershipMap:Map<string,Stock>) =
+        stockDatePairs
+        |> List.map (fun pair -> 
+            let ticker,_ = pair
+            ticker
+        )
+        |> List.where (fun t -> membershipMap.ContainsKey t)
+        |> List.map (fun t -> membershipMap.[t])
+        |> List.groupBy (fun s -> s.industry)
+
+    let private createNameCountTableColumnDiv title grouping =
+        let withCounts =
+            grouping
+            |> List.map (fun (i,l) -> (i, l |> List.length))
+            |> List.sortByDescending (fun (_,c) -> c)
+        
+        let table = 
+            withCounts
+            |> Views.toNameCountTableWithLinks title 10 (fun s -> s |> Links.industryLink)
+
+        div [_class "column"] [table]
+
     let handler()  =
         
         let header = div [_class "content"] [
@@ -18,30 +45,29 @@ module Earnings =
 
         let tickersWithEarnings = Reports.getEarningsTickers startDate endDate
 
-        let createMapFromStocks stocks =
-            stocks
-            |> List.map (fun s -> s.ticker |> StockTicker.value, s)
-            |> Map.ofList
-
         let newHighs =
             Constants.NewHighsScreenerId
             |> Reports.getStocksForScreenerAndDates startDate endDate
         let newHighsMap = newHighs |> createMapFromStocks
+        let newHighIndustries = createIndustryGrouping tickersWithEarnings newHighsMap
 
         let topGainers =
             Constants.TopGainerScreenerId
             |> Reports.getStocksForScreenerAndDates  startDate endDate
         let topGainersMap = topGainers |> createMapFromStocks
+        let topGainerIndustries = createIndustryGrouping tickersWithEarnings topGainersMap
 
         let topLosers =
             Constants.TopLoserScreenerId
             |> Reports.getStocksForScreenerAndDates startDate endDate
         let topLosersMap = topLosers |> createMapFromStocks
+        let topLoserIndustries = createIndustryGrouping tickersWithEarnings topLosersMap
 
         let newLows =
             Constants.NewLowsScreenerId
             |> Reports.getStocksForScreenerAndDates startDate endDate
         let newLowsMap = newLows |> createMapFromStocks
+        let newLowIndustries = createIndustryGrouping tickersWithEarnings newLowsMap
 
         let rows =
             tickersWithEarnings
@@ -79,4 +105,12 @@ module Earnings =
                 tbody [] rows
             ]
         
-        [header; earningsTable] |> Views.mainLayout $"Earnings"
+        // break down div
+        let breakdownDiv = div [_class "columns"] [
+            newHighIndustries |> createNameCountTableColumnDiv "New Highs" 
+            topGainerIndustries |> createNameCountTableColumnDiv "Top Gainers" 
+            topLoserIndustries |> createNameCountTableColumnDiv "Top Losers" 
+            newLowIndustries |> createNameCountTableColumnDiv "New Lows" 
+        ]
+        
+        [header; breakdownDiv; earningsTable] |> Views.mainLayout $"Earnings"

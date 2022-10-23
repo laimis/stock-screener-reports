@@ -32,32 +32,11 @@ module ScreenerResults =
             result.volume |> volumeFormatted |> toTd
             result.ticker |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
         ]
-
-    let toBreakdownTable breakdownTitle linkFunction (breakdown:seq<string * list<ScreenerResultReportItem>>) =
-        // row with headers for each column and another row with length
-        let headerRow = tr [] [
-            th [] [str breakdownTitle]
-            th [] [str ""]
-        ] 
-
-        let valueRows =
-            breakdown
-            |> Seq.map (fun (name, list) ->
-                tr [] [
-                    td [] [
-                        a [_href (linkFunction name)] [str name]
-                    ]
-                    td [] [str (list.Length.ToString())]
-                ]
-            )
-            |> Seq.toList
-        
-        headerRow::valueRows |> fullWidthTable
-        
+    
     let calculateBreakdowns (screenerResults:list<ScreenerResultReportItem>) =
         
         let convertToBreakdown (name, linkFunction, groupByProperty) =
-            (name, linkFunction, (screenerResults |> List.groupBy groupByProperty |> List.sortByDescending (fun (_, list) -> list.Length)))
+            (name, linkFunction, (screenerResults |> List.groupBy groupByProperty |> List.sortByDescending (fun (_, list) -> list.Length)) |> List.map (fun (key, list) -> (key, list.Length)))
 
         let breakdowns = [
             ("Sectors", Links.sectorLink, fun (a:ScreenerResultReportItem) -> a.sector);
@@ -106,7 +85,7 @@ module ScreenerResults =
             breakdowns
             |> List.map (
                 fun (breakdownTitle,linkFunction,breakdownList) ->
-                    toBreakdownTable breakdownTitle linkFunction breakdownList
+                    toNameCountTableWithLinks breakdownTitle 10 linkFunction breakdownList
                 )
             |> List.map (
                 fun breakdownTable ->
