@@ -16,7 +16,7 @@ module Storage =
     let configureLogger log =
         logger <- log
 
-    let private stockMapper (reader:RowReader) =
+    let stockMapper (reader:RowReader) =
         {
             id = reader.int "id";
             ticker = reader.string "ticker" |> StockTicker.create;

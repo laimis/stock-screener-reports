@@ -5,8 +5,7 @@ module Earnings =
     open Giraffe.ViewEngine.HtmlElements
     open Giraffe.ViewEngine.Attributes
     open StockScreenerReports.Storage
-    open FSharp.Data
-    open Giraffe
+    open StockScreenerReports.Core
 
     let handler()  =
         
@@ -19,26 +18,39 @@ module Earnings =
 
         let tickersWithEarnings = Reports.getEarningsTickers startDate endDate
 
+        let createMapFromStocks stocks =
+            stocks
+            |> List.map (fun s -> s.ticker |> StockTicker.value, s)
+            |> Map.ofList
+
         let newHighs =
-            Reports.getTickersForScreenerAndDates StockScreenerReports.Core.Constants.NewHighsScreenerId startDate endDate
+            Constants.NewHighsScreenerId
+            |> Reports.getStocksForScreenerAndDates startDate endDate
+        let newHighsMap = newHighs |> createMapFromStocks
 
         let topGainers =
-            Reports.getTickersForScreenerAndDates StockScreenerReports.Core.Constants.TopGainerScreenerId startDate endDate
+            Constants.TopGainerScreenerId
+            |> Reports.getStocksForScreenerAndDates  startDate endDate
+        let topGainersMap = topGainers |> createMapFromStocks
 
         let topLosers =
-            Reports.getTickersForScreenerAndDates StockScreenerReports.Core.Constants.TopLoserScreenerId startDate endDate
+            Constants.TopLoserScreenerId
+            |> Reports.getStocksForScreenerAndDates startDate endDate
+        let topLosersMap = topLosers |> createMapFromStocks
 
         let newLows =
-            Reports.getTickersForScreenerAndDates StockScreenerReports.Core.Constants.NewLowsScreenerId startDate endDate
+            Constants.NewLowsScreenerId
+            |> Reports.getStocksForScreenerAndDates startDate endDate
+        let newLowsMap = newLows |> createMapFromStocks
 
         let rows =
             tickersWithEarnings
             |> List.map (fun (ticker, date) ->
 
-                let newHighs = newHighs |> List.contains ticker |> Views.generateNewHighIcon
-                let topGainers = topGainers |> List.contains ticker |> Views.generateTopGainerIcon
-                let topLosers = topLosers |> List.contains ticker |> Views.generateTopLoserIcon
-                let newLows = newLows |> List.contains ticker |> Views.generateNewLowIcon
+                let newHighs = ticker |> newHighsMap.ContainsKey |> Views.generateNewHighIcon
+                let topGainers = ticker |> topGainersMap.ContainsKey |> Views.generateTopGainerIcon
+                let topLosers = ticker |> topLosersMap.ContainsKey |> Views.generateTopLoserIcon
+                let newLows = ticker |> newLowsMap.ContainsKey |> Views.generateNewLowIcon
 
                 tr [] [
                     td [] [ticker |> Views.generateTickerLink]

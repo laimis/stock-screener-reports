@@ -716,9 +716,9 @@ module Reports =
         |> Sql.execute industryTrendMapper
         |> Storage.singleOrThrow "More than one industry trend for the same industry and days"
 
-    let getTickersForScreenerAndDates screenerId (fromDate:DateTimeOffset) (endDate:DateTimeOffset) =
+    let getStocksForScreenerAndDates (fromDate:DateTimeOffset) (endDate:DateTimeOffset) screenerId =
         let sql = @"
-            SELECT DISTINCT s.ticker FROM screenerresults r
+            SELECT DISTINCT s.* FROM screenerresults r
             JOIN stocks s ON s.id = r.stockid
             WHERE screenerid = @screenerid
             AND date >= @fromDate
@@ -732,7 +732,7 @@ module Reports =
             "@fromDate", Sql.timestamptz fromDate;
             "@endDate", Sql.timestamptz endDate;
         ]
-        |> Sql.execute (fun reader -> reader.string "ticker")
+        |> Sql.execute Storage.stockMapper
     
 
     let getScreenerResultCombos screenerId1 screenerId2 =
