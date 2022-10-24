@@ -28,9 +28,13 @@ module Earnings =
             |> List.map (fun (i,l) -> (i, l |> List.length))
             |> List.sortByDescending (fun (_,c) -> c)
         
+        let countOfTickers = withCounts |> List.sumBy (fun (_,c) -> c)
+
+        let newTitle = $"{title} ({countOfTickers})"
+
         let table = 
             withCounts
-            |> Views.toNameCountTableWithLinks title 10 (fun s -> s |> Links.industryLink)
+            |> Views.toNameCountTableWithLinks newTitle 10 (fun s -> s |> Links.industryLink)
 
         div [_class "column"] [table]
 
