@@ -34,6 +34,30 @@ module Earnings =
 
         div [_class "column"] [table]
 
+    let private createFilteredSection title (matchFilter:Map<string,Stock>) tickersWithEarnings =
+        let rows = 
+            tickersWithEarnings
+            |> List.filter (fun (ticker,_) -> ticker |> matchFilter.ContainsKey)
+            |> List.map (fun (ticker, date) -> matchFilter.[ticker])
+            |> List.sortBy (fun s -> s.industry)
+            |> List.map (fun s -> 
+                tr [] [
+                    td [] [s.ticker |> StockTicker.value |> Views.generateTickerLink]
+                    td [] [s.industry |> str]
+                    td [] [s.sector |> str]
+                ]
+            )
+
+        let headerRow = tr [] (["Ticker"; "Industry"; "Sector"] |> List.map (fun s -> s |> Views.toSortableHeaderCell))
+
+        let table = headerRow::rows |> Views.fullWidthTable
+
+        div [ _class "content"] [
+            h2 [] [title |> str]
+            table
+        ]
+            
+
     let handler()  =
         
         let header = div [_class "content"] [
@@ -112,5 +136,10 @@ module Earnings =
             topLoserIndustries |> createNameCountTableColumnDiv "Top Losers" 
             newLowIndustries |> createNameCountTableColumnDiv "New Lows" 
         ]
+
+        let newHighsSection = tickersWithEarnings |> createFilteredSection "New Highs" newHighsMap
+        let topGainersSection = tickersWithEarnings |> createFilteredSection "Top Gainers" topGainersMap
+        let topLosersSection = tickersWithEarnings |> createFilteredSection "Top Losers" topLosersMap
+        let newLowsSection = tickersWithEarnings |> createFilteredSection "New Lows" newLowsMap
         
-        [header; breakdownDiv; earningsTable] |> Views.mainLayout $"Earnings"
+        [header; breakdownDiv; newHighsSection; topGainersSection; topLosersSection; newLowsSection; earningsTable] |> Views.mainLayout $"Earnings"
