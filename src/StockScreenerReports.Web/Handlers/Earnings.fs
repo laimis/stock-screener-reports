@@ -62,14 +62,11 @@ module Earnings =
         ]
             
 
-    let handler()  =
+    let handlerInternal startDate endDate  =
         
         let header = div [_class "content"] [
             h1 [] [str "Earnings"]
         ]
-
-        let startDate = System.DateTimeOffset.UtcNow.AddDays(-7)
-        let endDate = System.DateTimeOffset.UtcNow.AddDays(1)
 
         let tickersWithEarnings = Reports.getEarningsTickers startDate endDate
 
@@ -147,3 +144,14 @@ module Earnings =
         let newLowsSection = tickersWithEarnings |> createFilteredSection "New Lows" newLowsMap
         
         [header; breakdownDiv; newHighsSection; topGainersSection; topLosersSection; newLowsSection; earningsTable] |> Views.mainLayout $"Earnings"
+
+    let handlerCurrentWeek() =
+        let startDate = Utils.getCurrentMonday()
+        let endDate = startDate.AddDays(6)
+        handlerInternal startDate endDate
+
+    let handlerLast7Days() =
+        let startDate = System.DateTimeOffset.UtcNow.AddDays(-7)
+        let endDate = System.DateTimeOffset.UtcNow.AddDays(1)
+
+        handlerInternal startDate endDate

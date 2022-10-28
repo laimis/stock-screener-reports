@@ -28,4 +28,20 @@ namespace StockScreenerReports.Core
             date.ToString("yyyy-MM-dd")
 
         let getRunDate() =
-            DateTime.Now |> convertToDateString 
+            DateTime.Now |> convertToDateString
+
+        let getCurrentMonday() =
+            let refDate = DateTimeOffset.UtcNow
+            match refDate.DayOfWeek with
+            | DayOfWeek.Monday -> refDate
+            | DayOfWeek.Tuesday -> refDate.AddDays(-1)
+            | DayOfWeek.Wednesday -> refDate.AddDays(-2)
+            | DayOfWeek.Thursday -> refDate.AddDays(-3)
+            | DayOfWeek.Friday -> refDate.AddDays(-4)
+            | DayOfWeek.Saturday -> refDate.AddDays(-5)
+            | DayOfWeek.Sunday -> refDate.AddDays(-6)
+            | _ -> refDate
+
+            
+            
+            
