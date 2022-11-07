@@ -113,7 +113,14 @@ module ScreenerResults =
                     generateHrefWithAttr
                         "NGTD Outcomes"
                         (tickers |> Links.ngtdOutcomesReportLink)
-                        (_class "button is-primary")
+                        (_class "button is-primary mr-2")
+
+                    button [
+                        _onclick "toggleTickerCompanyVisibility()"
+                        _class "button is-primary"
+                        ] [
+                        str "Toggle Ticker/Company"
+                    ]
                 ]
             ]
             div [_class "columns"] breakdownDivs

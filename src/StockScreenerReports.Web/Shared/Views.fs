@@ -206,6 +206,7 @@ module Views =
                 script [ Links.chartJsLink |> _src ] []
                 script [ Links.chartJsDatalabelsLink |> _src ] []
                 script [ Links.sortingJsLink |> _src ] []
+                script [ Links.hidingJsLink |> _src ] []
 
                 meta [
                     _name "viewport"

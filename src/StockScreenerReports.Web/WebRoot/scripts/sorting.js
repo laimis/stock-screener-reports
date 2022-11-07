@@ -15,7 +15,6 @@ prevColumnIndex = -1; // global var saves the previous c, used to
 function sortBy(header) {
     // first, determine the index being sorted
     var parentTr = header.parentElement;
-    
     var index = -1;
     for (i=0; i<parentTr.children.length; i++) {
         if (parentTr.children[i] == header) {
@@ -24,6 +23,7 @@ function sortBy(header) {
         }
     }
 
+    // create an in memory array with values that can be sorted
     var table = parentTr.parentElement;
     
     rows = table.rows.length; // num of rows
