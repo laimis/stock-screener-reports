@@ -38,6 +38,7 @@ let webApp =
                 route "/reports/adhoc" >=> warbler (fun _ -> AdhocReport.handler())
 
                 route "/earnings" >=> warbler (fun _ -> Earnings.handlerCurrentWeek())
+                route "/earnings/lastweek" >=> warbler (fun _ -> Earnings.handlerLast7Days())
             ]
         POST >=>
             choose [

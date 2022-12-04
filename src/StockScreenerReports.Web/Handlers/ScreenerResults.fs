@@ -97,6 +97,9 @@ module ScreenerResults =
                 h1 [] [
                     str ("Screener: " + screener.name)
                 ]
+                h5 [] [ 
+                    $"{results.Length} results" |> str
+                ]
                 
                 div [_class "block"] [
                     

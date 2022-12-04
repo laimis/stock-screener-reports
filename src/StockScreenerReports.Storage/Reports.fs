@@ -226,7 +226,7 @@ module Reports =
 
     let getEarningsTickers (startDate:DateTimeOffset) (endDate:DateTimeOffset) =
         let sql = @$"SELECT ticker,date FROM earnings
-            WHERE date >= @start AND date <= @end
+            WHERE date >= date(@start) AND date <= @end
             ORDER BY date ASC, ticker ASC"
         
         cnnString

@@ -106,7 +106,7 @@ module Dashboard =
 
     let private generateSMATrendRows() =
 
-        let numberOfDays = 40
+        let numberOfDays = 80
         let sma20 = getDailySMABreakdown 20 numberOfDays
         let sma200 = getDailySMABreakdown 200 numberOfDays
 

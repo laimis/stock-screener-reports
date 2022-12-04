@@ -1,14 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <AssemblyName>StockScreenerReports.Web.App</AssemblyName>
     <EnableDefaultContentItems>false</EnableDefaultContentItems>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="FSharp.Data" Version="4.2.8" />
-    <PackageReference Include="Giraffe" Version="5.0.0" />
+    <PackageReference Include="FSharp.Data" Version="5.0.2" />
+    <PackageReference Include="Giraffe" Version="6.0.0" />
     <PackageReference Include="Giraffe.ViewEngine" Version="1.4.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
     <PackageReference Include="Ply" Version="0.3.1" />
   </ItemGroup>
   <ItemGroup>
