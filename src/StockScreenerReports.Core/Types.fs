@@ -51,7 +51,7 @@ type FinvizConfig =
         dbConnectionString:string;
     }
 
-    static member dayRange = 61
+    static member dayRange = 91
     static member industryTrendDayRange = 14
     static member sectorTrendDayRange = 14
 

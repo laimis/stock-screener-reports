@@ -72,10 +72,12 @@ module ScreenerResults =
     let private view
         (screener:StockScreenerReports.Core.Screener)
         (results:list<ScreenerResultReportItem>)
-        (tickersWithEarnings:list<string>)
+        (allTickersWithEarnings:list<string>)
         (topGainers:list<string>) =
 
-        let screenerTable = results |> generateScreenerResultTable tickersWithEarnings topGainers
+        let screenerTable = results |> generateScreenerResultTable allTickersWithEarnings topGainers
+
+        let tickersWithEarningsInResults = results |> List.map (fun r -> r.ticker) |> List.filter (fun t -> allTickersWithEarnings |> List.contains t)
 
         let breakdowns = calculateBreakdowns results
 
@@ -115,7 +117,7 @@ module ScreenerResults =
 
                     generateHrefWithAttrs
                         "NGTD Outcomes"
-                        (tickers |> Links.ngtdOutcomesReportLink)
+                        ((tickers,tickersWithEarningsInResults) |> Links.ngtdOutcomesReportLink)
                         [(_class "button is-primary mr-2") ; (_target "_blank")]
 
                     button [
