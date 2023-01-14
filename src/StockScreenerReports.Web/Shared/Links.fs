@@ -47,8 +47,8 @@ module Links =
     
     let screenerTrends = "/screeners/trends"
     let industries = "/industries"
-
     let countries = "/countries"
+    let earnings = "/earnings"
 
     let industryFinvizLink (industryName:string) =
         let value =

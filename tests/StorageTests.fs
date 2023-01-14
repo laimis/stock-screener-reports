@@ -88,7 +88,8 @@ type StorageTests(output:ITestOutputHelper) =
                 Assert.True(false, "Expected screener to be found by id")
         
         let deleted = Storage.deleteScreener screener
-        Assert.Equal(1, deleted)
+        Assert.Equal(0, deleted[0])
+        Assert.Equal(1, deleted[1])
 
         let subsequent = Storage.getScreenerByName screenerName
         match subsequent with

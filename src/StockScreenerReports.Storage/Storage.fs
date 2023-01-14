@@ -146,11 +146,18 @@ module Storage =
         |> singleOrThrow "More than one screener with the same id"
     
     let deleteScreener screener =
+
+        // start transaction
         cnnString
         |> Sql.connect
-        |> Sql.query "DELETE FROM screeners WHERE id = @id"
-        |> Sql.parameters [ "@id", Sql.int screener.id ]
-        |> Sql.executeNonQuery
+        |> Sql.executeTransaction [
+            "DELETE FROM screenerresults WHERE screenerid = @id", [
+                ["@id", Sql.int screener.id]
+            ]
+            "DELETE FROM screeners WHERE id = @id", [
+                ["@id", Sql.int screener.id]
+            ]
+        ]
 
     let deleteScreenerResults (screener:Screener) (date:string) =
         

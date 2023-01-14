@@ -113,10 +113,10 @@ module ScreenerResults =
                         (screener.id |> Links.screenerLink)
                         (_class "button is-primary mr-2")
 
-                    generateHrefWithAttr
+                    generateHrefWithAttrs
                         "NGTD Outcomes"
                         (tickers |> Links.ngtdOutcomesReportLink)
-                        (_class "button is-primary mr-2")
+                        [(_class "button is-primary mr-2") ; (_target "_blank")]
 
                     button [
                         _onclick "toggleTickerCompanyVisibility()"

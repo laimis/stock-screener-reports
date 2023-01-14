@@ -157,6 +157,11 @@ module Views =
                 ]
                 div [ _class "column" ] [
                     generateHrefWithAttr
+                        "Earnings"
+                        Links.earnings
+                        (_class "button is-small is-primary is-pulled-right mx-1")
+
+                    generateHrefWithAttr
                         "Trends"
                         Links.screenerTrends
                         (_class "button is-small is-primary is-pulled-right mx-1")
@@ -164,11 +169,6 @@ module Views =
                     generateHrefWithAttr
                         "Industries"
                         Links.industries
-                        (_class "button is-small is-primary is-pulled-right mx-1")
-
-                    generateHrefWithAttr
-                        "Countries"
-                        Links.countries
                         (_class "button is-small is-primary is-pulled-right mx-1")
 
                     generateHrefWithAttr
