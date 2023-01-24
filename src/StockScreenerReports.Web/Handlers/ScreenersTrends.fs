@@ -47,9 +47,7 @@ module ScreenersTrends =
             
     let handler() =
         
-        let screeners =
-            Storage.getScreeners()
-            |> List.where (fun s -> s.id = Constants.NewHighsWithSalesScreenerId |> not)
+        let screeners = Storage.getScreeners()
 
         let numberOfHitsByScreenerByDate =
             screeners

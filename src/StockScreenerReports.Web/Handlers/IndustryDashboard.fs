@@ -87,7 +87,6 @@ module IndustryDashboard =
 
         let datasets = 
             screeners
-            |> List.filter (fun u -> (u.id = Constants.LargeCapCrossing200ScreenerId || u.id = Constants.NewHighsWithSalesScreenerId) |> not)
             |> List.map (fun screener ->
                 let dailyCounts = Reports.getDailyCountsForScreenerAndIndustry screener.id industryName days
 

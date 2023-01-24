@@ -12,9 +12,6 @@ module StockTicker =
     let value (StockTicker e) = e
 
 module Constants =
-    
-    [<Literal>] 
-    let NewHighsWithSalesScreenerId = 27
 
     [<Literal>] 
     let NewHighsScreenerId = 28
@@ -27,9 +24,6 @@ module Constants =
     
     [<Literal>] 
     let NewLowsScreenerId = 31
-
-    [<Literal>]
-    let LargeCapCrossing200ScreenerId = 313
 
     [<Literal>]
     let ColorBlue = "#0074D9"
@@ -59,7 +53,6 @@ type FinvizConfig =
     
     static member getBackgroundColorForScreenerId id =
         match id with
-            | Constants.NewHighsWithSalesScreenerId -> "#2C59D8" // new high
             | Constants.NewHighsScreenerId -> "#3590F3" // new high (w/ sales)
             | Constants.TopGainerScreenerId -> "#4DBEF7" // top gainer
             | Constants.TopLoserScreenerId -> "#C54A8B" // top loser
