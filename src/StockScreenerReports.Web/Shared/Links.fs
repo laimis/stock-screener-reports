@@ -57,9 +57,9 @@ module Links =
         
         $"https://finviz.com/screener.ashx?v=111&f=ind_" + value
 
-    let ngtdOutcomesReportLink (tickers,earnings) =
+    let ngtdOutcomesReportLink (title,tickers,earnings) =
         let commaSeparated = tickers |> String.concat ","
         let earningsCommaSeparated = earnings |> String.concat ","
 
         // https://localhost:5002
-        $"https://ngtrading-xiu9e.ondigitalocean.app/reports/outcomes?tickers={commaSeparated}&earnings={earningsCommaSeparated}"
+        $"https://ngtrading-xiu9e.ondigitalocean.app/reports/outcomes?tickers={commaSeparated}&earnings={earningsCommaSeparated}&title={title}"
