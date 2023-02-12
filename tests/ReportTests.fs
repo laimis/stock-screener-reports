@@ -278,7 +278,7 @@ type ReportTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``calculate industry trends works`` () =
         let smaBreakdowns = StorageTests.testStockIndustry |> Reports.getIndustrySMABreakdownsForIndustry 20 FinvizConfig.dayRange
-        let (streak,direction, change) = IndustryTrendsCalculator.calculate smaBreakdowns
+        let (streak,direction, change) = IndustryTrendsCalculator.calculateForIndustry smaBreakdowns
 
         Assert.True(streak > 0)
         Assert.True(direction = Up || direction = Down)

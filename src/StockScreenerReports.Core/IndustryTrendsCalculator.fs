@@ -3,8 +3,8 @@ namespace StockScreenerReports.Core
     module IndustryTrendsCalculator =
         open System
 
-        let calculate smaBreakdowns =
-            
+        let calculate (smaBreakdowns:list<SMABreakdown>) =
+
             let mutable latestValue = Option<decimal>.None
             let mutable firstValue = Option<decimal>.None
             let mutable direction = Option<TrendDirection>.None
@@ -12,7 +12,7 @@ namespace StockScreenerReports.Core
             let mutable endReached = false
 
             smaBreakdowns
-                |> List.sortByDescending (fun b -> b.breakdown.date)
+                |> List.sortByDescending (fun b -> b.date)
                 |> List.iter (fun x ->
 
                     if endReached then
@@ -21,15 +21,15 @@ namespace StockScreenerReports.Core
                         match (latestValue, direction) with
                         // case where we are seeing the first value
                         | (None, None) -> 
-                            latestValue <- Some x.breakdown.percentAbove
-                            firstValue <- Some x.breakdown.percentAbove
+                            latestValue <- Some x.percentAbove
+                            firstValue <- Some x.percentAbove
                             // firstDate <- x.breakdown.date
 
                         // case where we are seeing the second value
                         | (Some _, None) -> (
-                            if x.breakdown.percentAbove > latestValue.Value then
+                            if x.percentAbove > latestValue.Value then
                                 direction <- Some Down
-                                latestValue <- Some x.breakdown.percentAbove
+                                latestValue <- Some x.percentAbove
                             else
                                 direction <- Some Up
                             )
@@ -37,13 +37,13 @@ namespace StockScreenerReports.Core
                         // case where we are now iterating
                         | (Some _, Some _) ->
                             let newDirection =
-                                match x.breakdown.percentAbove > latestValue.Value with
+                                match x.percentAbove > latestValue.Value with
                                 | true -> Down
                                 | false -> Up
                             
                             if newDirection = direction.Value then
                                 streak <- streak + 1
-                                latestValue <- Some x.breakdown.percentAbove
+                                latestValue <- Some x.percentAbove
                                 
                                 if latestValue.Value = 0m then
                                     endReached <- true
@@ -60,4 +60,9 @@ namespace StockScreenerReports.Core
             match direction with
             | Some s -> (streak, s, change)
             | None -> (0, Up, 0m)
+
+        let calculateForIndustry (smaBreakdowns:list<IndustrySMABreakdown>) =
             
+            let justBreakdowns = smaBreakdowns |> List.map (fun x -> x.breakdown)
+
+            calculate justBreakdowns

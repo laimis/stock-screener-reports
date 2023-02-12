@@ -39,7 +39,7 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``trending down works`` () =
             
-        let (streak, direction, change) = IndustryTrendsCalculator.calculate testDataDecreasingTrend
+        let (streak, direction, change) = IndustryTrendsCalculator.calculateForIndustry testDataDecreasingTrend
         
         Assert.Equal(1, streak)
         Assert.Equal(Down, direction)
@@ -48,7 +48,7 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``trending up works`` () =
             
-        let (streak, direction, change) = IndustryTrendsCalculator.calculate testDataIncreasingTrend
+        let (streak, direction, change) = IndustryTrendsCalculator.calculateForIndustry testDataIncreasingTrend
         
         Assert.Equal(2, streak)
         Assert.Equal(Up, direction)
@@ -56,7 +56,7 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``encountering zero should stop``() =
-        let (streak, direction, change) = IndustryTrendsCalculator.calculate trendFromZero
+        let (streak, direction, change) = IndustryTrendsCalculator.calculateForIndustry trendFromZero
 
         Assert.Equal(2, streak)
         Assert.Equal(Up, direction)

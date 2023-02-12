@@ -119,7 +119,7 @@ match runSMAUpdates() with
                 
                 let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry days FinvizConfig.dayRange
 
-                let (streak, direction, change) = breakdowns |> IndustryTrendsCalculator.calculate
+                let (streak, direction, change) = breakdowns |> IndustryTrendsCalculator.calculateForIndustry
 
                 Console.WriteLine($"Saving industry {industry} trend: {direction} {streak} days with change of {change}")
 

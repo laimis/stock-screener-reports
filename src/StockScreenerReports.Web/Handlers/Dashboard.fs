@@ -69,8 +69,8 @@ module Dashboard =
 
     let private generateIndustryTrendsRow days =
 
-        let gainers = [Constants.NewHighsScreenerId] |> getTopIndustriesForScreeners days |> List.take 5
-        let losers = [Constants.NewLowsScreenerId] |> getTopIndustriesForScreeners days |> List.take 5
+        let gainers = [Constants.NewHighsScreenerId] |> getTopIndustriesForScreeners days |> List.take 10
+        let losers = [Constants.NewLowsScreenerId] |> getTopIndustriesForScreeners days |> List.take 10
 
         let industrySMABreakdowns = 
             getIndustrySMABreakdownLatestDate()
@@ -110,6 +110,20 @@ module Dashboard =
         let sma20 = getDailySMABreakdown 20 numberOfDays
         let sma200 = getDailySMABreakdown 200 numberOfDays
 
+        let trend20 = IndustryTrendsCalculator.calculate sma20
+        let trend200 = IndustryTrendsCalculator.calculate sma200
+
+        let toDescription (sma:int) (streak:int,direction:TrendDirection,change:decimal) =
+            let directionStr = 
+                match direction with
+                | Up -> "UP"
+                | Down -> "DOWN"
+
+            $"<b>SMA {sma}</b> trending <b>{directionStr}</b> for <b>{streak} days</b>, change of <b>{change:N2}</b>"
+
+        let sma20DirectionDescription = trend20 |> toDescription 20
+        let sma200DirectionDescription = trend200 |> toDescription 200
+
         let datasets:list<Charts.DataSet<decimal>> = [
             {
                 data = sma20 |> List.map (fun breakdown -> breakdown.percentAboveRounded)
@@ -126,6 +140,14 @@ module Dashboard =
         let labels = sma20 |> List.map (fun breakdown -> breakdown.date.ToString("MM/dd"))
 
         [
+            div [_class "columns"] [
+                div [ _class "column" ] [
+                    rawText sma20DirectionDescription
+                ]
+                div [ _class "column" ] [
+                    rawText sma200DirectionDescription
+                ]
+            ]
             div [_class "block"]
                 (Charts.generateChartElements "SMA breakdown" Charts.ChartType.Line (Some 100) Charts.smallChart labels datasets)
         ]
