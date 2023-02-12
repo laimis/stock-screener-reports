@@ -95,10 +95,12 @@ create table industrytrends (
     UNIQUE(industry, days)
 );
 
-
 create table earnings (
     ticker text not null,
     "date" timestamp not null,
     earningstime text not null,
     primary key (ticker, "date")
 );
+
+alter table industrytrends drop constraint industrytrends_industry_days_key;
+alter table industrytrends add constraint industrytrends_industry_days_date_key unique (industry, days, "date");

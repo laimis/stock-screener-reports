@@ -234,7 +234,7 @@ module Storage =
         |> Sql.connect
         |> Sql.query @"INSERT INTO industrytrends (industry,date,streak,direction,change,days)
             VALUES (@industry,date(@date),@streak,@direction,@change,@days)
-            ON CONFLICT (industry,days) DO UPDATE SET streak = @streak, direction = @direction, change = @change, days = @days"
+            ON CONFLICT (industry,days,date) DO UPDATE SET streak = @streak, direction = @direction, change = @change, days = @days"
         |> Sql.parameters [
             "@industry", Sql.string industry;
             "@date", Sql.string date;

@@ -43,15 +43,27 @@ module IndustriesDashboard =
             industrySMABreakdown200
             |> Map.toList
             |> List.sortByDescending (fun (key, update200) -> 
-                let update20 = industrySMABreakdowns20[key]
-                (update200.breakdown.percentAbove, update20.breakdown.percentAbove)
+                let update20Option = industrySMABreakdowns20 |> Map.tryFind key
+                match update20Option with
+                | Some update20 -> (update200.breakdown.percentAbove, update20.breakdown.percentAbove)
+                | None -> raise (System.Exception("Could not find 20 day SMA breakdown for " + key))
             )
             |> List.map (fun (key, iu) ->
 
-                let toSMACells (update:StockScreenerReports.Core.IndustrySMABreakdown) trend =
+                let toSMACells (smaOption:Option<IndustrySMABreakdown>) (trendOption:Option<IndustryTrend>) =
+                    let smaBreakdown =
+                        match smaOption with
+                        | Some sma -> sma
+                        | None -> (IndustrySMABreakdown.blank "NA")
+
+                    let trend =
+                        match trendOption with
+                        | Some trend -> trend.trend
+                        | None -> StockScreenerReports.Core.Trend.blank()
+
                     [
-                        td [] [ $"{update.breakdown.above} / {update.breakdown.total}" |> str  ]
-                        td [] [ System.String.Format("{0:N2}%", update.breakdown.percentAbove) |> str ]
+                        td [] [ $"{smaBreakdown.breakdown.above} / {smaBreakdown.breakdown.total}" |> str  ]
+                        td [] [ System.String.Format("{0:N2}%", smaBreakdown.breakdown.percentAbove) |> str ]
                         td [] [ System.String.Format("{0:N0}", trend.change) |> str ]
                         td [] [ System.String.Format("{0:N0}", trend.streak) |> str ]
                         td [] [ System.String.Format("{0:N2}%", trend.streakRate) |> str ]
@@ -59,8 +71,12 @@ module IndustriesDashboard =
 
                 counter <- counter + 1
 
-                let sma20Cells = toSMACells (industrySMABreakdowns20[key]) (industryTrend20[key].trend)
-                let sma200Cells = toSMACells (iu) (industryTrend200[key].trend)
+                let smaBreakdown = industrySMABreakdowns20 |> Map.tryFind key
+                let trend20 = industryTrend20 |> Map.tryFind key
+                let trend200 = industryTrend200 |> Map.tryFind key
+                
+                let sma20Cells = toSMACells smaBreakdown trend20
+                let sma200Cells = toSMACells (Some iu) trend200
 
                 let breakdownDiff breakdownMap =
                     let toCompare =

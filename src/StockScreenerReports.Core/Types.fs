@@ -110,6 +110,17 @@ type IndustrySMABreakdown =
         breakdown: SMABreakdown;
     }
 
+    static member blank industry =
+        {
+            industry = industry;
+            breakdown = {
+                date = System.DateTime.Now;
+                days = 0;
+                above = 0;
+                below = 0;
+            }
+        }
+
 type TrendDirection =
     | Up
     | Down
@@ -120,6 +131,8 @@ type Trend =
         direction: TrendDirection;
         change: decimal;
     }
+
+    static member blank() = { streak = 0; direction = Up; change = 0.0m }
     member this.streakRate =
         match this.streak with
             | 0 -> 0.0m

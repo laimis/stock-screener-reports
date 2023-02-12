@@ -33,6 +33,9 @@ let runScreeners() =
 let runTestReports() =
     containsArgument "--test-reports"
 
+let runTrendsMigration() =
+    containsArgument "--trends-migration"
+
 let fetchScreenerResults input =
     Console.WriteLine("Processing " + input.name)
     Console.WriteLine("fetching results...")
@@ -137,6 +140,34 @@ match runSMAUpdates() with
     |> ignore
 
 | false -> ()
+
+match runTrendsMigration() with
+| true ->
+    let knownIndustries = Storage.getIndustries()
+
+    let startDate = DateTime.Parse("2022-09-01T00:00:00") |> Utils.convertToDateString
+    let endDate = DateTime.UtcNow |> Utils.convertToDateString
+
+    knownIndustries
+    |> Seq.iter (fun industry -> 
+        [20; 200]
+        |> List.iter(fun days -> 
+
+            let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustryAndDateRange days startDate endDate
+
+            breakdowns
+            |> List.windowed (FinvizConfig.dayRange)
+            |> List.iter( fun window ->
+                let trend = window |> TrendsCalculator.calculateForIndustry
+                let last = window |> List.last
+                Console.WriteLine($"Saving industry {industry} {last.breakdown.date} trend: {trend.direction} {trend.streak} days with change of {trend.change}")
+                Storage.updateIndustryTrend industry (last.breakdown.date |> Utils.convertToDateString) trend days |> ignore
+            )
+        )
+    ) |> ignore
+    
+| false ->
+    ()
 
 
 match runTestReports() with

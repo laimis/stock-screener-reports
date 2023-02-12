@@ -633,6 +633,27 @@ module Reports =
             | Some (above,below) -> (above,below)
             | None -> (0,0)
 
+    let getIndustrySMABreakdownsForIndustryAndDateRange days startDate endDate industry =
+        let sql = @"
+            SELECT industry,date,days,above,below
+            FROM IndustrySMABreakdowns
+            WHERE industry = @industry
+            AND days = @days
+            AND date >= date(@startDate)
+            AND date <= date(@endDate)
+            ORDER BY date"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@industry", Sql.string industry;
+            "@days", Sql.int days;
+            "@startDate", Sql.string startDate;
+            "@endDate", Sql.string endDate;
+        ]
+        |> Sql.execute industrySMABreakdownMapper
+        
     let getIndustrySMABreakdownsForIndustry days dayOffset industry =
         let sql = @"
             SELECT industry,date,days,above,below
@@ -683,7 +704,7 @@ module Reports =
             "@days", Sql.int days;
         ]
         |> Sql.execute industrySMABreakdownMapper
-        |> Storage.singleOrThrow "More than one industry trend for the same industry and days"
+        |> Storage.singleOrThrow "More than one industry sma breakdown for the same industry and days"
 
     let getIndustrySMABreakdownLatestDate() =
         cnnString
@@ -708,7 +729,8 @@ module Reports =
     let getIndustryTrend days industry =
         let sql = @"
             SELECT industry,date,streak,direction,change,days FROM industrytrends
-            WHERE industry = @industry AND days = @days"
+            WHERE industry = @industry AND days = @days
+            AND date = (SELECT MAX(date) FROM industrytrends WHERE industry = @industry AND days = @days)"
 
         cnnString
         |> Sql.connect
