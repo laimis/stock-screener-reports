@@ -157,7 +157,7 @@ match runTestReports() with
 
     let smaBreakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry 20 FinvizConfig.dayRange
 
-    let (streak, direction, change) = smaBreakdowns |> IndustryTrendsCalculator.calculate
+    let (streak, direction, change) = smaBreakdowns |> IndustryTrendsCalculator.calculateForIndustry
 
     Console.WriteLine($"{industry} {20} days sma streak: {streak} day {direction} with change of {change}")
 
