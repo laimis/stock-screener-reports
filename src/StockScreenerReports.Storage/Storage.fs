@@ -229,7 +229,7 @@ module Storage =
         |> Sql.query "SELECT DISTINCT industry FROM stocks ORDER BY industry"
         |> Sql.execute (fun reader -> reader.string "industry")
 
-    let updateIndustryTrend industry date streak (direction:TrendDirection) change days =
+    let updateIndustryTrend industry date (trend:Trend) days =
         cnnString
         |> Sql.connect
         |> Sql.query @"INSERT INTO industrytrends (industry,date,streak,direction,change,days)
@@ -238,10 +238,10 @@ module Storage =
         |> Sql.parameters [
             "@industry", Sql.string industry;
             "@date", Sql.string date;
-            "@streak", Sql.int streak;
-            "@direction", direction |> toTrendDirectionString |> Sql.string;
+            "@streak", Sql.int (trend.streak);
+            "@direction", trend.direction |> toTrendDirectionString |> Sql.string;
             "@days", Sql.int days;
-            "@change", Sql.decimal change
+            "@change", Sql.decimal (trend.change)
         ]
         |> Sql.executeNonQuery
 

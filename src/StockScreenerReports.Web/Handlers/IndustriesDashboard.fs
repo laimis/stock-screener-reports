@@ -28,14 +28,14 @@ module IndustriesDashboard =
         let smaBreakdown200_30days = getIndustrySMABreakdownsAndTurnToMap thirtyDaysAgo 200
         let smaBreakdown200_60days = getIndustrySMABreakdownsAndTurnToMap sixtyDaysAgo 200
 
-        let getIndustryTrendsANdTurnToMap (days:int) =
+        let getIndustryTrendsAndTurnToMap (days:int) =
             days
             |> Reports.getIndustryTrends
             |> List.map (fun x -> (x.industry, x))
             |> Map.ofList
 
-        let industryTrend20 = getIndustryTrendsANdTurnToMap 20
-        let industryTrend200 = getIndustryTrendsANdTurnToMap 200
+        let industryTrend20 = getIndustryTrendsAndTurnToMap 20
+        let industryTrend200 = getIndustryTrendsAndTurnToMap 200
 
         let mutable counter = 0
 
@@ -59,8 +59,8 @@ module IndustriesDashboard =
 
                 counter <- counter + 1
 
-                let sma20Cells = toSMACells (industrySMABreakdowns20[key]) (industryTrend20[key])
-                let sma200Cells = toSMACells (iu) (industryTrend200[key])
+                let sma20Cells = toSMACells (industrySMABreakdowns20[key]) (industryTrend20[key].trend)
+                let sma200Cells = toSMACells (iu) (industryTrend200[key].trend)
 
                 let breakdownDiff breakdownMap =
                     let toCompare =

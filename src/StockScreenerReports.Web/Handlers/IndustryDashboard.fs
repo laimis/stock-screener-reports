@@ -12,41 +12,41 @@ module IndustryDashboard =
     let handler industryName =
         
         // load industry trends
-        let createBreakdownSpan (breakdown:option<StockScreenerReports.Core.IndustrySMABreakdown>) =
-            let desc = 
+        let createBreakdownColumnDiv sma =
+            let breakdown = industryName |> Reports.getMostRecentIndustrySMABreakdown sma
+
+            let description =
                 match breakdown with
                 | None -> "No SMA breakdown found"
                 | Some t -> 
                     let total = t.breakdown.above + t.breakdown.below
                     let pct = System.Math.Round((double t.breakdown.above) * 100.0 / (double total), 2)
-                    $"<b>{pct}%%</b> ({t.breakdown.above} / {total}) above {t.breakdown.days} SMA"
+                    $"<b>{pct}%%</b> ({t.breakdown.above} / {total}) above <b>{t.breakdown.days} SMA</b>"
 
-            span [ _class "mx-1"] [
-                rawText desc
-            ]
+            div [_class "column"] [rawText description]
             
-        let breakdownDiv = div [] [
-            (industryName |> Reports.getMostRecentIndustrySMABreakdown 20 |> createBreakdownSpan)
-            (industryName |> Reports.getMostRecentIndustrySMABreakdown 200 |> createBreakdownSpan)
-            span [ _class "mx-1"] [industryName |> Links.industryFinvizLink |> generateHrefNewTab "Finviz"]
-        ]
+        let breakdownDiv =
+            div [_class "columns"] (
+                [20; 200]
+                |> List.map createBreakdownColumnDiv
+            )
 
-        let createTrendSpan trend =
+        let createTrendDiv (trend:Option<IndustryTrend>) =
             let desc =
                 match trend with
                 | None -> "No trend found"
-                | Some t ->
-                    let pct = System.Math.Round(t.change, 2)
-                    $"<b>{pct}</b> change {t.direction} for {t.streak} days"
+                | Some t -> $"{t.trend}"
 
-            span [ _class "mx-1"] [
+            div [ _class "column"] [
                 rawText desc
             ]
 
-        let trendDiv = div [] [
-            industryName |> Reports.getIndustryTrend 20 |> createTrendSpan
-            industryName |> Reports.getIndustryTrend 200 |> createTrendSpan
-        ]
+        let trendDiv = div [_class "columns"] (
+            [20;200] |> List.map (fun sma -> 
+                let industryTrend = industryName |> Reports.getIndustryTrend sma
+                createTrendDiv (industryTrend)
+            )
+        )
 
         let smaBreakdownCharts (dayOffset:int) =
             
@@ -164,6 +164,9 @@ module IndustryDashboard =
             div [_class "content"] [
                 h1 [] [
                     str industryName
+                ]
+                h5 [] [
+                    span [ _class "mx-1"] [industryName |> Links.industryFinvizLink |> generateHrefNewTab "See it on Finviz"]
                 ]
                 breakdownDiv
                 trendDiv

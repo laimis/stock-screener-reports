@@ -119,11 +119,11 @@ match runSMAUpdates() with
                 
                 let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry days FinvizConfig.dayRange
 
-                let (streak, direction, change) = breakdowns |> IndustryTrendsCalculator.calculateForIndustry
+                let trend = breakdowns |> TrendsCalculator.calculateForIndustry
 
-                Console.WriteLine($"Saving industry {industry} trend: {direction} {streak} days with change of {change}")
+                Console.WriteLine($"Saving industry {industry} trend: {trend.direction} {trend.streak} days with change of {trend.change}")
 
-                Storage.updateIndustryTrend industry date streak direction change days
+                Storage.updateIndustryTrend industry date trend days
             )
             |> List.sum
         )
@@ -157,8 +157,8 @@ match runTestReports() with
 
     let smaBreakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry 20 FinvizConfig.dayRange
 
-    let (streak, direction, change) = smaBreakdowns |> IndustryTrendsCalculator.calculateForIndustry
+    let trend = smaBreakdowns |> TrendsCalculator.calculateForIndustry
 
-    Console.WriteLine($"{industry} {20} days sma streak: {streak} day {direction} with change of {change}")
+    Console.WriteLine($"{industry} {20} days sma streak: {trend.streak} day {trend.direction} with change of {trend.change}")
 
 | false -> ()

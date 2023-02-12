@@ -39,25 +39,25 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``trending down works`` () =
             
-        let (streak, direction, change) = IndustryTrendsCalculator.calculateForIndustry testDataDecreasingTrend
+        let trend = TrendsCalculator.calculateForIndustry testDataDecreasingTrend
         
-        Assert.Equal(1, streak)
-        Assert.Equal(Down, direction)
-        Assert.Equal(-10m, System.Math.Round(change, 2))
+        Assert.Equal(1, trend.streak)
+        Assert.Equal(Down, trend.direction)
+        Assert.Equal(-10m, System.Math.Round(trend.change, 2))
 
     [<Fact>]
     let ``trending up works`` () =
             
-        let (streak, direction, change) = IndustryTrendsCalculator.calculateForIndustry testDataIncreasingTrend
+        let trend = TrendsCalculator.calculateForIndustry testDataIncreasingTrend
         
-        Assert.Equal(2, streak)
-        Assert.Equal(Up, direction)
-        Assert.Equal(20m, System.Math.Round(change, 2))
+        Assert.Equal(2, trend.streak)
+        Assert.Equal(Up, trend.direction)
+        Assert.Equal(20m, System.Math.Round(trend.change, 2))
 
     [<Fact>]
     let ``encountering zero should stop``() =
-        let (streak, direction, change) = IndustryTrendsCalculator.calculateForIndustry trendFromZero
+        let trend = TrendsCalculator.calculateForIndustry trendFromZero
 
-        Assert.Equal(2, streak)
-        Assert.Equal(Up, direction)
-        Assert.Equal(80m, System.Math.Round(change, 2))
+        Assert.Equal(2, trend.streak)
+        Assert.Equal(Up, trend.direction)
+        Assert.Equal(80m, System.Math.Round(trend.change, 2))

@@ -1,9 +1,9 @@
 namespace StockScreenerReports.Core
 
-    module IndustryTrendsCalculator =
+    module TrendsCalculator =
         open System
 
-        let calculate (smaBreakdowns:list<SMABreakdown>) =
+        let calculate (smaBreakdowns:list<SMABreakdown>) : Trend =
 
             let mutable latestValue = Option<decimal>.None
             let mutable firstValue = Option<decimal>.None
@@ -58,11 +58,9 @@ namespace StockScreenerReports.Core
             let change = firstValue.Value - latestValue.Value
             
             match direction with
-            | Some s -> (streak, s, change)
-            | None -> (0, Up, 0m)
+            | Some s -> {streak = streak; direction = s; change = change}
+            | None -> {streak = 0; direction = Up; change = 0m}
 
         let calculateForIndustry (smaBreakdowns:list<IndustrySMABreakdown>) =
-            
             let justBreakdowns = smaBreakdowns |> List.map (fun x -> x.breakdown)
-
             calculate justBreakdowns

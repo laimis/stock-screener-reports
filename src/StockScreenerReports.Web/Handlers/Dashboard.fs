@@ -110,16 +110,11 @@ module Dashboard =
         let sma20 = getDailySMABreakdown 20 numberOfDays
         let sma200 = getDailySMABreakdown 200 numberOfDays
 
-        let trend20 = IndustryTrendsCalculator.calculate sma20
-        let trend200 = IndustryTrendsCalculator.calculate sma200
+        let trend20 = TrendsCalculator.calculate sma20
+        let trend200 = TrendsCalculator.calculate sma200
 
-        let toDescription (sma:int) (streak:int,direction:TrendDirection,change:decimal) =
-            let directionStr = 
-                match direction with
-                | Up -> "UP"
-                | Down -> "DOWN"
-
-            $"<b>SMA {sma}</b> trending <b>{directionStr}</b> for <b>{streak} days</b>, change of <b>{change:N2}</b>"
+        let toDescription (sma:int) (trend:Trend) =
+            $"<b>SMA {sma}:</b> {trend}"
 
         let sma20DirectionDescription = trend20 |> toDescription 20
         let sma200DirectionDescription = trend200 |> toDescription 200

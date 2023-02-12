@@ -114,20 +114,31 @@ type TrendDirection =
     | Up
     | Down
 
-type IndustryTrend =
+type Trend =
     {
-        industry: string;
         streak: int;
         direction: TrendDirection;
         change: decimal;
-        days: int;
-        date: System.DateTime;
     }
-
     member this.streakRate =
         match this.streak with
             | 0 -> 0.0m
             | _ -> (decimal this.change ) / (decimal this.streak)
+    override this.ToString() =
+        let directionStr = 
+            match this.direction with
+            | Up -> "Up"
+            | Down -> "Down"
+
+        $"Trending <b>{directionStr}</b> for <b>{this.streak} days</b>, change of <b>{this.change:N2}</b>"
+
+type IndustryTrend =
+    {
+        industry: string;
+        trend: Trend;
+        days: int;
+        date: System.DateTime;
+    }
 
 type JobStatus =
     | Success

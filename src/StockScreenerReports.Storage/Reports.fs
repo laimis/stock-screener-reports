@@ -71,16 +71,20 @@ module Reports =
     let private industryTrendMapper (reader:RowReader) : StockScreenerReports.Core.IndustryTrend =
         {
             industry = reader.string "industry";
-            streak = reader.int "streak";
-            direction = (
-                match reader.string "direction" with
-                    | "up" -> StockScreenerReports.Core.Up
-                    | "down" -> StockScreenerReports.Core.Down
-                    | _ -> StockScreenerReports.Core.Up
+            trend = (
+                {
+                    streak = reader.int "streak";
+                    direction = (
+                        match reader.string "direction" with
+                            | "up" -> StockScreenerReports.Core.Up
+                            | "down" -> StockScreenerReports.Core.Down
+                            | _ -> StockScreenerReports.Core.Up
+                    );
+                    change = reader.decimal "change";
+                }
             );
             days = reader.int "days";
             date = reader.dateTime "date";
-            change = reader.decimal "change";
         }
 
     let private smaBreakdownMapper (reader:RowReader) : StockScreenerReports.Core.SMABreakdown =

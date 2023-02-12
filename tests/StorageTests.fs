@@ -178,6 +178,8 @@ type StorageTests(output:ITestOutputHelper) =
 
         let date = System.DateTime.UtcNow |> Utils.convertToDateString
 
-        let updated = Storage.updateIndustryTrend "testindustry" date 7 Up 121m 20
+        let trend = {streak=7;direction=Up;change=121m}
+
+        let updated = Storage.updateIndustryTrend "testindustry" date trend 20
 
         Assert.Equal(1, updated)
