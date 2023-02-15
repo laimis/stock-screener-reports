@@ -21,7 +21,7 @@ module Links =
     let finvizLogoLink = "/finviz_logo.png"
 
     // app links
-    let stockLink ticker =
+    let stockLink (ticker:string) =
         $"/stocks/{ticker}"
 
     let screenerLink screenerId =
@@ -57,9 +57,9 @@ module Links =
         
         $"https://finviz.com/screener.ashx?v=111&f=ind_" + value
 
-    let ngtdOutcomesReportLink (title,tickers,earnings) =
+    let ngtdOutcomesReportLink (title,tickers,earnings,date) =
         let commaSeparated = tickers |> String.concat ","
         let earningsCommaSeparated = earnings |> String.concat ","
 
         // https://localhost:5002
-        $"https://ngtrading-xiu9e.ondigitalocean.app/reports/outcomes?tickers={commaSeparated}&earnings={earningsCommaSeparated}&title={title}"
+        $"https://ngtrading-xiu9e.ondigitalocean.app/reports/outcomes?tickers={commaSeparated}&earnings={earningsCommaSeparated}&title={title}&endDate={date}"

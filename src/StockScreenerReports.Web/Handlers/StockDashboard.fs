@@ -45,15 +45,16 @@ module StockDashboard =
             ]
 
         let screenerResultToRow screenerResult =
+            let dateStr = screenerResult.date |> Utils.convertToDateString
+            let screenerLink = dateStr |> screenerResultsLink screenerResult.screenerid
+
             tr [] [
-                td [] [ screenerResult.date |> Utils.convertToDateString |> str ]
-                td [] [ 
-                    (screenerResult.screenerid,screenerResult.screenername) |> generateScreenerTags
-                ]
-                td [] [ screenerResult.marketCap |> marketCapFormatted |> str ]
-                td [] [ screenerResult.price |> dollarFormatted |> str ]
-                td [] [ screenerResult.change |> percentFormatted |> str ]
-                td [] [ screenerResult.volume |> volumeFormatted |> str ]
+                screenerLink |> generateHref dateStr |> toTdWithNode
+                (screenerResult.screenerid,screenerResult.screenername) |> generateScreenerTags |> toTdWithNode
+                screenerResult.marketCap |> marketCapFormatted |> str |> toTdWithNode
+                screenerResult.price |> dollarFormatted |> str |> toTdWithNode
+                screenerResult.change |> percentFormatted |> str |> toTdWithNode
+                screenerResult.volume |> volumeFormatted |> str |> toTdWithNode
             ]
 
         let days = FinvizConfig.dayRange

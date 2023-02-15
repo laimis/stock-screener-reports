@@ -82,6 +82,8 @@ module ScreenerResults =
         let breakdowns = calculateBreakdowns results
 
         let tickers = results |> List.map (fun r -> r.ticker)
+
+        let date = results |> List.head |> (fun r -> r.date) |> Utils.convertToDateString
                 
         let breakdownDivs = 
             breakdowns
@@ -117,7 +119,7 @@ module ScreenerResults =
 
                     generateHrefWithAttrs
                         "NGTD Outcomes"
-                        ((screener.name,tickers,tickersWithEarningsInResults) |> Links.ngtdOutcomesReportLink)
+                        ((screener.name,tickers,tickersWithEarningsInResults,date) |> Links.ngtdOutcomesReportLink)
                         [(_class "button is-primary mr-2") ; (_target "_blank")]
 
                     button [

@@ -61,12 +61,17 @@ module IndustriesDashboard =
                         | Some trend -> trend.trend
                         | None -> StockScreenerReports.Core.Trend.blank()
 
+                    let cellCssClass = 
+                        match trend.direction with
+                        | Up -> "has-background-success"
+                        | Down -> "has-background-danger"
+
                     [
-                        td [] [ $"{smaBreakdown.breakdown.above} / {smaBreakdown.breakdown.total}" |> str  ]
-                        td [] [ System.String.Format("{0:N2}%", smaBreakdown.breakdown.percentAbove) |> str ]
-                        td [] [ System.String.Format("{0:N0}", trend.change) |> str ]
-                        td [] [ System.String.Format("{0:N0}", trend.streak) |> str ]
-                        td [] [ System.String.Format("{0:N2}%", trend.streakRate) |> str ]
+                        td [ _class cellCssClass ] [ $"{smaBreakdown.breakdown.above} / {smaBreakdown.breakdown.total}" |> str  ]
+                        td [ _class cellCssClass ] [ System.String.Format("{0:N2}%", smaBreakdown.breakdown.percentAbove) |> str ]
+                        td [ _class cellCssClass ] [ System.String.Format("{0:N0}", trend.change) |> str ]
+                        td [ _class cellCssClass ] [ System.String.Format("{0:N0}", trend.streak) |> str ]
+                        td [ _class cellCssClass ] [ System.String.Format("{0:N2}%", trend.streakRate) |> str ]
                     ]
 
                 counter <- counter + 1

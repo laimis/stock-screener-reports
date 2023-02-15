@@ -42,17 +42,18 @@ module Earnings =
         let rows = 
             tickersWithEarnings
             |> List.filter (fun (ticker,_) -> ticker |> matchFilter.ContainsKey)
-            |> List.map (fun (ticker, date) -> matchFilter.[ticker])
+            |> List.map (fun (ticker, _) -> matchFilter.[ticker])
             |> List.sortBy (fun s -> s.industry)
             |> List.map (fun s -> 
                 tr [] [
-                    td [] [s.ticker |> StockTicker.value |> Views.generateTickerLink]
-                    td [] [s.industry |> str]
-                    td [] [s.sector |> str]
+                    s.ticker |> StockTicker.value |> Views.generateTickerLink |> Views.toTdWithNode
+                    s.ticker |> StockTicker.value |> Links.tradingViewLink |> Views.generateHref "chart" |> Views.toTdWithNode
+                    s.industry |> str |> Views.toTdWithNode
+                    s.sector |> str |> Views.toTdWithNode
                 ]
             )
 
-        let headerRow = tr [] (["Ticker"; "Industry"; "Sector"] |> List.map (fun s -> s |> Views.toSortableHeaderCell))
+        let headerRow = tr [] (["Ticker"; "Chart"; "Industry"; "Sector"] |> List.map (fun s -> s |> Views.toSortableHeaderCell))
 
         let table = headerRow::rows |> Views.fullWidthTable
 
@@ -110,7 +111,7 @@ module Earnings =
                     td [] [topGainers]
                     td [] [topLosers]
                     td [] [newLows]
-                    td [] [ticker |> Links.tradingViewLink |> Views.generateHrefNewTab "link"]
+                    td [] [ticker |> Links.tradingViewLink |> Views.generateHrefNewTab "chart"]
                 ]
             )
 
