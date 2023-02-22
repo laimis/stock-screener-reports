@@ -6,6 +6,7 @@ module ScreenersTrends =
     open StockScreenerReports.Web.Shared
     open StockScreenerReports.Storage
     open StockScreenerReports.Core
+    open StockScreenerReports.Storage.Reports
     
     let private getScreenerDailyHits screener =
         FinvizConfig.dayRange
@@ -36,6 +37,53 @@ module ScreenersTrends =
             )
 
         (screener,data)
+
+    let private generateSMATrendRows() =
+
+        let sma20 = FinvizConfig.dayRange |> getDailySMABreakdown 20
+        let sma200 = FinvizConfig.dayRange |> getDailySMABreakdown 200
+
+        let trend20 = TrendsCalculator.calculate sma20
+        let trend200 = TrendsCalculator.calculate sma200
+
+        let toDescription (sma:int) (trend:Trend) =
+            $"<b>SMA {sma}:</b> {trend}"
+
+        let sma20DirectionDescription = trend20 |> toDescription 20
+        let sma200DirectionDescription = trend200 |> toDescription 200
+
+        let datasets:list<Charts.DataSet<decimal>> = [
+            {
+                data = sma20 |> List.map (fun breakdown -> breakdown.percentAboveRounded)
+                title = "SMA 20"
+                color = Constants.ColorRed
+            };
+            {
+                data = sma200 |> List.map (fun breakdown -> breakdown.percentAboveRounded)
+                title = "SMA 200"
+                color = Constants.ColorBlue
+            }
+        ]
+
+        let labels = sma20 |> List.map (fun breakdown -> breakdown.date.ToString("MM/dd"))
+
+        [
+            div [_class "content"] [
+                h1 [] [
+                    str "SMA Trends"
+                ]
+            ]
+            div [_class "columns"] [
+                div [ _class "column" ] [
+                    rawText sma20DirectionDescription
+                ]
+                div [ _class "column" ] [
+                    rawText sma200DirectionDescription
+                ]
+            ]
+            div [_class "block"]
+                (Charts.generateChartElements "SMA breakdown" Charts.ChartType.Line (Some 100) Charts.smallChart labels datasets)
+        ]
             
     let handler() =
         
@@ -110,5 +158,13 @@ module ScreenersTrends =
                 ]
             ]::volumeCharts        
 
-        let allElements = List.concat [numberOfHitsPartial; [highsMinusLowsChart]; volumePartial]
-        allElements |> Views.mainLayout "All Screener Trends"
+        let trends = generateSMATrendRows()
+
+        [
+            trends
+            numberOfHitsPartial
+            [highsMinusLowsChart]
+            volumePartial
+        ]
+        |> List.concat
+        |> Views.mainLayout "All Screener Trends"
