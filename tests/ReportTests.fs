@@ -114,7 +114,7 @@ type ReportTests(output:ITestOutputHelper) =
         let screener = getTestScreener
         let dateRange = FinvizConfig.dateRangeAsStrings
 
-        let results = screener.Value.id |> Reports.getDailyAverageVolumeForScreener dateRange
+        let results = screener.Value.id |> Reports.getDailyAverageVolumeForScreener dateRange   
 
         Assert.NotEmpty(results)
 
