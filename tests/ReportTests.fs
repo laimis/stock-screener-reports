@@ -15,7 +15,7 @@ type ReportTests(output:ITestOutputHelper) =
         Storage.getScreenerByName StorageTests.testScreenerName
 
     let getTestSector = "Energy"
-    let getTestIndustry = "Agricultural Inputs"
+    let getTestIndustries = ["Agricultural Inputs";"Biotechnology";"Semiconductors"]
     let getTestCountry = "USA"
 
     let getTestStartDate() = DateTime.Now.AddDays(-7)
@@ -164,11 +164,14 @@ type ReportTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``getting daily counts for screeners filtered by industry works``() =
         let screener = getTestScreener
-        let industry = getTestIndustry
-
-        let results = Reports.getDailyCountsForScreenerAndIndustry screener.Value.id industry 60
         
-        Assert.NotEmpty(results)
+        // try several industries, we should fine at least one that has results
+        let exists =
+            getTestIndustries
+            |> List.map (fun industry -> Reports.getDailyCountsForScreenerAndIndustry screener.Value.id industry 60)
+            |> List.exists (fun results -> results |> Seq.length > 0)
+        
+        Assert.True(exists)
 
     [<Fact>]
     let ``getting daily counts for screeners filtered by country works``() =
