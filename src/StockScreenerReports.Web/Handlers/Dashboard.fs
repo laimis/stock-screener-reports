@@ -30,22 +30,11 @@ module Dashboard =
             ]
         ]
 
-    let generateTrendsTable title nameCounts (industrySMABreakdowns:list<IndustrySMABreakdown>) =
+    let generateTrendsTable title nameCounts =
         let rows =
             nameCounts
             |> List.truncate 10
             |> List.map (fun (name,count) ->
-
-                let industryRankOption = 
-                    industrySMABreakdowns |> List.tryFindIndex (fun (industry) ->
-                        industry.industry = name
-                    )
-
-                let industryRank =
-                    match industryRankOption with
-                    | Some index ->
-                        (index + 1).ToString()
-                    | None -> "N/A"
 
                 tr [] [
                     td [] [ 
@@ -53,15 +42,11 @@ module Dashboard =
                             name
                             (Links.industryLink name)
                     ]
-                    td [ _class "has-text-right" ] [
-                        str industryRank
-                    ]
                     td [ _class "has-text-right"] [ str (count.ToString()) ]
                 ])
 
         let header = tr [] [
             th [] [ str title ]
-            th [ _class "has-text-right" ] [ str "Industry Rank" ]
             th [ _class "has-text-right" ] [ str "# of stocks" ]
         ]
 
@@ -69,23 +54,22 @@ module Dashboard =
 
     let private generateIndustryTrendsRow days =
 
-        let gainers = [Constants.NewHighsScreenerId] |> getTopIndustriesForScreeners days |> List.take 10
-        let losers = [Constants.NewLowsScreenerId] |> getTopIndustriesForScreeners days |> List.take 10
-
-        let industrySMABreakdowns = 
-            getIndustrySMABreakdownLatestDate()
-            |> Utils.convertToDateString
-            |> getIndustrySMABreakdowns 200
+        let columns =
+            [
+                Constants.NewHighsScreenerId, "New Highs"
+                Constants.TopGainerScreenerId, "Top Gainers"
+                Constants.TopLoserScreenerId, "Top Losers"
+                Constants.NewLowsScreenerId, "New Lows"
+            ]
+            |> List.map (fun (screenerId, title) ->
+                let industries = [screenerId] |> getTopIndustriesForScreeners days |> List.truncate 10
+                div [ _class "column" ] [
+                    generateTrendsTable title industries
+                ]
+            )
 
         [
-            div [_class "columns"] [
-                div [ _class "column" ] [
-                    generateTrendsTable "Industries with New Highs" gainers industrySMABreakdowns
-                ]
-                div [ _class "column" ] [
-                    generateTrendsTable "Industries with New Lows" losers industrySMABreakdowns
-                ]
-            ]
+            div [_class "columns"] columns
         ]
 
     let private generateSectorTrendsRow days =

@@ -7,14 +7,6 @@ module ScreenersTrends =
     open StockScreenerReports.Storage
     open StockScreenerReports.Core
     
-    let private listOfBusinessDates days = 
-            [-days .. 0]
-            |> List.map (fun i -> (System.DateTime.UtcNow.Date.AddDays(i),0))
-            |> List.where( fun (date,count) ->
-                date.DayOfWeek = System.DayOfWeek.Saturday |> not &&
-                date.DayOfWeek = System.DayOfWeek.Sunday |> not
-            )
-
     let private getScreenerDailyHits screener =
         FinvizConfig.dayRange
             |> Reports.getDailyCountsForScreener screener.id
@@ -35,12 +27,12 @@ module ScreenersTrends =
 
         let data =
             FinvizConfig.dayRange
-            |> listOfBusinessDates
-            |> List.map(fun (date,count) ->
+            |> Utils.listOfBusinessDates System.DateTime.UtcNow
+            |> List.map(fun (date) ->
                 let found = mapped.TryFind date
                 match found with
                 | Some c -> (date,c)
-                | None -> (date,count)
+                | None -> (date,0)
             )
 
         (screener,data)
@@ -74,8 +66,8 @@ module ScreenersTrends =
 
         let highsMinusLowsChart =
             FinvizConfig.dayRange
-            |> listOfBusinessDates
-            |> List.map(fun (date,count) ->
+            |> Utils.listOfBusinessDates System.DateTime.UtcNow
+            |> List.map(fun (date) ->
                 let high = newHighsDataMap.Item(date)
                 let low = newLowsDataMap.Item(date)
 

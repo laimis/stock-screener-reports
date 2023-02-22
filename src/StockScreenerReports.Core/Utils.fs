@@ -3,12 +3,12 @@ namespace StockScreenerReports.Core
     module Utils =
         open System
 
-        let private nonAlphaRegex = new System.Text.RegularExpressions.Regex("[^a-zA-Z]")
+        let private nonAlphaRegex = new Text.RegularExpressions.Regex("[^a-zA-Z]")
 
         let cleanIndustry (industry:string) =
             nonAlphaRegex.Replace(industry, "").ToLower()
 
-        let addDaysToClosestBusinessDay (date:System.DateTime) days =
+        let addDaysToClosestBusinessDay (date:DateTime) days =
             let newDate = date.AddDays(days)
 
             match newDate.DayOfWeek with
@@ -16,13 +16,21 @@ namespace StockScreenerReports.Core
             | DayOfWeek.Sunday -> newDate.AddDays(1)
             | _ -> newDate
 
-        let subtractDaysToClosestBusinessDay (date:System.DateTime) days =
+        let subtractDaysToClosestBusinessDay (date:DateTime) days =
             let newDate = date.AddDays(-days)
 
             match newDate.DayOfWeek with
             | DayOfWeek.Saturday -> newDate.AddDays(-1)
             | DayOfWeek.Sunday -> newDate.AddDays(-2)
             | _ -> newDate
+
+        let listOfBusinessDates (referenceDate:DateTime) days = 
+            [-days .. 0]
+            |> List.map (fun i -> referenceDate.Date.AddDays(i))
+            |> List.where( fun (date) ->
+                date.DayOfWeek = DayOfWeek.Saturday |> not &&
+                date.DayOfWeek = DayOfWeek.Sunday |> not
+            )
 
         let convertToDateString (date:DateTime) =
             date.ToString("yyyy-MM-dd")
