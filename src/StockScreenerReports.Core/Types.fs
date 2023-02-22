@@ -59,6 +59,29 @@ type FinvizConfig =
             | Constants.NewLowsScreenerId -> "#90323C" // new low
             | _ -> FinvizConfig.getBackgroundColorDefault // otherwise return default
 
+    static member getTradingHolidays () =
+        let holidays = 
+            [
+                System.DateTime(2023, 1, 2)
+                System.DateTime(2023, 1, 16)
+                System.DateTime(2023, 2, 20)
+                System.DateTime(2023, 4, 7)
+                System.DateTime(2023, 5, 29)
+                System.DateTime(2023, 6, 19)
+                System.DateTime(2023, 7, 4)
+                System.DateTime(2023, 9, 4)
+                System.DateTime(2023, 12, 25)
+                System.DateTime(2024, 1, 1)
+                System.DateTime(2024, 1, 15)
+                System.DateTime(2024, 2, 19)
+                System.DateTime(2024, 3, 29)
+                System.DateTime(2024, 5, 27)
+                System.DateTime(2024, 6, 19)
+                System.DateTime(2024, 7, 4)
+                System.DateTime(2024, 9, 2)
+            ]
+        holidays
+
 type ScreenerResult = {
     ticker:StockTicker.T;
     company:string;

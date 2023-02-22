@@ -25,11 +25,14 @@ namespace StockScreenerReports.Core
             | _ -> newDate
 
         let listOfBusinessDates (referenceDate:DateTime) days = 
+            let holidays = FinvizConfig.getTradingHolidays()
+
             [-days .. 0]
             |> List.map (fun i -> referenceDate.Date.AddDays(i))
             |> List.where( fun (date) ->
                 date.DayOfWeek = DayOfWeek.Saturday |> not &&
-                date.DayOfWeek = DayOfWeek.Sunday |> not
+                date.DayOfWeek = DayOfWeek.Sunday |> not &&
+                holidays |> List.contains date.Date |> not
             )
 
         let convertToDateString (date:DateTime) =

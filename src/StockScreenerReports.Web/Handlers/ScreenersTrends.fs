@@ -110,7 +110,5 @@ module ScreenersTrends =
                 ]
             ]::volumeCharts        
 
-        volumePartial
-            |> List.append [highsMinusLowsChart]
-            |> List.append numberOfHitsPartial
-            |> Views.mainLayout "All Screener Trends"
+        let allElements = List.concat [numberOfHitsPartial; [highsMinusLowsChart]; volumePartial]
+        allElements |> Views.mainLayout "All Screener Trends"
