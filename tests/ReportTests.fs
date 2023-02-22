@@ -99,8 +99,9 @@ type ReportTests(output:ITestOutputHelper) =
     let ``Particular screener daily counts work``() =
 
         let screener = getTestScreener
+        let dateRange = FinvizConfig.dateRangeAsStrings
 
-        let results = Reports.getDailyCountsForScreener screener.Value.id 7
+        let results = screener.Value.id |> Reports.getDailyCountsForScreener dateRange
 
         Assert.NotEmpty(results)
 
@@ -111,8 +112,9 @@ type ReportTests(output:ITestOutputHelper) =
     let ``Particular screener daily volume works``() =
 
         let screener = getTestScreener
+        let dateRange = FinvizConfig.dateRangeAsStrings
 
-        let results = Reports.getDailyAverageVolumeForScreener screener.Value.id 7
+        let results = screener.Value.id |> Reports.getDailyAverageVolumeForScreener dateRange
 
         Assert.NotEmpty(results)
 
@@ -264,7 +266,8 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``get daily SMA breakdowns works`` () =
-        let results = Reports.getDailySMABreakdown 20 20
+        let (startDate,endDate) = FinvizConfig.dateRangeAsStrings
+        let results = Reports.getDailySMABreakdown startDate endDate 20
         Assert.NotEmpty(results)
 
         // check order

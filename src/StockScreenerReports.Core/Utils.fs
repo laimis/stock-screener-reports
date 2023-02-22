@@ -24,12 +24,13 @@ namespace StockScreenerReports.Core
             | DayOfWeek.Sunday -> newDate.AddDays(-2)
             | _ -> newDate
 
-        let listOfBusinessDates (referenceDate:DateTime) days = 
+        let listOfBusinessDates (startDate:DateTime,endDate:DateTime) = 
             let holidays = FinvizConfig.getTradingHolidays()
 
-            [-days .. 0]
-            |> List.map (fun i -> referenceDate.Date.AddDays(i))
-            |> List.where( fun (date) ->
+            Seq.initInfinite float
+            |> Seq.map (fun i -> startDate.AddDays(i))
+            |> Seq.takeWhile (fun date -> date <= endDate)
+            |> Seq.where( fun (date) ->
                 date.DayOfWeek = DayOfWeek.Saturday |> not &&
                 date.DayOfWeek = DayOfWeek.Sunday |> not &&
                 holidays |> List.contains date.Date |> not

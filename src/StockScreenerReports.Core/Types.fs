@@ -46,6 +46,17 @@ type FinvizConfig =
     }
 
     static member dayRange = 91
+
+    static member dateRange = (
+        System.DateTime.Now.AddDays(-1.0 * 91.0),
+        System.DateTime.Now
+    )
+
+    static member dateRangeAsStrings = 
+        let range = FinvizConfig.dateRange
+        let startDate = (range |> fst).ToString("yyyy-MM-dd")
+        let endDate = (range |> snd).ToString("yyyy-MM-dd")
+        (startDate,endDate)
     static member industryTrendDayRange = 14
     static member sectorTrendDayRange = 14
 

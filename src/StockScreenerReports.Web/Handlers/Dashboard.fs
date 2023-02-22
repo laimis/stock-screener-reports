@@ -88,11 +88,10 @@ module Dashboard =
             ]
         ]
 
-    let private generateSMATrendRows() =
+    let private generateSMATrendRows startDate endDate =
 
-        let numberOfDays = 80
-        let sma20 = getDailySMABreakdown 20 numberOfDays
-        let sma200 = getDailySMABreakdown 200 numberOfDays
+        let sma20 = 20 |> getDailySMABreakdown startDate endDate
+        let sma200 = 200 |> getDailySMABreakdown startDate endDate
 
         let trend20 = TrendsCalculator.calculate sma20
         let trend200 = TrendsCalculator.calculate sma200
@@ -133,12 +132,14 @@ module Dashboard =
 
     let private createView (screeners:list<ScreenerResultReport>) =
         
+        let (startDate, endDate) = FinvizConfig.dateRangeAsStrings
+
         let screenerRows = screeners |> List.map generateScreenerResultSection
 
         let industryTrendRows = generateIndustryTrendsRow FinvizConfig.industryTrendDayRange
         let sectorTrendRows = generateSectorTrendsRow FinvizConfig.sectorTrendDayRange
 
-        let smaTrendRows = generateSMATrendRows()
+        let smaTrendRows = generateSMATrendRows startDate endDate
 
         let jobStatusRow = generateJobStatusRow()
 

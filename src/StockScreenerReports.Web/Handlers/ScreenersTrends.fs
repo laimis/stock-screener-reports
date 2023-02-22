@@ -2,35 +2,38 @@ namespace StockScreenerReports.Web.Handlers
 
 module ScreenersTrends =
 
+    open Giraffe
     open Giraffe.ViewEngine
     open StockScreenerReports.Web.Shared
     open StockScreenerReports.Storage
     open StockScreenerReports.Core
     open StockScreenerReports.Storage.Reports
     
-    let private getScreenerDailyHits screener =
-        FinvizConfig.dayRange
-            |> Reports.getDailyCountsForScreener screener.id
+    let private getScreenerDailyHits (dateRange:string * string) screener =
+        screener.id |> getDailyCountsForScreener dateRange
 
-    let private getScreenerDailyAverageVolume screener =
-        FinvizConfig.dayRange
-            |> Reports.getDailyAverageVolumeForScreener screener.id
+    let private getScreenerDailyAverageVolume(dateRange:string*string) screener =
+        screener.id |> getDailyAverageVolumeForScreener dateRange
 
-    let private getSCreenerDailyTotalVolume screener =
-        FinvizConfig.dayRange
-            |> Reports.getDailyTotalVolumeForScreener screener.id
+    let private getScreenerDailyTotalVolume (dateRange:string * string) screener =
+        screener.id |> getDailyTotalVolumeForScreener dateRange
 
-    let private getScreenerCountMapByDate screener screenerDataSource =
+    let private getScreenerCountMapByDate screener dateRange screenerDataSource =
         let mapped = 
             screener
-            |> screenerDataSource
+            |> screenerDataSource dateRange
             |> Map.ofList
 
+        let parsedDateRange = (
+            System.DateTime.Parse(dateRange |> fst),
+            System.DateTime.Parse(dateRange |> snd)
+        )
+
         let data =
-            FinvizConfig.dayRange
-            |> Utils.listOfBusinessDates System.DateTime.UtcNow
-            |> List.map(fun (date) ->
-                let found = mapped.TryFind date
+            parsedDateRange
+            |> Utils.listOfBusinessDates
+            |> Seq.map(fun (date) ->
+                let found = mapped.TryFind date.Date
                 match found with
                 | Some c -> (date,c)
                 | None -> (date,0)
@@ -38,10 +41,10 @@ module ScreenersTrends =
 
         (screener,data)
 
-    let private generateSMATrendRows() =
+    let private generateSMATrendRows startDate endDate =
 
-        let sma20 = FinvizConfig.dayRange |> getDailySMABreakdown 20
-        let sma200 = FinvizConfig.dayRange |> getDailySMABreakdown 200
+        let sma20 = 20 |> getDailySMABreakdown startDate endDate
+        let sma200 = 200 |> getDailySMABreakdown startDate endDate
 
         let trend20 = TrendsCalculator.calculate sma20
         let trend200 = TrendsCalculator.calculate sma200
@@ -84,19 +87,48 @@ module ScreenersTrends =
             div [_class "block"]
                 (Charts.generateChartElements "SMA breakdown" Charts.ChartType.Line (Some 100) Charts.smallChart labels datasets)
         ]
-            
-    let handler() =
+
+    let generateElementsToRender dateRange =
         
         let screeners = Storage.getScreeners()
 
+        let (startDate,endDate) = dateRange
+
+        let filters = 
+            div [_class "content"] [
+                h1 [] [
+                    str "Filters"
+                ]
+                form [] [
+                    
+                    div [_class "columns"] [
+                        div [_class "column"] [
+                            div [_class "field"] [
+                                label [_class "label"; _for "startDate"] [str "Start Date"]    
+                            ]
+                            input [ _class "input"; _type "date"; _value startDate; _id "startDate"; _name "startDate" ]
+                        ]
+                        div [_class "column"] [
+                            div [_class "field"] [
+                                label [_class "label"; _for "endDate"] [str "End Date"]    
+                            ]
+                            input [ _class "input"; _type "date"; _value endDate; _id "endDate"; _name "endDate" ]
+                        ]
+                    ]
+                    div [_class "control"] [
+                        button [ _class "button is-primary"; _type "submit"; _id "applyFilters" ] [ str "Apply Filters" ]
+                    ]
+                ]
+            ]
+
         let numberOfHitsByScreenerByDate =
             screeners
-            |> List.map (fun s -> getScreenerCountMapByDate s getScreenerDailyHits)
+            |> List.map (fun s -> getScreenerCountMapByDate s dateRange getScreenerDailyHits)
             |> Map.ofList
 
         let volumeByScreenerByDate =
             screeners
-            |> List.map (fun s -> getScreenerCountMapByDate s getSCreenerDailyTotalVolume)
+            |> List.map (fun s -> getScreenerCountMapByDate s dateRange getScreenerDailyTotalVolume)
             |> Map.ofList
 
         let findScreener screenerId =
@@ -106,21 +138,31 @@ module ScreenersTrends =
         // make chart that is new highs - new lows for each day
         let newHighsDataMap =
             numberOfHitsByScreenerByDate.Item(Constants.NewHighsScreenerId |> findScreener)
-            |> Map.ofList
+            |> Map.ofSeq
             
         let newLowsDataMap =
             numberOfHitsByScreenerByDate.Item(Constants.NewLowsScreenerId |> findScreener)
-            |> Map.ofList
+            |> Map.ofSeq
 
         let highsMinusLowsChart =
-            FinvizConfig.dayRange
-            |> Utils.listOfBusinessDates System.DateTime.UtcNow
-            |> List.map(fun (date) ->
-                let high = newHighsDataMap.Item(date)
-                let low = newLowsDataMap.Item(date)
+            FinvizConfig.dateRange
+            |> Utils.listOfBusinessDates
+            |> Seq.map(fun (date) ->
+                let high = 
+                    match (newHighsDataMap |> Map.tryFind date.Date)
+                    with
+                        | Some c -> c
+                        | None -> 0
+                
+                let low =
+                    match (newLowsDataMap |> Map.tryFind date.Date)
+                    with
+                        | Some c -> c
+                        | None -> 0
 
                 (date,high - low)
             )
+            |> List.ofSeq
             |> Charts.convertNameCountsToChart "Highs - Lows" Charts.Bar None Charts.smallChart FinvizConfig.getBackgroundColorDefault
             |> div [_class "block"]
 
@@ -130,6 +172,7 @@ module ScreenersTrends =
             |> List.map (fun (screener,screenerData) ->
                 
                 screenerData
+                |> List.ofSeq
                 |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart (FinvizConfig.getBackgroundColorForScreenerId screener.id) 
                 |> div [_class "block"]                 
             )
@@ -147,6 +190,7 @@ module ScreenersTrends =
             |> List.map (fun (screener,screenerData) ->
                 
                 screenerData
+                |> List.ofSeq
                 |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart (FinvizConfig.getBackgroundColorForScreenerId screener.id) 
                 |> div [_class "block"]                 
             )
@@ -158,13 +202,35 @@ module ScreenersTrends =
                 ]
             ]::volumeCharts        
 
-        let trends = generateSMATrendRows()
+        let trends = generateSMATrendRows startDate endDate
 
         [
+            [filters]
             trends
             numberOfHitsPartial
             [highsMinusLowsChart]
             volumePartial
         ]
         |> List.concat
-        |> Views.mainLayout "All Screener Trends"
+
+    let handler : HttpHandler =
+
+        fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
+        
+            let startDateParam = ctx.TryGetQueryStringValue "startDate"
+            let endDateParam = ctx.TryGetQueryStringValue "endDate"
+            let dateRange = FinvizConfig.dateRangeAsStrings
+
+            let startDate = 
+                match startDateParam with
+                    | Some s -> s
+                    | None -> dateRange |> fst
+
+            let endDate =
+                match endDateParam with
+                    | Some s -> s
+                    | None -> dateRange |> snd
+
+            let elementsToRender = generateElementsToRender (startDate,endDate)
+
+            (elementsToRender |> Views.mainLayout "All Screener Trends") next ctx

@@ -288,7 +288,7 @@ module Reports =
             ]
             |> Sql.execute (fun reader -> mapScreenerResultReportItem reader)
 
-    let getDailyTotalVolumeForScreener id days =
+    let getDailyTotalVolumeForScreener dateRange screenerId =
 
         let sql = @$"
             SELECT 
@@ -296,7 +296,7 @@ module Reports =
             FROM screenerresults
             WHERE 
                 screenerid = @screenerid
-                AND date >= current_date - @days
+                AND date BETWEEN date(@startDate) AND date(@endDate)
             GROUP BY date
             ORDER BY date DESC"
 
@@ -304,14 +304,15 @@ module Reports =
             |> Sql.connect
             |> Sql.query sql
             |> Sql.parameters [
-                "@screenerid", Sql.int id;
-                "@days", Sql.int days
+                "@screenerid", Sql.int screenerId;
+                "@startDate", Sql.string (dateRange |> fst)
+                "@endDate", Sql.string (dateRange |> snd)
             ]
             |> Sql.execute (fun reader ->
                 (reader.dateTime "date", reader.int "totalvolume")
             )
 
-    let getDailyAverageVolumeForScreener id days =
+    let getDailyAverageVolumeForScreener dateRange screenerId =
 
         let sql = @$"
             SELECT 
@@ -319,7 +320,7 @@ module Reports =
             FROM screenerresults
             WHERE 
                 screenerid = @screenerid
-                AND date >= current_date - @days
+                AND date BETWEEN date(@startDate) AND date(@endDate)
             GROUP BY date
             ORDER BY date"
 
@@ -327,15 +328,16 @@ module Reports =
             |> Sql.connect
             |> Sql.query sql
             |> Sql.parameters [
-                "@days", Sql.int days;
-                "@screenerid", Sql.int id
+                "@screenerid", Sql.int screenerId
+                "@startDate", Sql.string (dateRange |> fst)
+                "@endDate", Sql.string (dateRange |> snd)
             ]
             |> Sql.execute (fun reader ->
                 (reader.dateTime "date", reader.int "count")
             )
 
 
-    let getDailyCountsForScreener id days =
+    let getDailyCountsForScreener dateRange screernId =
 
         let sql = @$"
             SELECT 
@@ -343,7 +345,7 @@ module Reports =
             FROM screenerresults
             WHERE 
                 screenerid = @screenerid
-                AND date >= current_date - @days
+                AND date BETWEEN date(@startDate) AND date(@endDate)
             GROUP BY date
             ORDER BY date"
 
@@ -351,8 +353,9 @@ module Reports =
             |> Sql.connect
             |> Sql.query sql
             |> Sql.parameters [
-                "@screenerid", Sql.int id;
-                "@days", Sql.int days
+                "@screenerid", Sql.int screernId
+                "@startDate", Sql.string (dateRange |> fst)
+                "@endDate", Sql.string (dateRange |> snd)
             ]
             |> Sql.execute (fun reader -> 
                 (
@@ -592,13 +595,13 @@ module Reports =
                 )
             )
 
-    let getDailySMABreakdown days limit = 
+    let getDailySMABreakdown startDate endDate days = 
             
             let sql = @$"
                SELECT date,days,above,below
                 FROM DailySMABreakdowns
                 WHERE days = @days
-                AND date >= current_date - @limit
+                AND date BETWEEN date(@startDate) AND date(@endDate)
                 ORDER BY date"
     
             cnnString
@@ -606,7 +609,8 @@ module Reports =
                 |> Sql.query sql
                 |> Sql.parameters [
                     "@days", Sql.int days;
-                    "@limit", Sql.int limit
+                    "@startDate", Sql.string startDate;
+                    "@endDate", Sql.string endDate;
                 ]
                 |> Sql.execute smaBreakdownMapper
 
