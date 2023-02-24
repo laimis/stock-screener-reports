@@ -41,11 +41,45 @@ function sortBy(header) {
     if (index !== prevColumnIndex) { // different column is clicked, so sort by the new column
         arrTable.sort(
             function (a, b) {
-                var aVal = a[index];
-                var bVal = b[index];
+                var aValRaw = a[index];
+                var bValRaw = b[index];
+
+                var aVal = aValRaw.replaceAll(',', '');
+                var bVal = bValRaw.replaceAll(',', '');
+
+                if (aVal.includes('%')) {
+                    aVal = aVal.replace('%', '');
+                    bVal = bVal.replace('%', '');
+                }
+
+                if (aValRaw.endsWith('M')) {
+                    aVal = aVal.replace('M', '');
+                }
+                if (aValRaw.endsWith('B')) {
+                    aVal = aVal.replace('B', '');
+                }
+                if (bValRaw.endsWith('M')) {
+                    bVal = bVal.replace('M', '');
+                }
+                if (bValRaw.endsWith('B')) {
+                    bVal = bVal.replace('B', '');
+                }
 
                 var aParsed = parseFloat(aVal);
                 var bParsed = parseFloat(bVal);
+
+                if (aValRaw.endsWith('M')) {
+                    aParsed = aParsed * 1000000;
+                }
+                if (aValRaw.endsWith('B')) {
+                    aParsed = aParsed * 1000000000;
+                }
+                if (bValRaw.endsWith('M')) {
+                    bParsed = bParsed * 1000000;
+                }
+                if (bValRaw.endsWith('B')) {
+                    bParsed = bParsed * 1000000000;
+                }
 
                 aVal = isNaN(aParsed) ? aVal : aParsed;
                 bVal = isNaN(bParsed) ? bVal : bParsed;

@@ -9,7 +9,7 @@ module Views =
 
     let marketCapFormatted marketCap =
         match marketCap with
-        | d when d > billion -> System.Math.Round(d / billion, 2).ToString() + " B"
+        | d when d > billion -> System.Math.Round(d / billion, 2).ToString() + "B"
         | d -> System.Math.Round(d / million, 2).ToString() + "M"
 
     let dollarFormatted (value:decimal) =
