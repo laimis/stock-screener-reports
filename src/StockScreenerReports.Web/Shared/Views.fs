@@ -138,6 +138,8 @@ module Views =
         let clickFunction = 
             match title with
             | "Industries" -> Some "industryClicked(event)"
+            | "Sectors" -> Some "sectorClicked(event)"
+            | "Countries" -> Some "countryClicked(event)"
             | _ -> None
         let (header, rows) = listOfNameCountPairs |> toNameCountRows title maxNumberOfRows (fun name -> generateHref name (linkFunction name)) clickFunction
         fullWidthTable header rows

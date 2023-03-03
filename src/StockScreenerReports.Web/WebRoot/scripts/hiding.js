@@ -70,23 +70,57 @@ function toggleEarningsVisibility() {
 
 selectedIndustry = ""
 function industryClicked(event) {
-    console.log("industry clicked")
-    console.log(event)
-
+    
     var td = event.target
     var ahref = td.children[0]
     var text = ahref.innerText
 
-    setIndustry(text)
-}
-
-function setIndustry(industry) {
-    if (selectedIndustry === industry) {
+    if (selectedIndustry === text) {
         selectedIndustry = ""
     }
     else {
-        selectedIndustry = industry
+        selectedIndustry = text
     }
+
+    toggleTableRowsForMatchingCategory("Industry", selectedIndustry)
+}
+
+selectedSector = ""
+function sectorClicked(event) {
+    
+    var td = event.target
+    var ahref = td.children[0]
+    var text = ahref.innerText
+
+    if (selectedSector === text) {
+        selectedSector = ""
+    }
+    else {
+        selectedSector = text
+    }
+
+    toggleTableRowsForMatchingCategory("Sector", selectedSector)
+}
+
+selectedCountry = ""
+function countryClicked(event) {
+    
+    var td = event.target
+    var ahref = td.children[0]
+    var text = ahref.innerText
+
+    if (selectedCountry === text) {
+        selectedCountry = ""
+    }
+    else {
+        selectedCountry = text
+    }
+
+    toggleTableRowsForMatchingCategory("Country", selectedCountry)
+}
+
+function toggleTableRowsForMatchingCategory(category, selectedValue) {
+    
 
     // first, find all tables
     var tables = document.getElementsByTagName("table")
@@ -101,7 +135,7 @@ function setIndustry(industry) {
         for (var j = 0; j < headerRow.cells.length; j++) {
             var headerCell = headerRow.cells[j]
 
-            if (headerCell.innerText == "Industry") {
+            if (headerCell.innerText == category) {
                 industryCellIndex = j
                 break
             }
@@ -119,7 +153,7 @@ function setIndustry(industry) {
             var ahref = td.children[0]
             var text = ahref.innerText
 
-            if (text == selectedIndustry || selectedIndustry == "") {
+            if (text == selectedValue || selectedValue == "") {
                 row.classList.remove("is-hidden")
             } else {
                 row.classList.add("is-hidden")
