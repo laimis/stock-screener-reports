@@ -142,10 +142,18 @@ module IndustryDashboard =
         
         let tableHeader = tr [] (headerNames |> List.map (fun u -> u |> toSortableHeaderCell))
 
-        let screenerResultsTable = tableHeader::resultRows |> fullWidthTable
+        let screenerResultsTable = resultRows |> fullWidthTable tableHeader
         
         // get stocks in industry
         let stocks = Storage.getStocksByIndustry industryName
+
+        let stockTableHeader = tr [] [
+            "ticker" |> toSortableHeaderCell
+            "company" |> toSortableHeaderCell
+            "sector" |> toSortableHeaderCell
+            "industry" |> toSortableHeaderCell
+            "trading view" |> toSortableHeaderCell
+        ]
 
         let stockTable =
             stocks
@@ -158,7 +166,7 @@ module IndustryDashboard =
                     stock.ticker |> StockTicker.value |> Links.tradingViewLink |> generateHref "Trading View" |> toTdWithNode
                 ]
             )
-            |> fullWidthTable
+            |> fullWidthTable stockTableHeader
 
         let view = 
             div [_class "content"] [

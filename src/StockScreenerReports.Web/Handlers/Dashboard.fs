@@ -50,7 +50,7 @@ module Dashboard =
             th [ _class "has-text-right" ] [ str "# of stocks" ]
         ]
 
-        header::rows |> Views.fullWidthTable
+        rows |> Views.fullWidthTable header
 
     let private generateIndustryTrendsRow days =
 

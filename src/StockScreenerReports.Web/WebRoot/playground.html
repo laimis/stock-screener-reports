@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Screener: Top Gainer (above $10, relvol 1+)</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+    <link rel="stylesheet" href="/node_modules/@fortawesome/fontawesome-free/css./all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script src="/scripts/sorting.js"></script>
+    <script src="/scripts/hiding.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <section class="section">
+        <div class="container">
+            <div class="columns mb-5">
+                <div class="column">
+                    <h1 class="title"><a href="/" class="has-text-primary">NG Finviz</a></h1>
+                </div>
+                <div class="column is-three-quarters">
+                    <div class="columns">
+                        <div class="column">
+                            <form action="/stocks/search" method="GET"><input class="input" type="text"
+                                    placeholder="Search for stock" name="ticker"></form>
+                        </div>
+                        <div class="column"><a href="/earnings"
+                                class="button is-small is-primary is-pulled-right mx-1">Earnings</a><a
+                                href="/screeners/trends"
+                                class="button is-small is-primary is-pulled-right mx-1">Trends</a><a href="/industries"
+                                class="button is-small is-primary is-pulled-right mx-1">Industries</a><a
+                                href="/screeners" class="button is-small is-primary is-pulled-right mx-1">Screeners</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="content">
+                <h1>Screener: New Highs, 1.5x volume, &gt;$10</h1>
+                <h5>44 results</h5>
+                <div class="block"><a
+                        href="https://finviz.com/screener.ashx?v=111&amp;s=ta_newhigh&amp;f=sh_avgvol_o100,sh_opt_optionshort,sh_price_o10,sh_relvol_o1,ta_perf_dup&amp;ft=4&amp;o=-volume"
+                        class="button is-primary mr-2">View on Finviz</a><a href="/screeners/28"
+                        class="button is-primary mr-2">Screener Details</a><a
+                        href="https://ngtrading-xiu9e.ondigitalocean.app/reports/outcomes?tickers=PR,SFM,BOWL,FSLR,WYNN,VRRM,SRPT,FTDR,BLDR,AER,AIMC,RELY,AROC,CRH,DUOL,TGLS,OSPN,XPRO,NRDS,ELF,RS,INSW,ASUR,MTZ,BWXT,TNK,CLH,OEC,DCI,EPAC,STVN,MTW,SPOK,STRL,BKNG,INTA,ZEUS,ATRO,NSIT,RCEL,WNS,HURN,FDP,IPAR&amp;earnings=SFM,VRRM,FTDR,AER,AIMC,TGLS,CLH,DCI,STVN,ATRO&amp;title=New Highs, 1.5x volume, &gt;$10&amp;endDate=2023-03-02"
+                        class="button is-primary mr-2" target="_blank">NGTD Outcomes</a><button
+                        onclick="toggleTickerCompanyVisibility()" class="button is-primary">Toggle
+                        Ticker/Company</button></div>
+            </div>
+            <div class="columns">
+                <div class="column">
+                    <table class="table is-fullwidth is-striped">
+                        <thead>
+                            <tr>
+                                <th colspan="2">Sectors</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><a href="/sectors/Industrials">Industrials</a></td>
+                                <td class="has-text-right">15</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/sectors/Technology">Technology</a></td>
+                                <td class="has-text-right">8</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/sectors/Energy">Energy</a></td>
+                                <td class="has-text-right">4</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/sectors/Consumer Defensive">Consumer Defensive</a></td>
+                                <td class="has-text-right">4</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/sectors/Healthcare">Healthcare</a></td>
+                                <td class="has-text-right">4</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/sectors/Basic Materials">Basic Materials</a></td>
+                                <td class="has-text-right">4</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/sectors/Consumer Cyclical">Consumer Cyclical</a></td>
+                                <td class="has-text-right">3</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/sectors/Communication Services">Communication Services</a></td>
+                                <td class="has-text-right">1</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/sectors/Financial">Financial</a></td>
+                                <td class="has-text-right">1</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="column">
+                    <table class="table is-fullwidth is-striped">
+                        <thead>
+                            <tr>
+                                <th colspan="2">Industries</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td onclick="industryClicked(event)"><a href="/industries/Software - Application">Software - Application</a></td>
+                                <td class="has-text-right">4</td>
+                            </tr>
+                            <tr>
+                                <td  onclick="industryClicked(event)"><a href="/industries/Specialty Industrial Machinery">Specialty Industrial
+                                        Machinery</a></td>
+                                <td class="has-text-right">3</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/industries/Building Products &amp; Equipment">Building Products &amp;
+                                        Equipment</a></td>
+                                <td class="has-text-right">2</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/industries/Oil &amp; Gas Equipment &amp; Services">Oil &amp; Gas Equipment
+                                        &amp; Services</a></td>
+                                <td class="has-text-right">2</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/industries/Household &amp; Personal Products">Household &amp; Personal
+                                        Products</a></td>
+                                <td class="has-text-right">2</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/industries/Steel">Steel</a></td>
+                                <td class="has-text-right">2</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/industries/Engineering &amp; Construction">Engineering &amp;
+                                        Construction</a></td>
+                                <td class="has-text-right">2</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/industries/Aerospace &amp; Defense">Aerospace &amp; Defense</a></td>
+                                <td class="has-text-right">2</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/industries/Information Technology Services">Information Technology
+                                        Services</a></td>
+                                <td class="has-text-right">2</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/industries/Oil &amp; Gas E&amp;P">Oil &amp; Gas E&amp;P</a></td>
+                                <td class="has-text-right">1</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="column">
+                    <table class="table is-fullwidth is-striped">
+                        <thead>
+                            <tr>
+                                <th colspan="2">Countries</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><a href="/countries/USA">USA</a></td>
+                                <td class="has-text-right">36</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/countries/Ireland">Ireland</a></td>
+                                <td class="has-text-right">2</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/countries/Colombia">Colombia</a></td>
+                                <td class="has-text-right">1</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/countries/Canada">Canada</a></td>
+                                <td class="has-text-right">1</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/countries/Luxembourg">Luxembourg</a></td>
+                                <td class="has-text-right">1</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/countries/Italy">Italy</a></td>
+                                <td class="has-text-right">1</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/countries/India">India</a></td>
+                                <td class="has-text-right">1</td>
+                            </tr>
+                            <tr>
+                                <td><a href="/countries/Cayman Islands">Cayman Islands</a></td>
+                                <td class="has-text-right">1</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="block">
+                <table class="table is-fullwidth is-striped">
+                    <thead>
+                        <tr>
+                            <th onclick="sortBy(this)" style="cursor: pointer">Date</th>
+                            <th onclick="sortBy(this)" style="cursor: pointer"></th>
+                            <th onclick="sortBy(this)" style="cursor: pointer">Ticker</th>
+                            <th onclick="sortBy(this)" style="cursor: pointer">Company</th>
+                            <th onclick="sortBy(this)" style="cursor: pointer">Sector</th>
+                            <th onclick="sortBy(this)" style="cursor: pointer">Industry</th>
+                            <th onclick="sortBy(this)" style="cursor: pointer">Country</th>
+                            <th onclick="sortBy(this)" style="cursor: pointer">Market Cap</th>
+                            <th onclick="sortBy(this)" style="cursor: pointer">Price</th>
+                            <th onclick="sortBy(this)" style="cursor: pointer">Change</th>
+                            <th onclick="sortBy(this)" style="cursor: pointer">Volume</th>
+                            <th onclick="sortBy(this)" style="cursor: pointer">Chart</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><span class="icon"><i class="fa-solid fa-fire has-text-success"></i></span></td>
+                            <td><a href="/stocks/PR">PR</a></td>
+                            <td>Permian Resources Corporation</td>
+                            <td><a href="/sectors/Energy">Energy</a></td>
+                            <td><a href="/industries/Oil &amp; Gas E&amp;P">Oil &amp; Gas E&amp;P</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>6.38B</td>
+                            <td>$11.91</td>
+                            <td>6.91 %</td>
+                            <td>8,740,519</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=PR" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><span class="icon"><i class="fa-solid fa-e"></i></span><span class="icon"><i
+                                        class="fa-solid fa-fire has-text-success"></i></span></td>
+                            <td><a href="/stocks/SFM">SFM</a></td>
+                            <td>Sprouts Farmers Market, Inc.</td>
+                            <td><a href="/sectors/Consumer Defensive">Consumer Defensive</a></td>
+                            <td><a href="/industries/Grocery Stores">Grocery Stores</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>3.77B</td>
+                            <td>$34.80</td>
+                            <td>12.99 %</td>
+                            <td>6,022,417</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=SFM" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/BOWL">BOWL</a></td>
+                            <td>Bowlero Corp.</td>
+                            <td><a href="/sectors/Communication Services">Communication Services</a></td>
+                            <td><a href="/industries/Entertainment">Entertainment</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>2.61B</td>
+                            <td>$15.90</td>
+                            <td>4.40 %</td>
+                            <td>5,403,831</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=BOWL" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/FSLR">FSLR</a></td>
+                            <td>First Solar, Inc.</td>
+                            <td><a href="/sectors/Technology">Technology</a></td>
+                            <td><a href="/industries/Solar">Solar</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>21.58B</td>
+                            <td>$198.22</td>
+                            <td>1.30 %</td>
+                            <td>4,459,618</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=FSLR" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/WYNN">WYNN</a></td>
+                            <td>Wynn Resorts, Limited</td>
+                            <td><a href="/sectors/Consumer Cyclical">Consumer Cyclical</a></td>
+                            <td><a href="/industries/Resorts &amp; Casinos">Resorts &amp; Casinos</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>12.89B</td>
+                            <td>$113.41</td>
+                            <td>1.06 %</td>
+                            <td>4,031,427</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=WYNN" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><span class="icon"><i class="fa-solid fa-e"></i></span><i></i></td>
+                            <td><a href="/stocks/VRRM">VRRM</a></td>
+                            <td>Verra Mobility Corporation</td>
+                            <td><a href="/sectors/Industrials">Industrials</a></td>
+                            <td><a href="/industries/Security &amp; Protection Services">Security &amp; Protection
+                                    Services</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>2.54B</td>
+                            <td>$17.75</td>
+                            <td>5.28 %</td>
+                            <td>3,420,189</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=VRRM" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/SRPT">SRPT</a></td>
+                            <td>Sarepta Therapeutics, Inc.</td>
+                            <td><a href="/sectors/Healthcare">Healthcare</a></td>
+                            <td><a href="/industries/Biotechnology">Biotechnology</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>13.62B</td>
+                            <td>$153.00</td>
+                            <td>5.06 %</td>
+                            <td>3,142,610</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=SRPT" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><span class="icon"><i class="fa-solid fa-e"></i></span><i></i></td>
+                            <td><a href="/stocks/FTDR">FTDR</a></td>
+                            <td>Frontdoor, Inc.</td>
+                            <td><a href="/sectors/Consumer Cyclical">Consumer Cyclical</a></td>
+                            <td><a href="/industries/Personal Services">Personal Services</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>2.42B</td>
+                            <td>$29.46</td>
+                            <td>5.33 %</td>
+                            <td>2,989,452</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=FTDR" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/BLDR">BLDR</a></td>
+                            <td>Builders FirstSource, Inc.</td>
+                            <td><a href="/sectors/Industrials">Industrials</a></td>
+                            <td><a href="/industries/Building Products &amp; Equipment">Building Products &amp;
+                                    Equipment</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>12.75B</td>
+                            <td>$86.70</td>
+                            <td>1.10 %</td>
+                            <td>2,407,839</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=BLDR" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><span class="icon"><i class="fa-solid fa-e"></i></span><i></i></td>
+                            <td><a href="/stocks/AER">AER</a></td>
+                            <td>AerCap Holdings N.V.</td>
+                            <td><a href="/sectors/Industrials">Industrials</a></td>
+                            <td><a href="/industries/Airports &amp; Air Services">Airports &amp; Air Services</a></td>
+                            <td><a href="/countries/Ireland">Ireland</a></td>
+                            <td>16.12B</td>
+                            <td>$65.47</td>
+                            <td>3.74 %</td>
+                            <td>2,011,792</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=AER" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><span class="icon"><i class="fa-solid fa-e"></i></span><i></i></td>
+                            <td><a href="/stocks/AIMC">AIMC</a></td>
+                            <td>Altra Industrial Motion Corp.</td>
+                            <td><a href="/sectors/Industrials">Industrials</a></td>
+                            <td><a href="/industries/Specialty Industrial Machinery">Specialty Industrial Machinery</a>
+                            </td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>4.02B</td>
+                            <td>$61.70</td>
+                            <td>0.29 %</td>
+                            <td>1,730,107</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=AIMC" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/RELY">RELY</a></td>
+                            <td>Remitly Global, Inc.</td>
+                            <td><a href="/sectors/Technology">Technology</a></td>
+                            <td><a href="/industries/Software - Infrastructure">Software - Infrastructure</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>2.53B</td>
+                            <td>$14.79</td>
+                            <td>3.21 %</td>
+                            <td>1,583,587</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=RELY" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/AROC">AROC</a></td>
+                            <td>Archrock, Inc.</td>
+                            <td><a href="/sectors/Energy">Energy</a></td>
+                            <td><a href="/industries/Oil &amp; Gas Equipment &amp; Services">Oil &amp; Gas Equipment
+                                    &amp; Services</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>1.69B</td>
+                            <td>$11.37</td>
+                            <td>2.43 %</td>
+                            <td>1,482,543</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=AROC" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><span class="icon"><i class="fa-solid fa-fire has-text-success"></i></span></td>
+                            <td><a href="/stocks/CRH">CRH</a></td>
+                            <td>CRH plc</td>
+                            <td><a href="/sectors/Basic Materials">Basic Materials</a></td>
+                            <td><a href="/industries/Building Materials">Building Materials</a></td>
+                            <td><a href="/countries/Ireland">Ireland</a></td>
+                            <td>38.84B</td>
+                            <td>$51.82</td>
+                            <td>9.19 %</td>
+                            <td>1,407,759</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=CRH" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><span class="icon"><i class="fa-solid fa-fire has-text-success"></i></span></td>
+                            <td><a href="/stocks/DUOL">DUOL</a></td>
+                            <td>Duolingo, Inc.</td>
+                            <td><a href="/sectors/Technology">Technology</a></td>
+                            <td><a href="/industries/Software - Application">Software - Application</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>4.95B</td>
+                            <td>$119.88</td>
+                            <td>8.02 %</td>
+                            <td>1,320,206</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=DUOL" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><span class="icon"><i class="fa-solid fa-e"></i></span><span class="icon"><i
+                                        class="fa-solid fa-fire has-text-success"></i></span></td>
+                            <td><a href="/stocks/TGLS">TGLS</a></td>
+                            <td>Tecnoglass Inc.</td>
+                            <td><a href="/sectors/Industrials">Industrials</a></td>
+                            <td><a href="/industries/Building Products &amp; Equipment">Building Products &amp;
+                                    Equipment</a></td>
+                            <td><a href="/countries/Colombia">Colombia</a></td>
+                            <td>1.90B</td>
+                            <td>$39.93</td>
+                            <td>9.85 %</td>
+                            <td>1,294,143</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=TGLS" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><span class="icon"><i class="fa-solid fa-fire has-text-success"></i></span></td>
+                            <td><a href="/stocks/OSPN">OSPN</a></td>
+                            <td>OneSpan Inc.</td>
+                            <td><a href="/sectors/Technology">Technology</a></td>
+                            <td><a href="/industries/Software - Application">Software - Application</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>753.10M</td>
+                            <td>$18.49</td>
+                            <td>11.72 %</td>
+                            <td>1,272,175</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=OSPN" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/XPRO">XPRO</a></td>
+                            <td>Expro Group Holdings N.V.</td>
+                            <td><a href="/sectors/Energy">Energy</a></td>
+                            <td><a href="/industries/Oil &amp; Gas Equipment &amp; Services">Oil &amp; Gas Equipment
+                                    &amp; Services</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>2.29B</td>
+                            <td>$23.61</td>
+                            <td>1.64 %</td>
+                            <td>1,044,250</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=XPRO" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/NRDS">NRDS</a></td>
+                            <td>NerdWallet, Inc.</td>
+                            <td><a href="/sectors/Financial">Financial</a></td>
+                            <td><a href="/industries/Credit Services">Credit Services</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>1.56B</td>
+                            <td>$21.58</td>
+                            <td>5.68 %</td>
+                            <td>1,004,108</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=NRDS" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/ELF">ELF</a></td>
+                            <td>e.l.f. Beauty, Inc.</td>
+                            <td><a href="/sectors/Consumer Defensive">Consumer Defensive</a></td>
+                            <td><a href="/industries/Household &amp; Personal Products">Household &amp; Personal
+                                    Products</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>4.03B</td>
+                            <td>$75.22</td>
+                            <td>1.39 %</td>
+                            <td>954,477</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=ELF" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/RS">RS</a></td>
+                            <td>Reliance Steel &amp; Aluminum Co.</td>
+                            <td><a href="/sectors/Basic Materials">Basic Materials</a></td>
+                            <td><a href="/industries/Steel">Steel</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>15.17B</td>
+                            <td>$260.17</td>
+                            <td>2.87 %</td>
+                            <td>815,185</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=RS" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/INSW">INSW</a></td>
+                            <td>International Seaways, Inc.</td>
+                            <td><a href="/sectors/Industrials">Industrials</a></td>
+                            <td><a href="/industries/Marine Shipping">Marine Shipping</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>2.49B</td>
+                            <td>$52.32</td>
+                            <td>2.05 %</td>
+                            <td>808,568</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=INSW" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><span class="icon"><i class="fa-solid fa-fire has-text-success"></i></span></td>
+                            <td><a href="/stocks/ASUR">ASUR</a></td>
+                            <td>Asure Software, Inc.</td>
+                            <td><a href="/sectors/Technology">Technology</a></td>
+                            <td><a href="/industries/Software - Application">Software - Application</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>296.41M</td>
+                            <td>$14.41</td>
+                            <td>8.43 %</td>
+                            <td>722,335</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=ASUR" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/MTZ">MTZ</a></td>
+                            <td>MasTec, Inc.</td>
+                            <td><a href="/sectors/Industrials">Industrials</a></td>
+                            <td><a href="/industries/Engineering &amp; Construction">Engineering &amp; Construction</a>
+                            </td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>7.99B</td>
+                            <td>$102.38</td>
+                            <td>1.26 %</td>
+                            <td>690,489</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=MTZ" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/BWXT">BWXT</a></td>
+                            <td>BWX Technologies, Inc.</td>
+                            <td><a href="/sectors/Industrials">Industrials</a></td>
+                            <td><a href="/industries/Aerospace &amp; Defense">Aerospace &amp; Defense</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>5.55B</td>
+                            <td>$62.45</td>
+                            <td>0.19 %</td>
+                            <td>581,584</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=BWXT" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/TNK">TNK</a></td>
+                            <td>Teekay Tankers Ltd.</td>
+                            <td><a href="/sectors/Energy">Energy</a></td>
+                            <td><a href="/industries/Oil &amp; Gas Midstream">Oil &amp; Gas Midstream</a></td>
+                            <td><a href="/countries/Canada">Canada</a></td>
+                            <td>1.58B</td>
+                            <td>$47.61</td>
+                            <td>2.23 %</td>
+                            <td>569,054</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=TNK" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><span class="icon"><i class="fa-solid fa-e"></i></span><i></i></td>
+                            <td><a href="/stocks/CLH">CLH</a></td>
+                            <td>Clean Harbors, Inc.</td>
+                            <td><a href="/sectors/Industrials">Industrials</a></td>
+                            <td><a href="/industries/Waste Management">Waste Management</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>7.44B</td>
+                            <td>$136.31</td>
+                            <td>2.25 %</td>
+                            <td>565,706</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=CLH" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/OEC">OEC</a></td>
+                            <td>Orion Engineered Carbons S.A.</td>
+                            <td><a href="/sectors/Basic Materials">Basic Materials</a></td>
+                            <td><a href="/industries/Specialty Chemicals">Specialty Chemicals</a></td>
+                            <td><a href="/countries/Luxembourg">Luxembourg</a></td>
+                            <td>1.57B</td>
+                            <td>$26.41</td>
+                            <td>1.34 %</td>
+                            <td>541,052</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=OEC" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><span class="icon"><i class="fa-solid fa-e"></i></span><i></i></td>
+                            <td><a href="/stocks/DCI">DCI</a></td>
+                            <td>Donaldson Company, Inc.</td>
+                            <td><a href="/sectors/Industrials">Industrials</a></td>
+                            <td><a href="/industries/Specialty Industrial Machinery">Specialty Industrial Machinery</a>
+                            </td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>8.08B</td>
+                            <td>$66.34</td>
+                            <td>0.87 %</td>
+                            <td>535,776</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=DCI" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/EPAC">EPAC</a></td>
+                            <td>Enerpac Tool Group Corp.</td>
+                            <td><a href="/sectors/Industrials">Industrials</a></td>
+                            <td><a href="/industries/Specialty Industrial Machinery">Specialty Industrial Machinery</a>
+                            </td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>1.61B</td>
+                            <td>$28.29</td>
+                            <td>3.14 %</td>
+                            <td>505,373</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=EPAC" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><span class="icon"><i class="fa-solid fa-e"></i></span><span class="icon"><i
+                                        class="fa-solid fa-fire has-text-success"></i></span></td>
+                            <td><a href="/stocks/STVN">STVN</a></td>
+                            <td>Stevanato Group S.p.A.</td>
+                            <td><a href="/sectors/Healthcare">Healthcare</a></td>
+                            <td><a href="/industries/Medical Instruments &amp; Supplies">Medical Instruments &amp;
+                                    Supplies</a></td>
+                            <td><a href="/countries/Italy">Italy</a></td>
+                            <td>7.03B</td>
+                            <td>$23.71</td>
+                            <td>6.18 %</td>
+                            <td>400,461</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=STVN" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/MTW">MTW</a></td>
+                            <td>The Manitowoc Company, Inc.</td>
+                            <td><a href="/sectors/Industrials">Industrials</a></td>
+                            <td><a href="/industries/Farm &amp; Heavy Construction Machinery">Farm &amp; Heavy
+                                    Construction Machinery</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>666.58M</td>
+                            <td>$19.40</td>
+                            <td>0.73 %</td>
+                            <td>399,110</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=MTW" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/SPOK">SPOK</a></td>
+                            <td>Spok Holdings, Inc.</td>
+                            <td><a href="/sectors/Healthcare">Healthcare</a></td>
+                            <td><a href="/industries/Health Information Services">Health Information Services</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>198.22M</td>
+                            <td>$10.40</td>
+                            <td>1.02 %</td>
+                            <td>370,479</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=SPOK" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/STRL">STRL</a></td>
+                            <td>Sterling Infrastructure, Inc.</td>
+                            <td><a href="/sectors/Industrials">Industrials</a></td>
+                            <td><a href="/industries/Engineering &amp; Construction">Engineering &amp; Construction</a>
+                            </td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>1.20B</td>
+                            <td>$40.87</td>
+                            <td>2.43 %</td>
+                            <td>357,554</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=STRL" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/BKNG">BKNG</a></td>
+                            <td>Booking Holdings Inc.</td>
+                            <td><a href="/sectors/Consumer Cyclical">Consumer Cyclical</a></td>
+                            <td><a href="/industries/Travel Services">Travel Services</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>98.94B</td>
+                            <td>$2,577.83</td>
+                            <td>1.00 %</td>
+                            <td>328,623</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=BKNG" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/INTA">INTA</a></td>
+                            <td>Intapp, Inc.</td>
+                            <td><a href="/sectors/Technology">Technology</a></td>
+                            <td><a href="/industries/Software - Application">Software - Application</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>2.56B</td>
+                            <td>$39.86</td>
+                            <td>0.94 %</td>
+                            <td>298,139</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=INTA" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/ZEUS">ZEUS</a></td>
+                            <td>Olympic Steel, Inc.</td>
+                            <td><a href="/sectors/Basic Materials">Basic Materials</a></td>
+                            <td><a href="/industries/Steel">Steel</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>621.47M</td>
+                            <td>$56.60</td>
+                            <td>2.48 %</td>
+                            <td>297,235</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=ZEUS" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><span class="icon"><i class="fa-solid fa-e"></i></span><i></i></td>
+                            <td><a href="/stocks/ATRO">ATRO</a></td>
+                            <td>Astronics Corporation</td>
+                            <td><a href="/sectors/Industrials">Industrials</a></td>
+                            <td><a href="/industries/Aerospace &amp; Defense">Aerospace &amp; Defense</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>623.37M</td>
+                            <td>$15.71</td>
+                            <td>3.36 %</td>
+                            <td>264,694</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=ATRO" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/NSIT">NSIT</a></td>
+                            <td>Insight Enterprises, Inc.</td>
+                            <td><a href="/sectors/Technology">Technology</a></td>
+                            <td><a href="/industries/Information Technology Services">Information Technology
+                                    Services</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>4.55B</td>
+                            <td>$136.36</td>
+                            <td>1.47 %</td>
+                            <td>260,617</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=NSIT" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/RCEL">RCEL</a></td>
+                            <td>AVITA Medical, Inc.</td>
+                            <td><a href="/sectors/Healthcare">Healthcare</a></td>
+                            <td><a href="/industries/Medical Devices">Medical Devices</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>251.49M</td>
+                            <td>$13.72</td>
+                            <td>4.33 %</td>
+                            <td>237,578</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=RCEL" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/WNS">WNS</a></td>
+                            <td>WNS (Holdings) Limited</td>
+                            <td><a href="/sectors/Technology">Technology</a></td>
+                            <td><a href="/industries/Information Technology Services">Information Technology
+                                    Services</a></td>
+                            <td><a href="/countries/India">India</a></td>
+                            <td>4.32B</td>
+                            <td>$89.25</td>
+                            <td>0.79 %</td>
+                            <td>210,390</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=WNS" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/HURN">HURN</a></td>
+                            <td>Huron Consulting Group Inc.</td>
+                            <td><a href="/sectors/Industrials">Industrials</a></td>
+                            <td><a href="/industries/Consulting Services">Consulting Services</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>1.65B</td>
+                            <td>$82.82</td>
+                            <td>1.57 %</td>
+                            <td>209,581</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=HURN" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/FDP">FDP</a></td>
+                            <td>Fresh Del Monte Produce Inc.</td>
+                            <td><a href="/sectors/Consumer Defensive">Consumer Defensive</a></td>
+                            <td><a href="/industries/Farm Products">Farm Products</a></td>
+                            <td><a href="/countries/Cayman Islands">Cayman Islands</a></td>
+                            <td>1.53B</td>
+                            <td>$32.13</td>
+                            <td>1.39 %</td>
+                            <td>200,738</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=FDP" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                        <tr height="50px">
+                            <td>2023-03-02</td>
+                            <td><i></i><i></i></td>
+                            <td><a href="/stocks/IPAR">IPAR</a></td>
+                            <td>Inter Parfums, Inc.</td>
+                            <td><a href="/sectors/Consumer Defensive">Consumer Defensive</a></td>
+                            <td><a href="/industries/Household &amp; Personal Products">Household &amp; Personal
+                                    Products</a></td>
+                            <td><a href="/countries/USA">USA</a></td>
+                            <td>4.43B</td>
+                            <td>$138.76</td>
+                            <td>5.65 %</td>
+                            <td>189,000</td>
+                            <td><a href="https://tradingview.com/chart/kQn4rgoA/?symbol=IPAR" target="_blank">chart</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+    <script src="/_framework/aspnetcore-browser-refresh.js"></script>
+</body>
+
+</html>

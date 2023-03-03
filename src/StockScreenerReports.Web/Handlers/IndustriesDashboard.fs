@@ -133,7 +133,7 @@ module IndustriesDashboard =
             toSortableHeaderCell "60 diff"
         ]
 
-        industry20And200Header::industry20And200Rows |> fullWidthTable
+        industry20And200Rows |> fullWidthTable industry20And200Header
 
     let handler : HttpHandler  =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->

@@ -63,7 +63,7 @@ module CountryDashboard =
                 th [] [str "trading view"]
             ]
 
-        let screenerResultsTable = tableHeader::resultRows |> fullWidthTable
+        let screenerResultsTable = resultRows |> fullWidthTable tableHeader
 
         let header = 
             div [_class "content"] [

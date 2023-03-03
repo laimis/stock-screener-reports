@@ -55,7 +55,7 @@ module Earnings =
 
         let headerRow = tr [] (["Ticker"; "Chart"; "Industry"; "Sector"] |> List.map (fun s -> s |> Views.toSortableHeaderCell))
 
-        let table = headerRow::rows |> Views.fullWidthTable
+        let table = rows |> Views.fullWidthTable headerRow
 
         div [ _class "content"] [
             h2 [] [title |> str]

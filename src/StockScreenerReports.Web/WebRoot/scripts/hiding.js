@@ -42,3 +42,88 @@ function toggleTickerCompanyVisibility() {
         }
     }
 }
+
+function toggleEarningsVisibility() {
+    // in html find all tables in the current document
+    var tables = document.getElementsByTagName("table");
+
+    // for each table, see if a row has a cell with an i element with class set to fa-solid fa-e
+    for (var i = 0; i < tables.length; i++) {
+        var table = tables[i];
+        var rows = table.rows;
+        for (var j = 0; j < rows.length; j++) {
+            var row = rows[j];
+            var cells = row.cells;
+            for (var k = 0; k < cells.length; k++) {
+                var cell = cells[k];
+                var iElements = cell.getElementsByTagName("i");
+                for (var l = 0; l < iElements.length; l++) {
+                    var iElement = iElements[l];
+                    if (iElement.classList.contains("fa-solid") && iElement.classList.contains("fa-e")) {
+                        toggleStyle(row);
+                    }
+                }
+            }
+        }
+    }
+}
+
+selectedIndustry = ""
+function industryClicked(event) {
+    console.log("industry clicked")
+    console.log(event)
+
+    var td = event.target
+    var ahref = td.children[0]
+    var text = ahref.innerText
+
+    setIndustry(text)
+}
+
+function setIndustry(industry) {
+    if (selectedIndustry === industry) {
+        selectedIndustry = ""
+    }
+    else {
+        selectedIndustry = industry
+    }
+
+    // first, find all tables
+    var tables = document.getElementsByTagName("table")
+
+    // see if it has a header row with cell called "Industry"
+    for (var i = 0; i < tables.length; i++) {
+        var table = tables[i]
+        var header = table.tHead
+        var headerRow = header.rows[0]
+
+        var industryCellIndex = -1
+        for (var j = 0; j < headerRow.cells.length; j++) {
+            var headerCell = headerRow.cells[j]
+
+            if (headerCell.innerText == "Industry") {
+                industryCellIndex = j
+                break
+            }
+        }
+
+        if (industryCellIndex == -1) {
+            continue
+        }
+
+        var rows = table.rows
+        // hide rows that don't match selected industry
+        for (var j = 1; j < rows.length; j++) {
+            var row = rows[j]
+            var td = row.cells[industryCellIndex]
+            var ahref = td.children[0]
+            var text = ahref.innerText
+
+            if (text == selectedIndustry || selectedIndustry == "") {
+                row.classList.remove("is-hidden")
+            } else {
+                row.classList.add("is-hidden")
+            }
+        }
+    }
+}

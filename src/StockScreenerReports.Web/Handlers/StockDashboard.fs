@@ -104,7 +104,7 @@ module StockDashboard =
 
         header::chart @ [
             div [] [h2 [] [str "All Screener Results"]]
-            tableHeader::allScreenerResultsRows |> fullWidthTable
+            allScreenerResultsRows |> fullWidthTable tableHeader
         ]
 
     let handler ticker =

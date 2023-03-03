@@ -66,8 +66,7 @@ module ScreenerResults =
 
         results
             |> List.map (fun r -> screenerResultToTr tickersWithEarnings topGainers r)
-            |> List.append [tr [] headerCells]
-            |> fullWidthTable
+            |> fullWidthTable (tr [] headerCells)
 
     let private view
         (screener:StockScreenerReports.Core.Screener)
@@ -124,9 +123,16 @@ module ScreenerResults =
 
                     button [
                         _onclick "toggleTickerCompanyVisibility()"
-                        _class "button is-primary"
+                        _class "button is-primary mr-2"
                         ] [
                         str "Toggle Ticker/Company"
+                    ]
+
+                    button [
+                        _onclick "toggleEarningsVisibility()"
+                        _class "button is-primary"
+                        ] [
+                        str "Toggle Earnings"
                     ]
                 ]
             ]

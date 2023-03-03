@@ -108,13 +108,16 @@ module Views =
             str title
         ]
 
-    let private toNameCountRows breakdownName maxNumberOfRows nameElementFunc list =
+    let private toNameCountRows breakdownName maxNumberOfRows nameElementFunc clickFunction list =
+        let cellAttributes = match clickFunction with
+                             | Some func -> [ _onclick func ]
+                             | None -> []
         let rows =
             list
             |> List.truncate maxNumberOfRows
             |> List.map (fun (name,count) ->
                 tr [] [
-                    td [] [ (nameElementFunc name) ]
+                    td cellAttributes [ (nameElementFunc name) ]
                     td [ _class "has-text-right"] [ str (count.ToString()) ]
                 ])
 
@@ -122,16 +125,22 @@ module Views =
             th [ _colspan "2"] [ str breakdownName ]
         ]
 
-        header::rows
+        (header, rows)
 
-    let fullWidthTable rows =
-        table [ _class "table is-fullwidth is-striped" ] rows
-
-    let toNameCountTable title maxNumberOfRows listOfNameCountPairs =
-        listOfNameCountPairs |> toNameCountRows title maxNumberOfRows (fun name -> str name) |> fullWidthTable
+    let fullWidthTable header rows =
+        table [ _class "table is-fullwidth is-striped" ] [
+            thead [] [ header ]
+            tbody [] rows
+        ]
 
     let toNameCountTableWithLinks title maxNumberOfRows linkFunction listOfNameCountPairs =
-        listOfNameCountPairs |> toNameCountRows title maxNumberOfRows (fun name -> generateHref name (linkFunction name)) |> fullWidthTable
+        // kind of hacky -- using title
+        let clickFunction = 
+            match title with
+            | "Industries" -> Some "industryClicked(event)"
+            | _ -> None
+        let (header, rows) = listOfNameCountPairs |> toNameCountRows title maxNumberOfRows (fun name -> generateHref name (linkFunction name)) clickFunction
+        fullWidthTable header rows
 
     let private generateHeaderRow =
         let titleDiv = div [ _class "column" ] [

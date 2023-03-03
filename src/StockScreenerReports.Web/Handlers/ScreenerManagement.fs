@@ -120,17 +120,14 @@ module ScreenerManagement =
                 ]
             )
 
-        let rows = [
-            thead [] [
-                tr [] [
-                    th [] [ str "Id" ]
-                    th [ _width "400" ] [ str "Name" ]
-                    th [] []
-                ]
+        let tableHeader = 
+            tr [] [
+                th [] [ str "Id" ]
+                th [ _width "400" ] [ str "Name" ]
+                th [] []
             ]
-            tbody [] screenerRows
-        ]
-        let screenerTable = rows |> Views.fullWidthTable
+                
+        let screenerTable = screenerRows |> Views.fullWidthTable tableHeader
 
         let newScreenerForm =
             form [

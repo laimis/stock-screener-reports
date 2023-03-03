@@ -63,23 +63,31 @@ module SectorDashboard =
                 th [] [str "trading view"]
             ]
 
-        let screenerResultsTable = tableHeader::resultRows |> fullWidthTable
+        let screenerResultsTable = resultRows |> fullWidthTable tableHeader
 
         let stocks = Storage.getStocksBySector sectorName
+
+        let stockTableHeader = 
+            tr [] [
+                th [] [str "ticker"]
+                th [] [str "company"]
+                th [] [str "sector"]
+                th [] [str "industry"]
+            ]
 
         let stockTable =
             stocks
             |> List.map (fun stock ->
                 tr [] [
                     td [] [
-                        stock.ticker |> StockScreenerReports.Core.StockTicker.value |> Views.generateTickerLink
+                        stock.ticker |> StockTicker.value |> Views.generateTickerLink
                     ]
                     td [] [str stock.company]
                     td [] [ generateHref stock.sector (Links.sectorLink stock.sector) ]
                     td [] [ generateHref stock.industry (Links.industryLink stock.industry) ]
                 ]
             )
-            |> fullWidthTable 
+            |> fullWidthTable stockTableHeader
 
         let view = 
             div [_class "content"] [

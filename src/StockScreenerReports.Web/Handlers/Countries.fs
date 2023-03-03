@@ -26,7 +26,13 @@ module Countries =
                 ]
             )
 
-        let table = rows |> Views.fullWidthTable
+        let tableHeader = 
+            tr [] [
+                th [] [str "country"]
+                th [] [str "count"]
+            ]
+
+        let table = rows |> Views.fullWidthTable tableHeader
 
         
         [header; table] |> Views.mainLayout $"Countries"
