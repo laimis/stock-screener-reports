@@ -62,11 +62,9 @@ module ScreenerResults =
             "Chart"
         ]
 
-        let headerCells = headers |> List.map toSortableHeaderCell
-
         results
             |> List.map (fun r -> screenerResultToTr tickersWithEarnings topGainers r)
-            |> fullWidthTable (tr [] headerCells)
+            |> fullWidthTableWithSortableHeaderCells headers
 
     let private view
         (screener:StockScreenerReports.Core.Screener)

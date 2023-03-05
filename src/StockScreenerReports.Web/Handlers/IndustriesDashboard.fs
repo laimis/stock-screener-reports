@@ -116,24 +116,24 @@ module IndustriesDashboard =
                 tr [] cells
             )
 
-        let industry20And200Header = tr [] [
-            th [] []
-            toSortableHeaderCell "Industry"
-            toSortableHeaderCell "20 sma"
-            toSortableHeaderCell "20 sma %"
-            toSortableHeaderCell "Trend Change"
-            toSortableHeaderCell "Trend Streak"
-            toSortableHeaderCell "Rate"
-            toSortableHeaderCell "200 sma"
-            toSortableHeaderCell "200 sma %"
-            toSortableHeaderCell "Trend Change"
-            toSortableHeaderCell "Trend Streak"
-            toSortableHeaderCell "Rate"
-            toSortableHeaderCell "30 diff"
-            toSortableHeaderCell "60 diff"
+        let industry20And200Header = [
+            ""
+            "Industry"
+            "20 sma"
+            "20 sma %"
+            "Trend Change"
+            "Trend Streak"
+            "Rate"
+            "200 sma"
+            "200 sma %"
+            "Trend Change"
+            "Trend Streak"
+            "Rate"
+            "30 diff"
+            "60 diff"
         ]
 
-        industry20And200Rows |> fullWidthTable industry20And200Header
+        industry20And200Rows |> fullWidthTableWithSortableHeaderCells industry20And200Header
 
     let handler : HttpHandler  =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->

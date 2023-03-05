@@ -127,12 +127,23 @@ module Views =
 
         (header, rows)
 
-    let fullWidthTable header rows =
+    let fullWidthTable headerCells rows =
+        table [ _class "table is-fullwidth is-striped" ] [
+            thead [] [ 
+                tr [] (headerCells |> List.map toHeaderCell)
+             ]
+            tbody [] rows
+        ]
+    
+    let fullWidthTableWithCustomHeader header rows =
         table [ _class "table is-fullwidth is-striped" ] [
             thead [] [ header ]
             tbody [] rows
         ]
 
+    let fullWidthTableWithSortableHeaderCells headerCells rows =
+        let headerRow =  tr [] (headerCells |> List.map toSortableHeaderCell)
+        rows |> fullWidthTableWithCustomHeader headerRow
     let fullWidthTableWithCssClass cssClass header rows =
         table [ _class $"table is-fullwidth is-striped {cssClass}" ] [
             thead [] [ header ]
@@ -148,7 +159,7 @@ module Views =
             | "Countries" -> Some "countryClicked(event)"
             | _ -> None
         let (header, rows) = listOfNameCountPairs |> toNameCountRows title maxNumberOfRows (fun name -> generateHref name (linkFunction name)) clickFunction
-        fullWidthTable header rows
+        fullWidthTableWithCustomHeader header rows
 
     let private generateHeaderRow =
         let titleDiv = div [ _class "column" ] [

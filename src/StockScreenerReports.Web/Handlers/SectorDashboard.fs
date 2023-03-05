@@ -51,29 +51,27 @@ module SectorDashboard =
                 ]
             )
 
-        let tableHeader =
-            tr [] [
-                th [] [str "date"]
-                th [] [str "screener"]
-                th [] [str "ticker"]
-                th [] [str "market cap"]
-                th [] [str "price"]
-                th [] [str "change"]
-                th [] [str "volume"]
-                th [] [str "trading view"]
-            ]
+        let headerCells = [
+            "date"
+            "screener"
+            "ticker"
+            "market cap"
+            "price"
+            "change"
+            "volume"
+            "trading view"
+        ]
 
-        let screenerResultsTable = resultRows |> fullWidthTable tableHeader
+        let screenerResultsTable = resultRows |> fullWidthTable headerCells
 
         let stocks = Storage.getStocksBySector sectorName
 
-        let stockTableHeader = 
-            tr [] [
-                th [] [str "ticker"]
-                th [] [str "company"]
-                th [] [str "sector"]
-                th [] [str "industry"]
-            ]
+        let stockTableHeaders = [
+            "ticker"
+            "company"
+            "sector"
+            "industry"
+        ]
 
         let stockTable =
             stocks
@@ -87,7 +85,7 @@ module SectorDashboard =
                     td [] [ generateHref stock.industry (Links.industryLink stock.industry) ]
                 ]
             )
-            |> fullWidthTable stockTableHeader
+            |> fullWidthTable stockTableHeaders
 
         let view = 
             div [_class "content"] [

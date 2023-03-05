@@ -138,21 +138,21 @@ module IndustryDashboard =
             "change";
             "volume";
             "trading view"
-        ] 
-        
-        let tableHeader = tr [] (headerNames |> List.map (fun u -> u |> toSortableHeaderCell))
+        ]
 
-        let screenerResultsTable = resultRows |> fullWidthTable tableHeader
+        let screenerResultsTable =
+            resultRows
+            |> fullWidthTableWithSortableHeaderCells headerNames
         
         // get stocks in industry
         let stocks = Storage.getStocksByIndustry industryName
 
-        let stockTableHeader = tr [] [
-            "ticker" |> toSortableHeaderCell
-            "company" |> toSortableHeaderCell
-            "sector" |> toSortableHeaderCell
-            "industry" |> toSortableHeaderCell
-            "trading view" |> toSortableHeaderCell
+        let stockTableHeaderCells = [
+            "ticker"
+            "company"
+            "sector"
+            "industry"
+            "trading view"
         ]
 
         let stockTable =
@@ -166,19 +166,26 @@ module IndustryDashboard =
                     stock.ticker |> StockTicker.value |> Links.tradingViewLink |> generateHref "Trading View" |> toTdWithNode
                 ]
             )
-            |> fullWidthTable stockTableHeader
+            |> fullWidthTableWithSortableHeaderCells stockTableHeaderCells
 
-        let view = 
-            div [_class "content"] [
-                h1 [] [
-                    str industryName
+        let topLevel = [
+            h1 [] [ str industryName ]
+            h5 [] [
+                    span [ _class "mx-1"] [
+                        industryName 
+                        |> Links.industryFinvizLink
+                        |> generateHrefNewTab "See it on Finviz"
+                    ]
                 ]
-                h5 [] [
-                    span [ _class "mx-1"] [industryName |> Links.industryFinvizLink |> generateHrefNewTab "See it on Finviz"]
-                ]
-                breakdownDiv
-                trendDiv
-                
-            ]::(smaBreakdownCharts days) @ [screenerChart; screenerResultsTable; stockTable]
+            breakdownDiv
+            trendDiv
+        ]
+
+        let contentSections =
+            [screenerChart; screenerResultsTable; stockTable]
+            |> List.append (smaBreakdownCharts days)
+            |> List.append topLevel
+
+        let view = div [_class "content"] contentSections
         
-        view |> mainLayout $"{industryName} Industry Dashboard"
+        [view] |> mainLayout $"{industryName} Industry Dashboard"

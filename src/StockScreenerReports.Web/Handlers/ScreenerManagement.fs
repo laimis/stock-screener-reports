@@ -127,7 +127,9 @@ module ScreenerManagement =
                 th [] []
             ]
                 
-        let screenerTable = screenerRows |> Views.fullWidthTable tableHeader
+        let screenerTable = 
+            screenerRows
+            |> Views.fullWidthTableWithCustomHeader tableHeader
 
         let newScreenerForm =
             form [

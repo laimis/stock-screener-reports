@@ -51,18 +51,9 @@ module CountryDashboard =
                 ]
             )
 
-        let tableHeader =
-            tr [] [
-                th [] [str "date"]
-                th [] [str "screener"]
-                th [] [str "ticker"]
-                th [] [str "market cap"]
-                th [] [str "price"]
-                th [] [str "change"]
-                th [] [str "volume"]
-                th [] [str "trading view"]
-            ]
-
+        let tableHeader = [
+            "date"; "screener"; "ticker"; "market cap"; "price"; "change"; "volume"; "trading view"
+        ]
         let screenerResultsTable = resultRows |> fullWidthTable tableHeader
 
         let header = 

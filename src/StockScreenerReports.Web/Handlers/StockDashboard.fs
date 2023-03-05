@@ -34,16 +34,6 @@ module StockDashboard =
             ]
         ]
 
-        let tableHeader =
-            tr [] [
-                "date" |> toSortableHeaderCell
-                "screener" |> toSortableHeaderCell
-                "market cap" |> toSortableHeaderCell
-                "price" |> toSortableHeaderCell
-                "change" |> toSortableHeaderCell
-                "volume" |> toSortableHeaderCell
-            ]
-
         let screenerResultToRow screenerResult =
             let dateStr = screenerResult.date |> Utils.convertToDateString
             let screenerLink = dateStr |> screenerResultsLink screenerResult.screenerid
@@ -102,9 +92,18 @@ module StockDashboard =
         let allScreenerResults = getScreenerResultsForTicker stock.ticker 100
         let allScreenerResultsRows = allScreenerResults |> List.map screenerResultToRow
 
+        let tableHeader = [
+            "date"
+            "screener"
+            "market cap"
+            "price"
+            "change"
+            "volume"
+        ]
+
         header::chart @ [
             div [] [h2 [] [str "All Screener Results"]]
-            allScreenerResultsRows |> fullWidthTable tableHeader
+            allScreenerResultsRows |> fullWidthTableWithSortableHeaderCells tableHeader
         ]
 
     let handler ticker =

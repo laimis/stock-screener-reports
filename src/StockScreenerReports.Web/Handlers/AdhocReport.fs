@@ -86,14 +86,8 @@ module AdhocReport =
                 ]
             )
 
-        let tableHeader = 
-            tr [] [
-                th [] [str "#"]
-                th [] [str "ticker"]
-                th [] [str "date"]
-                th [] [str "earnings"]
-            ]
+        let headerCells = ["#"; "ticker"; "date"; "earnings"]
 
-        let table = rows |> Views.fullWidthTable tableHeader
+        let table = rows |> Views.fullWidthTable headerCells
         
         [header; table] |> Views.mainLayout $"Results"
