@@ -24,7 +24,7 @@ function sortBy(header) {
     }
 
     // create an in memory array with values that can be sorted
-    var table = parentTr.parentElement;
+    var table = parentTr.parentElement.parentElement; //theader first
     
     rows = table.rows.length; // num of rows
     columns = table.rows[0].cells.length; // num of columns

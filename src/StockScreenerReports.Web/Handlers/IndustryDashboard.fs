@@ -178,6 +178,7 @@ module IndustryDashboard =
                 ]
                 breakdownDiv
                 trendDiv
+                
             ]::(smaBreakdownCharts days) @ [screenerChart; screenerResultsTable; stockTable]
         
         view |> mainLayout $"{industryName} Industry Dashboard"
