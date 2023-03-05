@@ -37,12 +37,16 @@ module Dashboard =
             |> List.map (fun (name,count) ->
 
                 tr [] [
-                    td [] [ 
-                        Views.generateHref
-                            name
-                            (Links.industryLink name)
+                    td [
+                        _onclick $"highlightDashboardIndustry(event)"
+                    ] [
+                        (Links.industryLink name) |> Views.generateHref name
                     ]
-                    td [ _class "has-text-right"] [ str (count.ToString()) ]
+                    td [ 
+                        _class "has-text-right"
+                    ] [
+                        str (count.ToString())
+                    ]
                 ])
 
         let header = tr [] [
@@ -50,7 +54,7 @@ module Dashboard =
             th [ _class "has-text-right" ] [ str "# of stocks" ]
         ]
 
-        rows |> Views.fullWidthTable header
+        rows |> Views.fullWidthTableWithCssClass "dashboard-industry-table" header
 
     let private generateIndustryTrendsRow days =
 

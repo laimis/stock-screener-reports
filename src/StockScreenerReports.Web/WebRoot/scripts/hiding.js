@@ -161,3 +161,43 @@ function toggleTableRowsForMatchingCategory(category, selectedValue) {
         }
     }
 }
+
+const highlightClass = "has-background-warning"
+highlightedIndustry = ""
+function highlightDashboardIndustry(event) {
+
+    var td = event.target
+    var ahref = td.children[0]
+    var industry = ahref.innerText
+
+    if (highlightedIndustry === industry) {
+        highlightedIndustry = ""
+    }
+    else {
+        highlightedIndustry = industry
+    }
+
+    // first, find all tables that one of the class names is dashboard-industry-table
+    var tables = document.getElementsByClassName("dashboard-industry-table")
+
+    // each row that has the first cell with the industry name, highlight it
+    for (var i = 0; i < tables.length; i++) {
+        var table = tables[i]
+        var rows = table.rows
+        for (var j = 0; j < rows.length; j++) {
+            var row = rows[j]
+            var td = row.cells[0]
+            var ahref = td.children[0]
+            if (ahref == null) {
+                continue
+            }
+            var text = ahref.innerText
+
+            if (text == highlightedIndustry) {
+                row.classList.add(highlightClass)
+            } else {
+                row.classList.remove(highlightClass)
+            }
+        }
+    }
+}

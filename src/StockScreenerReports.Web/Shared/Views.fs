@@ -133,6 +133,12 @@ module Views =
             tbody [] rows
         ]
 
+    let fullWidthTableWithCssClass cssClass header rows =
+        table [ _class $"table is-fullwidth is-striped {cssClass}" ] [
+            thead [] [ header ]
+            tbody [] rows
+        ]
+
     let toNameCountTableWithLinks title maxNumberOfRows linkFunction listOfNameCountPairs =
         // kind of hacky -- using title
         let clickFunction = 
