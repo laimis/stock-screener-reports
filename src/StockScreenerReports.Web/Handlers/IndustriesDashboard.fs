@@ -91,19 +91,21 @@ module IndustriesDashboard =
 
                     let diff = iu.breakdown.percentAbove - toCompare.breakdown.percentAbove
                     
-                    td [] [ System.Math.Round(diff, 0).ToString() |> str ]
+                    System.Math.Round(diff, 0).ToString() |> toTd
 
-                let commonCells = [
-                    td [] [ counter.ToString() |> str ]
-                    td [] [ 
-                        span [ _class "mr-2"] [
+                let industryLinks = [
+                    span [ _class "mr-2"] [
                             iu.industry |> Links.industryLink |> generateHref iu.industry
                         ]
                         
-                        span [ _class "is-pulled-right"] [
-                            iu.industry |> Links.industryFinvizLink |> generateHrefNewTab "finviz" 
-                        ]
+                    span [ _class "is-pulled-right"] [
+                        iu.industry |> Links.industryFinvizLink |> generateHrefNewTab "finviz" 
                     ]
+                ]
+
+                let commonCells = [
+                    counter.ToString() |> toTd
+                    industryLinks |> toTdWithNodes
                 ]
 
                 let diffCells = [

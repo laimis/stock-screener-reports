@@ -15,10 +15,7 @@ module StockDashboard =
 
         let header = div [_class "content"] [
            h1 [] [
-               stock.ticker |> StockTicker.value |> str
-               " - " |> str
-               stock.company |> str
-
+               $"{(stock.ticker |> StockTicker.value)} - {stock.company}" |> str
                a [ 
                    stock.ticker |> StockTicker.value |> tradingViewLink |> _href
                    _class "is-pulled-right"

@@ -84,14 +84,14 @@ module Views =
     let generateHrefNewTab title link =
         generateHrefWithAttr title link (_target "_blank")
 
-    let toTdWithNode node =
-            td [] [ node ]
-
     let toTdWithNodes nodes =
             td [] nodes
 
+    let toTdWithNode node =
+        [node] |> toTdWithNodes 
+
     let toTd input =
-        str input |> toTdWithNode
+        input |> str |> toTdWithNode
 
     let toHeaderCell title =
         th [] [str title]

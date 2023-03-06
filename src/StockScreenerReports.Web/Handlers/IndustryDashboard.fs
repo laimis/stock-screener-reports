@@ -116,16 +116,14 @@ module IndustryDashboard =
             |> Reports.getScreenerResultsForIndustry 50
             |> List.map (fun screenerResult ->
                 tr [] [
-                    td [] [ screenerResult.date |> Utils.convertToDateString |> str ]
-                    td [] [
-                        (screenerResult.screenerid,screenerResult.screenername) |> generateScreenerTags
-                    ]
-                    td [] [ screenerResult.ticker |> generateTickerLink ]
-                    td [] [ screenerResult.marketCap |> marketCapFormatted |> str ]
-                    td [] [ screenerResult.price |> dollarFormatted |> str ]
-                    td [] [ screenerResult.change |> percentFormatted |> str ]
-                    td [] [ screenerResult.volume |> volumeFormatted |> str ]
-                    td [] [ screenerResult.ticker |> Links.tradingViewLink |> generateHrefNewTab "chart" ]
+                    screenerResult.date |> Utils.convertToDateString |> toTd
+                    (screenerResult.screenerid,screenerResult.screenername) |> generateScreenerTags |> toTdWithNode
+                    screenerResult.ticker       |> generateTickerLink   |> toTdWithNode
+                    screenerResult.marketCap    |> marketCapFormatted   |> toTd
+                    screenerResult.price        |> dollarFormatted      |> toTd
+                    screenerResult.change       |> percentFormatted     |> toTd
+                    screenerResult.volume       |> volumeFormatted      |> toTd
+                    screenerResult.ticker       |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
                 ]
             )
 

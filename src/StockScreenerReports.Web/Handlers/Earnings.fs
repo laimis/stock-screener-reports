@@ -1,11 +1,12 @@
 namespace StockScreenerReports.Web.Handlers
 
 module Earnings =
-    open StockScreenerReports.Web.Shared
-    open Giraffe.ViewEngine.HtmlElements
     open Giraffe.ViewEngine.Attributes
-    open StockScreenerReports.Storage
+    open Giraffe.ViewEngine.HtmlElements
     open StockScreenerReports.Core
+    open StockScreenerReports.Storage
+    open StockScreenerReports.Web.Shared
+    open StockScreenerReports.Web.Shared.Views
 
     let private createMapFromStocks stocks =
         stocks
@@ -34,7 +35,7 @@ module Earnings =
 
         let table = 
             withCounts
-            |> Views.toNameCountTableWithLinks newTitle 10 (fun s -> s |> Links.industryLink)
+            |> toNameCountTableWithLinks newTitle 10 (fun s -> s |> Links.industryLink)
 
         div [_class "column"] [table]
 
@@ -46,16 +47,16 @@ module Earnings =
             |> List.sortBy (fun s -> s.industry)
             |> List.map (fun s -> 
                 tr [] [
-                    s.ticker |> StockTicker.value |> Views.generateTickerLink |> Views.toTdWithNode
-                    s.ticker |> StockTicker.value |> Links.tradingViewLink |> Views.generateHref "chart" |> Views.toTdWithNode
-                    s.industry |> str |> Views.toTdWithNode
-                    s.sector |> str |> Views.toTdWithNode
+                    s.ticker |> StockTicker.value |> generateTickerLink |> toTdWithNode
+                    s.ticker |> StockTicker.value |> Links.tradingViewLink |> generateHref "chart" |> toTdWithNode
+                    s.industry |> str |> toTdWithNode
+                    s.sector |> str |> toTdWithNode
                 ]
             )
 
         let headerRow = ["Ticker"; "Chart"; "Industry"; "Sector"]
 
-        let table = rows |> Views.fullWidthTableWithSortableHeaderCells headerRow
+        let table = rows |> fullWidthTableWithSortableHeaderCells headerRow
 
         div [ _class "content"] [
             h2 [] [title |> str]
@@ -99,37 +100,25 @@ module Earnings =
             tickersWithEarnings
             |> List.map (fun (ticker, date) ->
 
-                let newHighs = ticker |> newHighsMap.ContainsKey |> Views.generateNewHighIcon
-                let topGainers = ticker |> topGainersMap.ContainsKey |> Views.generateTopGainerIcon
-                let topLosers = ticker |> topLosersMap.ContainsKey |> Views.generateTopLoserIcon
-                let newLows = ticker |> newLowsMap.ContainsKey |> Views.generateNewLowIcon
+                let newHighs = ticker |> newHighsMap.ContainsKey |> generateNewHighIcon
+                let topGainers = ticker |> topGainersMap.ContainsKey |> generateTopGainerIcon
+                let topLosers = ticker |> topLosersMap.ContainsKey |> generateTopLoserIcon
+                let newLows = ticker |> newLowsMap.ContainsKey |> generateNewLowIcon
 
                 tr [] [
-                    td [] [ticker |> Views.generateTickerLink]
-                    td [] [date.ToString("yyyy-MM-dd") |> str]
-                    td [] [newHighs]
-                    td [] [topGainers]
-                    td [] [topLosers]
-                    td [] [newLows]
-                    td [] [ticker |> Links.tradingViewLink |> Views.generateHrefNewTab "chart"]
+                    ticker |> generateTickerLink |> toTdWithNode
+                    date.ToString("yyyy-MM-dd") |> toTd
+                    newHighs |> toTdWithNode
+                    topGainers |> toTdWithNode
+                    topLosers |> toTdWithNode
+                    newLows |> toTdWithNode
+                    ticker |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
                 ]
             )
 
         let earningsTable = 
-            table [_class "table is-striped is-fullwidth"] [
-                thead [] [
-                    tr [] [
-                        th [] [str "Ticker"]
-                        th [] [str "Date"]
-                        th [] [str "New High"]
-                        th [] [str "Top Gainer"]
-                        th [] [str "Top Loser"]
-                        th [] [str "New Low"]
-                        th [] [str "Trading View"]
-                    ]
-                ]
-                tbody [] rows
-            ]
+            let headerRow = ["Ticker"; "Date"; "New High"; "Top Gainer"; "Top Loser"; "New Low"; "Trading View"]
+            rows |> fullWidthTable headerRow
         
         // break down div
         let breakdownDiv = div [_class "columns"] [
@@ -144,7 +133,7 @@ module Earnings =
         let topLosersSection = tickersWithEarnings |> createFilteredSection "Top Losers" topLosersMap
         let newLowsSection = tickersWithEarnings |> createFilteredSection "New Lows" newLowsMap
         
-        [header; breakdownDiv; newHighsSection; topGainersSection; topLosersSection; newLowsSection; earningsTable] |> Views.mainLayout $"Earnings"
+        [header; breakdownDiv; newHighsSection; topGainersSection; topLosersSection; newLowsSection; earningsTable] |> mainLayout $"Earnings"
 
     let handlerCurrentWeek() =
         let startDate = Utils.getCurrentMonday()

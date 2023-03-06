@@ -2,11 +2,12 @@ namespace StockScreenerReports.Web.Handlers
 
 module ScreenerManagement =
 
+    open FSharp.Data
     open Giraffe
     open Giraffe.ViewEngine
-    open StockScreenerReports.Web.Shared
     open StockScreenerReports.Storage
-    open FSharp.Data
+    open StockScreenerReports.Web.Shared
+    open StockScreenerReports.Web.Shared.Views
 
     [<CLIMutable>]
     type ScreenerInput =
@@ -82,14 +83,14 @@ module ScreenerManagement =
             screeners
             |> List.map ( fun screener ->
                 tr [] [
-                    td [] [str (screener.id.ToString())]
+                    screener.id.ToString() |> toTd
                     td [] [
                         div [] [str screener.name]
-                        div [] [screener.url |> Views.generateHrefNewTab screener.url]
+                        div [] [screener.url |> generateHrefNewTab screener.url]
                     ]
                     td [] [
                         
-                        Views.generateHrefWithAttr
+                        generateHrefWithAttr
                             "Results"
                             (screener.id |> Links.screenerLink)
                             (_class "button is-primary is-small is-light is-pulled-left mr-2")
@@ -122,14 +123,14 @@ module ScreenerManagement =
 
         let tableHeader = 
             tr [] [
-                th [] [ str "Id" ]
+                "Id" |> toHeaderCell
                 th [ _width "400" ] [ str "Name" ]
-                th [] []
+                "" |> toHeaderCell
             ]
                 
         let screenerTable = 
             screenerRows
-            |> Views.fullWidthTableWithCustomHeader tableHeader
+            |> fullWidthTableWithCustomHeader tableHeader
 
         let newScreenerForm =
             form [

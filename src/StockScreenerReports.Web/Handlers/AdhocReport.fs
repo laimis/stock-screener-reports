@@ -1,12 +1,13 @@
 namespace StockScreenerReports.Web.Handlers
 
 module AdhocReport =
-    open StockScreenerReports.Web.Shared
-    open Giraffe.ViewEngine.HtmlElements
-    open Giraffe.ViewEngine.Attributes
-    open StockScreenerReports.Storage
     open FSharp.Data
     open Giraffe
+    open Giraffe.ViewEngine.Attributes
+    open Giraffe.ViewEngine.HtmlElements
+    open StockScreenerReports.Storage
+    open StockScreenerReports.Web.Shared
+    open StockScreenerReports.Web.Shared.Views
 
     type AdhocExportType = CsvProvider<
         Schema = "ticker, date  (string), earnings (bool)",
@@ -76,18 +77,18 @@ module AdhocReport =
             data
             |> List.map (fun (index,hasEarnings,ticker,date) ->
                 
-                let earningsIcon = hasEarnings |> Views.generateEarningsIcon
+                let earningsIcon = hasEarnings |> generateEarningsIcon
                 
                 tr [] [
-                    td [] [index.ToString() |> str]
-                    ticker |> Links.tradingViewLink |> Views.generateHref ticker |> Views.toTdWithNode
-                    date |> StockScreenerReports.Core.Utils.convertToDateString |> Views.toTd
-                    earningsIcon |> Views.toTdWithNode
+                    index.ToString() |> toTd
+                    ticker |> Links.tradingViewLink |> generateHref ticker |> toTdWithNode
+                    date |> StockScreenerReports.Core.Utils.convertToDateString |> toTd
+                    earningsIcon |> toTdWithNode
                 ]
             )
 
         let headerCells = ["#"; "ticker"; "date"; "earnings"]
 
-        let table = rows |> Views.fullWidthTable headerCells
+        let table = rows |> fullWidthTable headerCells
         
-        [header; table] |> Views.mainLayout $"Results"
+        [header; table] |> mainLayout $"Results"

@@ -38,16 +38,14 @@ module SectorDashboard =
             |> Reports.getScreenerResultsForSector 50
             |> List.map (fun screenerResult ->
                 tr [] [
-                    td [] [ screenerResult.date |> Utils.convertToDateString |> str ]
-                    td [] [
-                        (screenerResult.screenerid,screenerResult.screenername) |> Views.generateScreenerTags
-                    ]
-                    td [] [ screenerResult.ticker |> generateTickerLink ]
-                    td [] [ screenerResult.marketCap |> marketCapFormatted |> str ]
-                    td [] [ screenerResult.price |> dollarFormatted |> str ]
-                    td [] [ screenerResult.change |> percentFormatted |> str ]
-                    td [] [ screenerResult.volume |> volumeFormatted |> str ]
-                    td [] [ screenerResult.ticker |> Links.tradingViewLink |> generateHref "chart" ]
+                    screenerResult.date |> Utils.convertToDateString |> toTd
+                    (screenerResult.screenerid,screenerResult.screenername) |> generateScreenerTags |> toTdWithNode
+                    screenerResult.ticker |> generateTickerLink |> toTdWithNode
+                    screenerResult.marketCap |> marketCapFormatted |> toTd
+                    screenerResult.price |> dollarFormatted |> toTd
+                    screenerResult.change |> percentFormatted |> toTd
+                    screenerResult.volume |> volumeFormatted |> toTd
+                    screenerResult.ticker |> Links.tradingViewLink |> generateHref "chart" |> toTdWithNode
                 ]
             )
 
@@ -77,12 +75,10 @@ module SectorDashboard =
             stocks
             |> List.map (fun stock ->
                 tr [] [
-                    td [] [
-                        stock.ticker |> StockTicker.value |> Views.generateTickerLink
-                    ]
-                    td [] [str stock.company]
-                    td [] [ generateHref stock.sector (Links.sectorLink stock.sector) ]
-                    td [] [ generateHref stock.industry (Links.industryLink stock.industry) ]
+                    stock.ticker    |> StockTicker.value |> generateTickerLink |> toTdWithNode
+                    stock.company   |> toTd
+                    stock.sector    |> Links.sectorLink |> generateHref stock.sector |> toTdWithNode
+                    stock.industry  |> Links.industryLink |> generateHref stock.industry |> toTdWithNode
                 ]
             )
             |> fullWidthTable stockTableHeaders
