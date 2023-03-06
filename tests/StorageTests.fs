@@ -183,3 +183,12 @@ type StorageTests(output:ITestOutputHelper) =
         let updated = Storage.updateIndustryTrend "testindustry" date trend 20
 
         Assert.Equal(1, updated)
+
+    [<Fact>]
+    let ``get stocks for tickers works`` () =
+
+        let tickers = ["AMD"; "NVDA"; "AMAT"]
+
+        let stocks = tickers |> Storage.getStockByTickers
+
+        Assert.Equal(3, stocks.Length)

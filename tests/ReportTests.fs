@@ -300,3 +300,10 @@ type ReportTests(output:ITestOutputHelper) =
     let ``get tickers with earnings works`` () =
         let results = Reports.getTickersWithEarnings "2022-08-18"
         Assert.NotEmpty(results)
+
+    [<Fact>]
+    let ``get tickers with earnings for date range works`` () =
+        let startDate = DateTimeOffset.Parse("2023-02-01")
+        let endDate = DateTimeOffset.Parse("2023-02-14")
+        let results = Reports.getEarningsTickers startDate endDate
+        Assert.NotEmpty(results)

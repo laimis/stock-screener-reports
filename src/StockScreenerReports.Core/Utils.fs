@@ -38,6 +38,9 @@ namespace StockScreenerReports.Core
 
         let convertToDateString (date:DateTime) =
             date.ToString("yyyy-MM-dd")
+        
+        let convertToDateStringForOffset (date:DateTimeOffset) =
+            date.ToString("yyyy-MM-dd")
 
         let getRunDate() =
             DateTime.Now |> convertToDateString

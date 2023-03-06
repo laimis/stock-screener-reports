@@ -4,6 +4,7 @@ module Reports =
 
     open Npgsql.FSharp
     open System
+    open StockScreenerReports.Core.Utils
 
     let mutable private cnnString = ""
 
@@ -230,15 +231,15 @@ module Reports =
 
     let getEarningsTickers (startDate:DateTimeOffset) (endDate:DateTimeOffset) =
         let sql = @$"SELECT ticker,date FROM earnings
-            WHERE date >= date(@start) AND date <= @end
+            WHERE date >= date(@start) AND date <= date(@end)
             ORDER BY date ASC, ticker ASC"
         
         cnnString
         |> Sql.connect
         |> Sql.query sql
         |> Sql.parameters [
-            "@start", Sql.timestamptz startDate;
-            "@end", Sql.timestamptz endDate
+            "@start",  startDate |> convertToDateStringForOffset |> Sql.string;
+            "@end", endDate |> convertToDateStringForOffset |> Sql.string
         ]
         |> Sql.execute (fun reader -> (reader.string "ticker", reader.dateTime "date"))
     

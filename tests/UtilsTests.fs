@@ -9,7 +9,7 @@ type UtilsTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``runDate tests`` () =
-        let todayExplicitly = DateTime.UtcNow |> Utils.convertToDateString
+        let todayExplicitly = DateTime.Now |> Utils.convertToDateString
         let todayImplicitly = Utils.getRunDate()
 
         Assert.Equal(todayExplicitly, todayImplicitly)

@@ -179,8 +179,34 @@ module IndustryDashboard =
             trendDiv
         ]
 
+        // last 7 days
+        let startDate = System.DateTimeOffset.UtcNow.AddDays(-7)
+        let endDate = System.DateTimeOffset.UtcNow.AddDays(1)
+
+        let tickersWithEarnings = 
+            Reports.getEarningsTickers startDate endDate
+            |> List.map (fun (ticker,_) -> ticker)
+
+        let stocks =
+            tickersWithEarnings
+            |> Storage.getStockByTickers
+            |> List.filter (fun s -> s.industry = industryName)
+
+        let earningsTable =
+            stocks
+            |> List.map (fun stock ->
+                tr [] [
+                    stock.ticker |> StockTicker.value |> generateTickerLink |> toTdWithNode
+                    stock.company |> toTd
+                    stock.sector |> Links.sectorLink |> generateHref stock.sector |> toTdWithNode
+                    stock.industry |> Links.industryLink |> generateHref stock.industry |> toTdWithNode
+                    stock.ticker |> StockTicker.value |> Links.tradingViewLink |> generateHref "Trading View" |> toTdWithNode
+                ]
+            )
+            |> fullWidthTableWithSortableHeaderCells stockTableHeaderCells
+
         let contentSections =
-            [screenerChart; screenerResultsTable; stockTable]
+            [screenerChart; earningsTable; screenerResultsTable; stockTable]
             |> List.append (smaBreakdownCharts days)
             |> List.append topLevel
 

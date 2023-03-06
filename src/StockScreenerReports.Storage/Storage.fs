@@ -53,6 +53,15 @@ module Storage =
         | [x] -> Some x
         | _ -> raise (new System.Exception(message))
 
+    let getStockByTickers (tickers:string list) =
+        let sql = "SELECT id,ticker,name,sector,industry,country FROM stocks WHERE ticker = ANY(@tickers)"
+
+        cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters ["@tickers", tickers |> Array.ofList |> Sql.stringArray]
+            |> Sql.execute stockMapper
+        
     let getStockByTicker (ticker:StockTicker.T) =
         let sql = "SELECT id,ticker,name,sector,industry,country FROM stocks WHERE ticker = @ticker"
 
