@@ -28,14 +28,14 @@ module IndustriesDashboard =
         let smaBreakdown200_30days = getIndustrySMABreakdownsAndTurnToMap thirtyDaysAgo 200
         let smaBreakdown200_60days = getIndustrySMABreakdownsAndTurnToMap sixtyDaysAgo 200
 
-        let getIndustryTrendsAndTurnToMap (days:int) =
+        let getIndustryTrendsAndTurnToMap date (days:int) =
             days
-            |> Reports.getIndustryTrends
+            |> Reports.getIndustryTrends date
             |> List.map (fun x -> (x.industry, x))
             |> Map.ofList
 
-        let industryTrend20 = getIndustryTrendsAndTurnToMap 20
-        let industryTrend200 = getIndustryTrendsAndTurnToMap 200
+        let industryTrend20 = getIndustryTrendsAndTurnToMap formattedDate 20
+        let industryTrend200 = getIndustryTrendsAndTurnToMap formattedDate 200
 
         let mutable counter = 0
 
@@ -59,7 +59,7 @@ module IndustriesDashboard =
                     let trend =
                         match trendOption with
                         | Some trend -> trend.trend
-                        | None -> StockScreenerReports.Core.Trend.blank()
+                        | None -> Trend.blank()
 
                     let cellCssClass = 
                         match trend.direction with

@@ -90,12 +90,12 @@ module StockDashboard =
         let allScreenerResultsRows = allScreenerResults |> List.map screenerResultToRow
 
         let tableHeader = [
-            "date"
-            "screener"
-            "market cap"
-            "price"
-            "change"
-            "volume"
+            "Date"
+            "Screener"
+            "Market Cap"
+            "Price"
+            "Change"
+            "Volume"
         ]
 
         header::chart @ [

@@ -50,7 +50,7 @@ module CountryDashboard =
             )
 
         let tableHeader = [
-            "date"; "screener"; "ticker"; "market cap"; "price"; "change"; "volume"; "trading view"
+            "Date"; "Screener"; "Ticker"; "Market Cap"; "Price"; "Change"; "Volume"; "Trading View"
         ]
         let screenerResultsTable = resultRows |> fullWidthTable tableHeader
 

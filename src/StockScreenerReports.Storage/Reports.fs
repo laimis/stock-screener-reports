@@ -717,16 +717,19 @@ module Reports =
         |> Sql.query "SELECT MAX(date) as date FROM IndustrySMABreakdowns"
         |> Sql.executeRow (fun reader -> reader.dateTime "date")
 
-    let getIndustryTrends days =
+    let getIndustryTrends date days =
         let sql = @"
             SELECT industry,date,streak,direction,change,days FROM industrytrends
-            WHERE days = @days
+            WHERE 
+                date = date(@date)
+                AND days = @days
             ORDER BY industry"
 
         cnnString
         |> Sql.connect
         |> Sql.query sql
         |> Sql.parameters [
+            "@date", Sql.string date;
             "@days", Sql.int days;
         ]
         |> Sql.execute industryTrendMapper

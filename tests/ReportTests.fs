@@ -278,7 +278,10 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``get industry trends works`` () =
-        let results = Reports.getIndustryTrends 200
+        let latestDate = Reports.getIndustrySMABreakdownLatestDate()
+        let formattedDate = latestDate |> Utils.convertToDateString
+
+        let results = Reports.getIndustryTrends formattedDate 200
         Assert.NotEmpty(results)
 
     [<Fact>]

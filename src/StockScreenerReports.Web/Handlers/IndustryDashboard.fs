@@ -9,6 +9,70 @@ module IndustryDashboard =
     open StockScreenerReports.Web.Shared.Charts
     open StockScreenerReports.Web.Shared.Views
 
+    let private createEarningsSection industryName = 
+        // last 14 days
+        let startDate = System.DateTimeOffset.UtcNow.AddDays(-14)
+        let endDate = System.DateTimeOffset.UtcNow.AddDays(1)
+
+        let tickersWithEarnings = 
+            Reports.getEarningsTickers startDate endDate
+            |> List.map (fun (ticker,_) -> ticker)
+
+        let stocksWithEarnings =
+            tickersWithEarnings
+            |> Storage.getStockByTickers
+            |> List.filter (fun s -> s.industry = industryName)
+
+        let newHighs =
+            Constants.NewHighsScreenerId
+            |> Reports.getStocksForScreenerAndDates startDate endDate
+            |> List.map (fun s -> s.ticker)
+            |> Set.ofList
+
+        let topGainers = 
+            Constants.TopGainerScreenerId
+            |> Reports.getStocksForScreenerAndDates startDate endDate
+            |> List.map (fun s -> s.ticker)
+            |> Set.ofList
+
+        let topLosers =
+            Constants.TopLoserScreenerId
+            |> Reports.getStocksForScreenerAndDates startDate endDate
+            |> List.map (fun s -> s.ticker)
+            |> Set.ofList
+
+        let newLows =
+            Constants.NewLowsScreenerId
+            |> Reports.getStocksForScreenerAndDates startDate endDate
+            |> List.map (fun s -> s.ticker)
+            |> Set.ofList
+
+        let earningsTableHeader = [ "Ticker"; "Company"; "New High"; "Top Gainer"; "Top Loser"; "New Low"; "Trading View" ]
+        let earningsTable =
+            stocksWithEarnings
+            |> List.map (fun stock ->
+
+                let newHighIcon = newHighs |> Set.contains stock.ticker |> generateNewHighIcon
+                let topGainerIcon = topGainers |> Set.contains stock.ticker |> generateTopGainerIcon
+                let topLoserIcon = topLosers |> Set.contains stock.ticker |> generateTopLoserIcon
+                let newLowIcon = newLows |> Set.contains stock.ticker |> generateNewLowIcon
+
+                tr [] [
+                    stock.ticker |> StockTicker.value |> generateTickerLink |> toTdWithNode
+                    stock.company |> toTd
+                    newHighIcon |> toTdWithNode
+                    topGainerIcon |> toTdWithNode
+                    topLoserIcon |> toTdWithNode
+                    newLowIcon |> toTdWithNode
+                    stock.ticker |> StockTicker.value |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
+                ]
+            )
+            |> fullWidthTableWithSortableHeaderCells earningsTableHeader
+
+        match stocksWithEarnings with
+        | [] -> h4 [] ["No earnings last two weeks" |> str]
+        | _ -> earningsTable
+
     let handler industryName =
         
         // load industry trends
@@ -128,14 +192,14 @@ module IndustryDashboard =
             )
 
         let headerNames = [
-            "date";
+            "Date";
             "screener";
-            "ticker";
-            "market cap";
-            "price";
-            "change";
-            "volume";
-            "trading view"
+            "Ticker";
+            "Market Cap";
+            "Price";
+            "Change";
+            "Volume";
+            "Trading View"
         ]
 
         let screenerResultsTable =
@@ -148,8 +212,10 @@ module IndustryDashboard =
         let stockTableHeaderCells = [
             "ticker"
             "company"
-            "sector"
-            "industry"
+            "new high"
+            "top gainer"
+            "top loser"
+            "new low"
             "trading view"
         ]
 
@@ -179,34 +245,10 @@ module IndustryDashboard =
             trendDiv
         ]
 
-        // last 7 days
-        let startDate = System.DateTimeOffset.UtcNow.AddDays(-7)
-        let endDate = System.DateTimeOffset.UtcNow.AddDays(1)
-
-        let tickersWithEarnings = 
-            Reports.getEarningsTickers startDate endDate
-            |> List.map (fun (ticker,_) -> ticker)
-
-        let stocks =
-            tickersWithEarnings
-            |> Storage.getStockByTickers
-            |> List.filter (fun s -> s.industry = industryName)
-
-        let earningsTable =
-            stocks
-            |> List.map (fun stock ->
-                tr [] [
-                    stock.ticker |> StockTicker.value |> generateTickerLink |> toTdWithNode
-                    stock.company |> toTd
-                    stock.sector |> Links.sectorLink |> generateHref stock.sector |> toTdWithNode
-                    stock.industry |> Links.industryLink |> generateHref stock.industry |> toTdWithNode
-                    stock.ticker |> StockTicker.value |> Links.tradingViewLink |> generateHref "Trading View" |> toTdWithNode
-                ]
-            )
-            |> fullWidthTableWithSortableHeaderCells stockTableHeaderCells
+        let earningsSection = createEarningsSection industryName
 
         let contentSections =
-            [screenerChart; earningsTable; screenerResultsTable; stockTable]
+            [screenerChart; earningsSection; screenerResultsTable; stockTable]
             |> List.append (smaBreakdownCharts days)
             |> List.append topLevel
 

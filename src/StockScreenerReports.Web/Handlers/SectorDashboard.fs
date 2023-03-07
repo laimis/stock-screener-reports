@@ -50,14 +50,14 @@ module SectorDashboard =
             )
 
         let headerCells = [
-            "date"
-            "screener"
-            "ticker"
-            "market cap"
-            "price"
-            "change"
-            "volume"
-            "trading view"
+            "Date"
+            "Screener"
+            "Ticker"
+            "Market Cap"
+            "Price"
+            "Change"
+            "Volume"
+            "Trading View"
         ]
 
         let screenerResultsTable = resultRows |> fullWidthTable headerCells
