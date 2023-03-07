@@ -734,6 +734,47 @@ module Reports =
         ]
         |> Sql.execute industryTrendMapper
 
+    let getTopIndutriesTrending (direction:StockScreenerReports.Core.TrendDirection) numberOfRecords =
+        
+        let descOrAsc = 
+            match direction with
+            | StockScreenerReports.Core.TrendDirection.Up -> "DESC"
+            | StockScreenerReports.Core.TrendDirection.Down -> "ASC"
+
+        let sql = @"
+            SELECT industry,date,streak,direction,change,days FROM industrytrends
+            WHERE 
+                date = (select max(date) from industrytrends)
+                AND days = 20
+            ORDER BY change/streak " + descOrAsc + @"
+            LIMIT @numberOfRecords"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@numberOfRecords", Sql.int numberOfRecords;
+        ]
+        |> Sql.execute industryTrendMapper
+
+    let getIndustryTrendBreakdown days =
+        let sql = @"
+            SELECT
+                SUM(case WHEN direction = 'up' THEN 1 ELSE 0 END) up,
+                SUM(case WHEN direction = 'down' THEN 1 ELSE 0 END) down
+            FROM industrytrends
+            WHERE 
+                date = (SELECT MAX(date) FROM industrytrends)
+                AND days = @days"
+        
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@days", Sql.int days;
+        ]
+        |> Sql.executeRow (fun reader -> (reader.int "up", reader.int "down"))
+
     let getIndustryTrend days industry =
         let sql = @"
             SELECT industry,date,streak,direction,change,days FROM industrytrends

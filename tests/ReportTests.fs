@@ -285,6 +285,39 @@ type ReportTests(output:ITestOutputHelper) =
         Assert.NotEmpty(results)
 
     [<Fact>]
+    let ``top trending industries works`` () =
+        let trendUpResults = Reports.getTopIndutriesTrending Up 10
+        Assert.NotEmpty(trendUpResults)
+        Assert.Equal(10, trendUpResults.Length)
+
+        let firstRate = trendUpResults.Item(0).trend.streakRate
+        let lastRate = trendUpResults.Item(trendUpResults.Length - 1).trend.streakRate
+
+        Assert.True(firstRate >= lastRate)
+        Assert.True(firstRate > 0m)
+
+        let trendDownResults = Reports.getTopIndutriesTrending Down 10
+        Assert.NotEmpty(trendDownResults)
+        Assert.Equal(10, trendDownResults.Length)
+
+        let firstRate = trendDownResults.Item(0).trend.streakRate
+        let lastRate = trendDownResults.Item(trendDownResults.Length - 1).trend.streakRate
+
+        Assert.True(firstRate <= lastRate)
+        Assert.True(firstRate < 0m)
+
+    [<Fact>]
+    let ``industry trends breakdown contain both up and down`` () =
+
+        let (up, down) = Reports.getIndustryTrendBreakdown 20
+        Assert.True(up > 0)
+        Assert.True(down > 0)
+
+        let (up200, down200) = Reports.getIndustryTrendBreakdown 200
+        Assert.True(up200 > 0)
+        Assert.True(down200 > 0)
+
+    [<Fact>]
     let ``calculate industry trends works`` () =
         let smaBreakdowns = StorageTests.testStockIndustry |> Reports.getIndustrySMABreakdownsForIndustry 20 FinvizConfig.dayRange
         let trend = TrendsCalculator.calculateForIndustry smaBreakdowns

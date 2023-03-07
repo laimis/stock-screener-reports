@@ -8,6 +8,7 @@ module ScreenersTrends =
     open StockScreenerReports.Storage
     open StockScreenerReports.Core
     open StockScreenerReports.Storage.Reports
+    open StockScreenerReports.Web.Shared.Views
     
     let private getScreenerDailyHits (dateRange:string * string) screener =
         screener.id |> getDailyCountsForScreener dateRange
@@ -88,38 +89,101 @@ module ScreenersTrends =
                 (Charts.generateChartElements "SMA breakdown" Charts.ChartType.Line (Some 100) Charts.smallChart labels datasets)
         ]
 
-    let generateElementsToRender dateRange =
-        
-        let screeners = Storage.getScreeners()
-
-        let (startDate,endDate) = dateRange
-
-        let filters = 
-            div [_class "content"] [
-                h1 [] [
-                    str "Filters"
+    let generateFilterSection startDate endDate = 
+        div [_class "content"] [
+            h1 [] [
+                str "Filters"
+            ]
+            form [] [
+                
+                div [_class "columns"] [
+                    div [_class "column"] [
+                        div [_class "field"] [
+                            label [_class "label"; _for "startDate"] [str "Start Date"]    
+                        ]
+                        input [ _class "input"; _type "date"; _value startDate; _id "startDate"; _name "startDate" ]
+                    ]
+                    div [_class "column"] [
+                        div [_class "field"] [
+                            label [_class "label"; _for "endDate"] [str "End Date"]    
+                        ]
+                        input [ _class "input"; _type "date"; _value endDate; _id "endDate"; _name "endDate" ]
+                    ]
                 ]
-                form [] [
-                    
-                    div [_class "columns"] [
-                        div [_class "column"] [
-                            div [_class "field"] [
-                                label [_class "label"; _for "startDate"] [str "Start Date"]    
-                            ]
-                            input [ _class "input"; _type "date"; _value startDate; _id "startDate"; _name "startDate" ]
-                        ]
-                        div [_class "column"] [
-                            div [_class "field"] [
-                                label [_class "label"; _for "endDate"] [str "End Date"]    
-                            ]
-                            input [ _class "input"; _type "date"; _value endDate; _id "endDate"; _name "endDate" ]
-                        ]
-                    ]
-                    div [_class "control"] [
-                        button [ _class "button is-primary"; _type "submit"; _id "applyFilters" ] [ str "Apply Filters" ]
-                    ]
+                div [_class "control"] [
+                    button [ _class "button is-primary"; _type "submit"; _id "applyFilters" ] [ str "Apply Filters" ]
                 ]
             ]
+        ]
+
+    let generateIndustriesSection() =
+        let (up20,down20) = getIndustryTrendBreakdown 20
+        let (up200,down200) = getIndustryTrendBreakdown 200
+
+        let positiveClass = "has-text-success has-text-weight-bold"
+        let negativeClass = "has-text-danger has-text-weight-bold"
+
+        let trend20CssClass =
+            match up20 >= down20 with
+            | true -> positiveClass
+            | false -> negativeClass
+
+        let trend200CssClass =
+            match up200 >= down200 with
+            | true -> positiveClass
+            | false -> negativeClass
+
+        let industryTrendBreakdownRow = tr [] [
+            td [_class trend20CssClass] [up20.ToString() |> str]
+            td [_class trend20CssClass] [down20.ToString() |> str]
+            td [_class trend200CssClass] [up200.ToString() |> str]
+            td [_class trend200CssClass] [down200.ToString() |> str]
+        ]
+
+        let industryTrendBreakdownTable = 
+            [ industryTrendBreakdownRow ] |> fullWidthTable [ "20 Up"; "20 Down"; "200 Up"; "200 Down" ]
+
+        let industryTrendSections =
+            [(Up, "Industries Trending Up"); (Down, "Industries Trending Down")]
+            |> List.map (fun (direction, title) -> 
+                let trendingIndustries = getTopIndutriesTrending direction  8
+                let topIndustriesTable = 
+                    trendingIndustries
+                    |> List.map (fun trend ->
+                        tr [] [
+                            trend.industry |> Links.industryLink |> generateHref trend.industry |> toTdWithNode
+                            trend.trend.streakFormatted |> toTd
+                            trend.trend.changeFormatted |> toTd
+                            trend.trend.streakRateFormatted |> toTd
+                        ]
+                    )
+                    |> List.ofSeq
+                    |> fullWidthTable [ "Industry"; "Streak"; "Change"; "Streak Rate" ]
+                
+                [
+                    h4 [] [
+                        title |> str
+                    ]
+                    topIndustriesTable
+                ]
+            )
+            |> List.concat
+
+        let content = 
+            industryTrendSections
+            |> List.append [h4 [] [str "Industry Trend Breakdown"]; industryTrendBreakdownTable]
+
+        div [_class "content"] content
+
+    let generateElementsToRender dateRange =
+        
+        let (startDate,endDate) = dateRange
+
+        let filters = generateFilterSection startDate endDate
+
+        let industriesTrendingUp = generateIndustriesSection()
+            
+        let screeners = Storage.getScreeners()
 
         let numberOfHitsByScreenerByDate =
             screeners
@@ -206,6 +270,7 @@ module ScreenersTrends =
 
         [
             [filters]
+            [industriesTrendingUp]
             trends
             numberOfHitsPartial
             [highsMinusLowsChart]

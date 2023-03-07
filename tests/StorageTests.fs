@@ -176,7 +176,9 @@ type StorageTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``updating industry trend works`` () =
 
-        let date = System.DateTime.UtcNow |> Utils.convertToDateString
+        // move it to the past so that it does not show up
+        // in real app
+        let date = System.DateTime.UtcNow.AddDays(-100) |> Utils.convertToDateString
 
         let trend = {streak=7;direction=Up;change=121m}
 

@@ -171,6 +171,16 @@ type Trend =
         match this.streak with
             | 0 -> 0.0m
             | _ -> (decimal this.change ) / (decimal this.streak)
+
+    member this.streakRateFormatted =
+        System.String.Format("{0:N2}%", this.streakRate)
+
+    member this.changeFormatted =
+        System.String.Format("{0:N0}", this.change)
+
+    member this.streakFormatted =
+        System.String.Format("{0:N0}", this.streak)
+        
     override this.ToString() =
         let directionStr = 
             match this.direction with
