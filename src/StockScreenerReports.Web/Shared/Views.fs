@@ -144,11 +144,16 @@ module Views =
     let fullWidthTableWithSortableHeaderCells headerCells rows =
         let headerRow =  tr [] (headerCells |> List.map toSortableHeaderCell)
         rows |> fullWidthTableWithCustomHeader headerRow
+
     let fullWidthTableWithCssClass cssClass header rows =
         table [ _class $"table is-fullwidth is-striped {cssClass}" ] [
             thead [] [ header ]
             tbody [] rows
         ]
+    
+    let toNameCountTableWithLinksAndClickFunc title maxNumberOfRows linkFunction clickFunction listOfNameCountPairs =
+        let (header, rows) = listOfNameCountPairs |> toNameCountRows title maxNumberOfRows (fun name -> generateHref name (linkFunction name)) clickFunction
+        rows |> fullWidthTableWithCustomHeader header
 
     let toNameCountTableWithLinks title maxNumberOfRows linkFunction listOfNameCountPairs =
         // kind of hacky -- using title
@@ -158,8 +163,8 @@ module Views =
             | "Sectors" -> Some "sectorClicked(event)"
             | "Countries" -> Some "countryClicked(event)"
             | _ -> None
-        let (header, rows) = listOfNameCountPairs |> toNameCountRows title maxNumberOfRows (fun name -> generateHref name (linkFunction name)) clickFunction
-        fullWidthTableWithCustomHeader header rows
+
+        toNameCountTableWithLinksAndClickFunc title maxNumberOfRows linkFunction clickFunction listOfNameCountPairs
 
     let private generateHeaderRow =
         let titleDiv = div [ _class "column" ] [

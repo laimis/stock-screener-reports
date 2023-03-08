@@ -1,5 +1,5 @@
 
-function toggleStyle(cell) {
+function toggleDisplayNone(cell) {
     var existing = cell.style.display;
     if (existing === "none") {
         cell.style.display = null;
@@ -35,14 +35,15 @@ function toggleTickerCompanyVisibility() {
             for (var j = 0; j < table.rows.length; j++) {
                 var row = table.rows[j];
                 var tickerCell = row.cells[tickerIndex];
-                toggleStyle(tickerCell);
+                toggleDisplayNone(tickerCell);
                 var companyCell = row.cells[companyIndex];
-                toggleStyle(companyCell);
+                toggleDisplayNone(companyCell);
             }
         }
     }
 }
 
+// this hides/unhides a row in a table if it has earnings icon
 function toggleEarningsVisibility() {
     // in html find all tables in the current document
     var tables = document.getElementsByTagName("table");
@@ -60,7 +61,7 @@ function toggleEarningsVisibility() {
                 for (var l = 0; l < iElements.length; l++) {
                     var iElement = iElements[l];
                     if (iElement.classList.contains("fa-solid") && iElement.classList.contains("fa-e")) {
-                        toggleStyle(row);
+                        toggleDisplayNone(row);
                     }
                 }
             }

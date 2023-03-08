@@ -35,7 +35,11 @@ module Earnings =
 
         let table = 
             withCounts
-            |> toNameCountTableWithLinks newTitle 10 (fun s -> s |> Links.industryLink)
+            |> toNameCountTableWithLinksAndClickFunc 
+                newTitle
+                10
+                (fun s -> s |> Links.industryLink)
+                (Some "industryClicked(event)")
 
         div [_class "column"] [table]
 
@@ -49,8 +53,8 @@ module Earnings =
                 tr [] [
                     s.ticker |> StockTicker.value |> generateTickerLink |> toTdWithNode
                     s.ticker |> StockTicker.value |> Links.tradingViewLink |> generateHref "chart" |> toTdWithNode
-                    s.industry |> str |> toTdWithNode
-                    s.sector |> str |> toTdWithNode
+                    s.industry |> Links.industryLink |> generateHref s.industry |> toTdWithNode
+                    s.sector |> Links.sectorLink |> generateHref s.sector |> toTdWithNode
                 ]
             )
 
@@ -71,6 +75,13 @@ module Earnings =
         ]
 
         let tickersWithEarnings = Reports.getEarningsTickers startDate endDate
+        let stocks =
+            tickersWithEarnings
+            |> List.map (fun (ticker,_) -> ticker)
+            |> Storage.getStockByTickers
+            |> List.map (fun s -> s.ticker |> StockTicker.value, s)
+            |> Map.ofList
+
 
         let newHighs =
             Constants.NewHighsScreenerId
@@ -105,9 +116,16 @@ module Earnings =
                 let topLosers = ticker |> topLosersMap.ContainsKey |> generateTopLoserIcon
                 let newLows = ticker |> newLowsMap.ContainsKey |> generateNewLowIcon
 
+                let stock = stocks |> Map.tryFind ticker
+                let industry = 
+                    match stock with
+                    | Some s -> s.industry
+                    | None -> ""
+
                 tr [] [
                     ticker |> generateTickerLink |> toTdWithNode
                     date.ToString("yyyy-MM-dd") |> toTd
+                    industry |> Links.industryLink |> generateHref industry |> toTdWithNode
                     newHighs |> toTdWithNode
                     topGainers |> toTdWithNode
                     topLosers |> toTdWithNode
@@ -117,7 +135,7 @@ module Earnings =
             )
 
         let earningsTable = 
-            let headerRow = ["Ticker"; "Date"; "New High"; "Top Gainer"; "Top Loser"; "New Low"; "Trading View"]
+            let headerRow = ["Ticker"; "Date"; "Industry"; "New High"; "Top Gainer"; "Top Loser"; "New Low"; "Trading View"]
             rows |> fullWidthTable headerRow
         
         // break down div
