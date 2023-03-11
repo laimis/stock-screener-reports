@@ -75,6 +75,24 @@ module ScreenerManagement =
                 return! redirectTo false Links.screeners next ctx
             }
 
+    let runScreeners () =
+        let fetchScreenerResults (input:StockScreenerReports.Core.Screener) =
+            let results = StockScreenerReports.FinvizClient.FinvizClient.getResults input.url
+            (input,results)
+
+        let saveToDb (screenerResults:list<StockScreenerReports.Core.Screener * 'a>) =
+            let date = StockScreenerReports.Core.Utils.getRunDate()
+            screenerResults
+            |> List.iter (fun x -> Storage.saveScreenerResults date x)
+            screenerResults
+
+        Storage.getScreeners()
+        |> List.map fetchScreenerResults
+        |> saveToDb
+        |> ignore
+
+        redirectTo false "/"
+
     let managementHandler() = 
         
         let screeners = Storage.getScreeners()
@@ -171,6 +189,13 @@ module ScreenerManagement =
                     h2 [] [ str "Add New" ]
                 ]
                 newScreenerForm
+                div [ _class "content" ] [
+                    h2 [] [ str "Run Screeners" ]
+                    a [
+                        _class "button is-primary"
+                        _href Links.screenersRun
+                    ] [ str "Kick off" ]
+                ]
             ]
 
         [content] |> Views.mainLayout "Screeners"

@@ -181,7 +181,7 @@ module ScreenersTrends =
 
         let filters = generateFilterSection startDate endDate
 
-        let industriesTrendingUp = generateIndustriesSection()
+        let trendingUpAndDownIndustries = generateIndustriesSection()
             
         let screeners = Storage.getScreeners()
 
@@ -270,13 +270,12 @@ module ScreenersTrends =
 
         [
             [filters]
-            [industriesTrendingUp]
             trends
+            [trendingUpAndDownIndustries]
             numberOfHitsPartial
             [highsMinusLowsChart]
             volumePartial
-        ]
-        |> List.concat
+        ] |> List.concat
 
     let handler : HttpHandler =
 

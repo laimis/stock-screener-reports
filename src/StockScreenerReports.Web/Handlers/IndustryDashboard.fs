@@ -210,13 +210,11 @@ module IndustryDashboard =
         let stocks = Storage.getStocksByIndustry industryName
 
         let stockTableHeaderCells = [
-            "ticker"
-            "company"
-            "new high"
-            "top gainer"
-            "top loser"
-            "new low"
-            "trading view"
+            "Ticker"
+            "Company"
+            "Sector"
+            "Industry"
+            "Trading View"
         ]
 
         let stockTable =
@@ -227,7 +225,7 @@ module IndustryDashboard =
                     stock.company |> toTd
                     stock.sector |> Links.sectorLink |> generateHref stock.sector |> toTdWithNode
                     stock.industry |> Links.industryLink |> generateHref stock.industry |> toTdWithNode
-                    stock.ticker |> StockTicker.value |> Links.tradingViewLink |> generateHref "Trading View" |> toTdWithNode
+                    stock.ticker |> StockTicker.value |> Links.tradingViewLink |> generateHref "chart" |> toTdWithNode
                 ]
             )
             |> fullWidthTableWithSortableHeaderCells stockTableHeaderCells
