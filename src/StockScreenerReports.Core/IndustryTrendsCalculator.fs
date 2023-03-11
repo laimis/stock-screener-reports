@@ -3,6 +3,11 @@ namespace StockScreenerReports.Core
     module TrendsCalculator =
         open System
 
+        // NOTE: this was written before I grasped better F#'s functional
+        // capabilities and immutability. It's a bit of a mess and could
+        // be cleaned up
+        // test coverage is decent, but hesitant to touch this piece
+        // without going through more scenarios
         let calculate (smaBreakdowns:list<SMABreakdown>) : Trend =
 
             let mutable latestValue = Option<decimal>.None
@@ -23,7 +28,6 @@ namespace StockScreenerReports.Core
                         | (None, None) -> 
                             latestValue <- Some x.percentAbove
                             firstValue <- Some x.percentAbove
-                            // firstDate <- x.breakdown.date
 
                         // case where we are seeing the second value
                         | (Some _, None) -> (
@@ -31,7 +35,10 @@ namespace StockScreenerReports.Core
                                 direction <- Some Down
                                 latestValue <- Some x.percentAbove
                             else
-                                direction <- Some Up
+                                direction <-
+                                    match latestValue.Value with
+                                    | 0m -> Some Down
+                                    | _ -> Some Up
                             )
 
                         // case where we are now iterating

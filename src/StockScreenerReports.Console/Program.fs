@@ -175,22 +175,21 @@ match runTrendsMigration() with
 match runTestReports() with
 | true -> 
 
-    Console.WriteLine("Enter industry name:")
+    let industry = "Lumber & Wood Production"
 
-    let input = Console.ReadLine()
+    Console.WriteLine("Running calculations for " + industry)
 
-    let industry = 
-        match input with
-        | "" ->
-            Console.Error.WriteLine("No industry name entered, defaulting to 'Consulting Services'")
-            "Consulting Services"
-        | value ->
-            value
+    let smaBreakdowns = 
+        industry
+        |> Reports.getIndustrySMABreakdownsForIndustry 20 FinvizConfig.dayRange
 
+    smaBreakdowns
+    |> List.iter (fun x -> Console.Write($"({x.breakdown.above}, {x.breakdown.above + x.breakdown.below});"))
+    Console.WriteLine("")
 
-    let smaBreakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry 20 FinvizConfig.dayRange
-
-    let trend = smaBreakdowns |> TrendsCalculator.calculateForIndustry
+    let trend = 
+        smaBreakdowns
+        |> TrendsCalculator.calculateForIndustry
 
     Console.WriteLine($"{industry} {20} days sma streak: {trend.streak} day {trend.direction} with change of {trend.change}")
 
