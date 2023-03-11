@@ -34,6 +34,9 @@ namespace StockScreenerReports.Core
                             if x.percentAbove > latestValue.Value then
                                 direction <- Some Down
                                 latestValue <- Some x.percentAbove
+                            else if x.percentAbove < latestValue.Value then
+                                direction <- Some Up
+                                latestValue <- Some x.percentAbove
                             else
                                 direction <-
                                     match latestValue.Value with

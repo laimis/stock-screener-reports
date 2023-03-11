@@ -93,6 +93,6 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
     let ``lumber production trend works``() =
         let trend = TrendsCalculator.calculateForIndustry sampleLumberProduction
 
-        Assert.Equal(3, trend.streak)
+        Assert.Equal(1, trend.streak)
         Assert.Equal(Up, trend.direction)
         Assert.Equal(20m, System.Math.Round(trend.change, 2))

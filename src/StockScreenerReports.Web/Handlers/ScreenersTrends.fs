@@ -163,7 +163,7 @@ module ScreenersTrends =
                     trendingIndustries
                     |> List.map (fun trend ->
                         tr [] [
-                            trend.industry |> Links.industryLink |> generateHref trend.industry |> toTdWithNode
+                            trend.industry |> Links.industryLink |> generateHref trend.industry |> toTdWithNodeWithWidth 400
                             trend.trend.streakFormatted |> toTd
                             trend.trend.changeFormatted |> toTd
                             trend.trend.streakRateFormatted |> toTd

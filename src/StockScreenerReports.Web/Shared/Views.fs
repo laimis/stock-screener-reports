@@ -87,6 +87,11 @@ module Views =
     let toTdWithNodes nodes =
             td [] nodes
 
+    let toTdWithNodeWithWidth (width:int) node =
+        let style = $"width: {width}px"
+
+        td [ _style style ] [node]
+
     let toTdWithNode node =
         [node] |> toTdWithNodes 
 
