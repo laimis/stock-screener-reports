@@ -193,6 +193,8 @@ type IndustryTrend =
     {
         industry: string;
         trend: Trend;
+        above: int;
+        below: int;
         days: int;
         date: System.DateTime;
     }

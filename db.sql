@@ -104,3 +104,24 @@ create table earnings (
 
 alter table industrytrends drop constraint industrytrends_industry_days_key;
 alter table industrytrends add constraint industrytrends_industry_days_date_key unique (industry, days, "date");
+
+alter table industrytrends add column above numeric;
+alter table industrytrends add column below numeric;
+
+update industrytrends set above = (
+    select above from industrysmabreakdowns
+    where industry = industrytrends.industry
+    and days = industrytrends.days
+    and "date" = industrytrends."date"
+);
+
+update industrytrends set below = (
+    select below from industrysmabreakdowns
+    where industry = industrytrends.industry
+    and days = industrytrends.days
+    and "date" = industrytrends."date"
+);
+
+-- enforce industrytrends above and below columns to be not null
+alter table industrytrends alter column above set not null;
+alter table industrytrends alter column below set not null;

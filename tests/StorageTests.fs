@@ -178,11 +178,21 @@ type StorageTests(output:ITestOutputHelper) =
 
         // move it to the past so that it does not show up
         // in real app
-        let date = System.DateTime.UtcNow.AddDays(-100) |> Utils.convertToDateString
+        let date = System.DateTime.UtcNow.AddDays(-100)
 
         let trend = {streak=7;direction=Up;change=121m}
 
-        let updated = Storage.updateIndustryTrend "testindustry" date trend 20
+        let (industrySmaBreakdown:IndustrySMABreakdown) = {
+            industry = "testindustry";
+            breakdown = {
+                date = date;
+                above = 1;
+                below = 1;
+                days = 20;
+            }
+        }
+
+        let updated = Storage.updateIndustryTrend industrySmaBreakdown trend
 
         Assert.Equal(1, updated)
 

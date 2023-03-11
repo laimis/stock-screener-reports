@@ -84,6 +84,8 @@ module Reports =
                     change = reader.decimal "change";
                 }
             );
+            above = reader.int "above";
+            below = reader.int "below";
             days = reader.int "days";
             date = reader.dateTime "date";
         }
@@ -719,7 +721,7 @@ module Reports =
 
     let getIndustryTrends date days =
         let sql = @"
-            SELECT industry,date,streak,direction,change,days FROM industrytrends
+            SELECT industry,date,above,below,streak,direction,change,days FROM industrytrends
             WHERE 
                 date = date(@date)
                 AND days = @days
@@ -742,7 +744,7 @@ module Reports =
             | StockScreenerReports.Core.TrendDirection.Down -> "ASC"
 
         let sql = @"
-            SELECT industry,date,streak,direction,change,days FROM industrytrends
+            SELECT industry,date,above,below,streak,direction,change,days FROM industrytrends
             WHERE 
                 date = (select max(date) from industrytrends)
                 AND days = 20
@@ -777,7 +779,7 @@ module Reports =
 
     let getIndustryTrend days industry =
         let sql = @"
-            SELECT industry,date,streak,direction,change,days FROM industrytrends
+            SELECT industry,date,above,below,streak,direction,change,days FROM industrytrends
             WHERE industry = @industry AND days = @days
             AND date = (SELECT MAX(date) FROM industrytrends WHERE industry = @industry AND days = @days)"
 

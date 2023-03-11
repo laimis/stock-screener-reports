@@ -124,9 +124,11 @@ match runSMAUpdates() with
 
                 let trend = breakdowns |> TrendsCalculator.calculateForIndustry
 
+                let lastBreakdown = breakdowns |> List.last
+
                 Console.WriteLine($"Saving industry {industry} trend: {trend.direction} {trend.streak} days with change of {trend.change}")
 
-                Storage.updateIndustryTrend industry date trend days
+                Storage.updateIndustryTrend lastBreakdown trend
             )
             |> List.sum
         )
@@ -161,7 +163,7 @@ match runTrendsMigration() with
                 let trend = window |> TrendsCalculator.calculateForIndustry
                 let last = window |> List.last
                 Console.WriteLine($"Saving industry {industry} {last.breakdown.date} trend: {trend.direction} {trend.streak} days with change of {trend.change}")
-                Storage.updateIndustryTrend industry (last.breakdown.date |> Utils.convertToDateString) trend days |> ignore
+                Storage.updateIndustryTrend last trend |> ignore
             )
         )
     ) |> ignore

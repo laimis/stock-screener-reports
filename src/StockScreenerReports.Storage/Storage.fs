@@ -238,18 +238,20 @@ module Storage =
         |> Sql.query "SELECT DISTINCT industry FROM stocks ORDER BY industry"
         |> Sql.execute (fun reader -> reader.string "industry")
 
-    let updateIndustryTrend industry date (trend:Trend) days =
+    let updateIndustryTrend (industrySmaBreakdown:IndustrySMABreakdown) (trend:Trend) =
         cnnString
         |> Sql.connect
-        |> Sql.query @"INSERT INTO industrytrends (industry,date,streak,direction,change,days)
-            VALUES (@industry,date(@date),@streak,@direction,@change,@days)
+        |> Sql.query @"INSERT INTO industrytrends (industry,date,above,below,streak,direction,change,days)
+            VALUES (@industry,date(@date),@above,@below,@streak,@direction,@change,@days)
             ON CONFLICT (industry,days,date) DO UPDATE SET streak = @streak, direction = @direction, change = @change, days = @days"
         |> Sql.parameters [
-            "@industry", Sql.string industry;
-            "@date", Sql.string date;
+            "@industry", industrySmaBreakdown.industry |> Sql.string;
+            "@date", industrySmaBreakdown.breakdown.date |> Utils.convertToDateString |> Sql.string;
+            "@above", Sql.int (industrySmaBreakdown.breakdown.above);
+            "@below", Sql.int (industrySmaBreakdown.breakdown.below);
             "@streak", Sql.int (trend.streak);
             "@direction", trend.direction |> toTrendDirectionString |> Sql.string;
-            "@days", Sql.int days;
+            "@days", industrySmaBreakdown.breakdown.days |> Sql.int;
             "@change", Sql.decimal (trend.change)
         ]
         |> Sql.executeNonQuery

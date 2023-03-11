@@ -109,9 +109,21 @@ module ScreenersTrends =
                         ]
                         input [ _class "input"; _type "date"; _value endDate; _id "endDate"; _name "endDate" ]
                     ]
+                    input [ _class "input"; _type "hidden"; _value ""; _id "goBack30Days"; _name "goBack30Days"]
+                    input [ _class "input"; _type "hidden"; _value ""; _id "goForward30Days"; _name "goForward30Days"]
                 ]
+                
                 div [_class "control"] [
-                    button [ _class "button is-primary"; _type "submit"; _id "applyFilters" ] [ str "Apply Filters" ]
+                    button [ _class "button is-primary m-1"; _type "submit"; _id "applyFilters" ] [ str "Apply Filters" ]
+                    button [ _class "button is-primary m-1"; _type "button"; _id "applyFiltersBack" ] [ str "Back 30 days, Apply" ]
+                    button [ _class "button is-primary m-1"; _type "button"; _id "applyFiltersForward" ] [ str "Forward 30 days, Apply" ]
+                ]
+
+                script [ _type "text/javascript" ] [
+                    rawText "document.getElementById('applyFiltersBack').addEventListener('click', function() { document.getElementById('goBack30Days').value = true; document.getElementById('applyFilters').click(); });"
+                ]
+                script [ _type "text/javascript" ] [
+                    rawText "document.getElementById('applyFiltersForward').addEventListener('click', function() { document.getElementById('goForward30Days').value = true; document.getElementById('applyFilters').click(); });"
                 ]
             ]
         ]
@@ -155,10 +167,12 @@ module ScreenersTrends =
                             trend.trend.streakFormatted |> toTd
                             trend.trend.changeFormatted |> toTd
                             trend.trend.streakRateFormatted |> toTd
+                            trend.above.ToString() |> toTd
+                            (trend.above + trend.below).ToString() |> toTd
                         ]
                     )
                     |> List.ofSeq
-                    |> fullWidthTable [ "Industry"; "Streak"; "Change"; "Streak Rate" ]
+                    |> fullWidthTable [ "Industry"; "Streak"; "Change"; "Streak Rate"; "Above"; "Total" ]
                 
                 [
                     h4 [] [
@@ -283,6 +297,9 @@ module ScreenersTrends =
         
             let startDateParam = ctx.TryGetQueryStringValue "startDate"
             let endDateParam = ctx.TryGetQueryStringValue "endDate"
+            let goBack30Days = ctx.TryGetQueryStringValue "goBack30Days"
+            let goForward30Days = ctx.TryGetQueryStringValue "goForward30Days"
+
             let dateRange = FinvizConfig.dateRangeAsStrings
 
             let startDate = 
@@ -295,6 +312,32 @@ module ScreenersTrends =
                     | Some s -> s
                     | None -> dateRange |> snd
 
-            let elementsToRender = generateElementsToRender (startDate,endDate)
+            let goBack30Days =
+                match goBack30Days with
+                    | Some s -> s
+                    | None -> "false"
+
+            let goForward30Days =
+                match goForward30Days with
+                    | Some s -> s
+                    | None -> "false"
+
+            let adjustment =
+                match (goBack30Days,goForward30Days) with
+                    | ("true", _) -> -30
+                    | (_, "true") -> 30
+                    | _ -> 0
+
+            let (adjustedStart, adjustedEnd) =
+                match adjustment with
+                    | 0 -> (startDate, endDate)  
+                    | _ ->
+                        let startDate = System.DateTime.Parse(startDate)
+                        let endDate = System.DateTime.Parse(endDate)
+                        let adjustedStart = startDate.AddDays(adjustment)
+                        let adjustedEnd = endDate.AddDays(adjustment)
+                        (adjustedStart |> Utils.convertToDateString, adjustedEnd |> Utils.convertToDateString)
+
+            let elementsToRender = generateElementsToRender (adjustedStart,adjustedEnd)
 
             (elementsToRender |> Views.mainLayout "All Screener Trends") next ctx
