@@ -84,50 +84,44 @@ module ScreenersTrends =
         ]
 
     let generateFilterSection startDate endDate = 
+        let offsets = [-30; -1; 1; 30]
+
+        let buttons = 
+            offsets
+            |> List.indexed
+            |> List.map( fun(index,offset) ->
+                button [ _class "button is-primary m-1"; _type "button"; _id $"applyFilters{index}" ] [ str $"{offset}" ]
+            )
+
+        let scripts = 
+            offsets
+            |> List.indexed
+            |> List.map( fun(index,offset) ->
+                script [ _type "text/javascript" ] [
+                    rawText $"document.getElementById('applyFilters{index}').addEventListener('click', function() {{ document.getElementById('dateAdjustment').value = {offset}; document.getElementById('applyFilters').click(); }});"
+                ]
+            )
+
+        let applyButton = button [ _class "button is-primary m-1"; _type "submit"; _id "applyFilters" ] [ str "Apply" ]
+
+        let formElements = [
+            div [_class "field"] [
+                label [_class "label"; _for "startDate"] [str "Start Date"]
+                input [ _class "input"; _type "date"; _value startDate; _id "startDate"; _name "startDate" ]
+            ]
+            div [_class "field"] [
+                label [_class "label"; _for "endDate"] [str "End Date"]
+                input [ _class "input"; _type "date"; _value endDate; _id "endDate"; _name "endDate" ]
+            ]
+            input [ _class "input"; _type "hidden"; _value ""; _id "dateAdjustment"; _name "dateAdjustment"]
+            div [_class "control"] (applyButton::buttons)
+        ]
+
+        let form = form [] ([formElements; scripts] |> List.concat)
+
         div [_class "content"] [
-            h1 [] [
-                str "Filters"
-            ]
-            form [] [
-                
-                div [_class "columns"] [
-                    div [_class "column"] [
-                        div [_class "field"] [
-                            label [_class "label"; _for "startDate"] [str "Start Date"]
-                            input [ _class "input"; _type "date"; _value startDate; _id "startDate"; _name "startDate" ]
-                        ]
-                    ]
-                    div [_class "column"] [
-                        div [_class "field"] [
-                            label [_class "label"; _for "endDate"] [str "End Date"]    
-                            input [ _class "input"; _type "date"; _value endDate; _id "endDate"; _name "endDate" ]
-                        ]
-                    ]
-
-                    input [ _class "input"; _type "hidden"; _value ""; _id "dateAdjustment"; _name "dateAdjustment"]
-                ]
-                
-                div [_class "control"] [
-                    button [ _class "button is-primary m-1"; _type "button"; _id "applyFiltersBack30" ] [ str "-30" ]
-                    button [ _class "button is-primary m-1"; _type "button"; _id "applyFiltersBack1" ] [ str "-1" ]
-                    button [ _class "button is-primary m-1"; _type "submit"; _id "applyFilters" ] [ str "Apply Filters" ]
-                    button [ _class "button is-primary m-1"; _type "button"; _id "applyFiltersForward1" ] [ str "1" ]
-                    button [ _class "button is-primary m-1"; _type "button"; _id "applyFiltersForward30" ] [ str "+30" ]
-                ]
-
-                script [ _type "text/javascript" ] [
-                    rawText "document.getElementById('applyFiltersBack30').addEventListener('click', function() { document.getElementById('dateAdjustment').value = -30; document.getElementById('applyFilters').click(); });"
-                ]
-                script [ _type "text/javascript" ] [
-                    rawText "document.getElementById('applyFiltersBack1').addEventListener('click', function() { document.getElementById('dateAdjustment').value = -1; document.getElementById('applyFilters').click(); });"
-                ]
-                script [ _type "text/javascript" ] [
-                    rawText "document.getElementById('applyFiltersForward1').addEventListener('click', function() { document.getElementById('dateAdjustment').value = 1; document.getElementById('applyFilters').click(); });"
-                ]
-                script [ _type "text/javascript" ] [
-                    rawText "document.getElementById('applyFiltersForward30').addEventListener('click', function() { document.getElementById('dateAdjustment').value = 30; document.getElementById('applyFilters').click(); });"
-                ]
-            ]
+            h4 [] [ str "Filters" ]
+            form
         ]
 
     let generateIndustriesSection date =
