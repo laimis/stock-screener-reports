@@ -211,7 +211,7 @@ module ScreenersTrends =
                 let content = 
                     industryTrendSections
                     |> List.append [
-                        h4 [] [str $"Industry Trend Breakdown :: {dateToUse}"]
+                        h4 [] [str $"Industry Trend Breakdown"]
                         industryTrendBreakdownTable
                     ]
 
