@@ -286,7 +286,7 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``top trending industries works`` () =
-        let trendUpResults = Reports.getTopIndutriesTrending Up 10
+        let trendUpResults = Reports.getTopIndutriesTrending "2023-03-10" 10 Up
         Assert.NotEmpty(trendUpResults)
         Assert.Equal(10, trendUpResults.Length)
 
@@ -296,7 +296,7 @@ type ReportTests(output:ITestOutputHelper) =
         Assert.True(firstRate >= lastRate)
         Assert.True(firstRate > 0m)
 
-        let trendDownResults = Reports.getTopIndutriesTrending Down 10
+        let trendDownResults = Reports.getTopIndutriesTrending "2023-03-10" 10 Down
         Assert.NotEmpty(trendDownResults)
         Assert.Equal(10, trendDownResults.Length)
 
@@ -309,13 +309,19 @@ type ReportTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``industry trends breakdown contain both up and down`` () =
 
-        let (up, down) = Reports.getIndustryTrendBreakdown 20
-        Assert.True(up > 0)
-        Assert.True(down > 0)
+        let date = "2023-03-11"
 
-        let (up200, down200) = Reports.getIndustryTrendBreakdown 200
-        Assert.True(up200 > 0)
-        Assert.True(down200 > 0)
+        let dateToUse = 
+            date
+            |> Reports.getIndustryTrendsLastKnownDateAsOf 
+            |> Utils.convertToDateString
+
+        [20; 200]
+        |> List.iter (fun days ->
+            let (up, down) = Reports.getIndustryTrendBreakdown dateToUse days
+            Assert.True(up > 0)
+            Assert.True(down > 0)
+        )
 
     [<Fact>]
     let ``calculate industry trends works`` () =

@@ -736,7 +736,7 @@ module Reports =
         ]
         |> Sql.execute industryTrendMapper
 
-    let getTopIndutriesTrending (direction:StockScreenerReports.Core.TrendDirection) numberOfRecords =
+    let getTopIndutriesTrending date numberOfRecords (direction:StockScreenerReports.Core.TrendDirection)  =
         
         let descOrAsc = 
             match direction with
@@ -746,7 +746,7 @@ module Reports =
         let sql = @"
             SELECT industry,date,above,below,streak,direction,change,days FROM industrytrends
             WHERE 
-                date = (select max(date) from industrytrends)
+                date = date(@date)
                 AND days = 20
             ORDER BY change/streak " + descOrAsc + @"
             LIMIT @numberOfRecords"
@@ -756,17 +756,31 @@ module Reports =
         |> Sql.query sql
         |> Sql.parameters [
             "@numberOfRecords", Sql.int numberOfRecords;
+            "@date", date |> Sql.string;
         ]
         |> Sql.execute industryTrendMapper
 
-    let getIndustryTrendBreakdown days =
+    let getIndustryTrendsLastKnownDateAsOf date =
+        let sql = @"
+            SELECT MAX(date) as date FROM industrytrends
+            WHERE date <= date(@date)"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@date", Sql.string date;
+        ]
+        |> Sql.executeRow (fun reader -> reader.dateTimeOrNone "date")
+
+    let getIndustryTrendBreakdown date days =
         let sql = @"
             SELECT
                 SUM(case WHEN direction = 'up' THEN 1 ELSE 0 END) up,
                 SUM(case WHEN direction = 'down' THEN 1 ELSE 0 END) down
             FROM industrytrends
             WHERE 
-                date = (SELECT MAX(date) FROM industrytrends)
+                date = date(@date)
                 AND days = @days"
         
         cnnString
@@ -774,6 +788,7 @@ module Reports =
         |> Sql.query sql
         |> Sql.parameters [
             "@days", Sql.int days;
+            "@date", Sql.string date;
         ]
         |> Sql.executeRow (fun reader -> (reader.int "up", reader.int "down"))
 

@@ -147,7 +147,7 @@ match runTrendsMigration() with
 | true ->
     let knownIndustries = Storage.getIndustries()
 
-    let startDate = DateTime.Parse("2022-09-01T00:00:00") |> Utils.convertToDateString
+    let startDate = DateTime.Parse("2022-01-01T00:00:00") |> Utils.convertToDateString
     let endDate = DateTime.UtcNow |> Utils.convertToDateString
 
     knownIndustries

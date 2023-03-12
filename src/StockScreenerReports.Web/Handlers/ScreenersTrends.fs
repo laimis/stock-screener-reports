@@ -99,95 +99,123 @@ module ScreenersTrends =
                 div [_class "columns"] [
                     div [_class "column"] [
                         div [_class "field"] [
-                            label [_class "label"; _for "startDate"] [str "Start Date"]    
+                            label [_class "label"; _for "startDate"] [str "Start Date"]
+                            input [ _class "input"; _type "date"; _value startDate; _id "startDate"; _name "startDate" ]
                         ]
-                        input [ _class "input"; _type "date"; _value startDate; _id "startDate"; _name "startDate" ]
                     ]
                     div [_class "column"] [
                         div [_class "field"] [
                             label [_class "label"; _for "endDate"] [str "End Date"]    
+                            input [ _class "input"; _type "date"; _value endDate; _id "endDate"; _name "endDate" ]
                         ]
-                        input [ _class "input"; _type "date"; _value endDate; _id "endDate"; _name "endDate" ]
                     ]
-                    input [ _class "input"; _type "hidden"; _value ""; _id "goBack30Days"; _name "goBack30Days"]
-                    input [ _class "input"; _type "hidden"; _value ""; _id "goForward30Days"; _name "goForward30Days"]
+
+                    input [ _class "input"; _type "hidden"; _value ""; _id "dateAdjustment"; _name "dateAdjustment"]
                 ]
                 
                 div [_class "control"] [
+                    button [ _class "button is-primary m-1"; _type "button"; _id "applyFiltersBack30" ] [ str "-30" ]
+                    button [ _class "button is-primary m-1"; _type "button"; _id "applyFiltersBack1" ] [ str "-1" ]
                     button [ _class "button is-primary m-1"; _type "submit"; _id "applyFilters" ] [ str "Apply Filters" ]
-                    button [ _class "button is-primary m-1"; _type "button"; _id "applyFiltersBack" ] [ str "Back 30 days, Apply" ]
-                    button [ _class "button is-primary m-1"; _type "button"; _id "applyFiltersForward" ] [ str "Forward 30 days, Apply" ]
+                    button [ _class "button is-primary m-1"; _type "button"; _id "applyFiltersForward1" ] [ str "1" ]
+                    button [ _class "button is-primary m-1"; _type "button"; _id "applyFiltersForward30" ] [ str "+30" ]
                 ]
 
                 script [ _type "text/javascript" ] [
-                    rawText "document.getElementById('applyFiltersBack').addEventListener('click', function() { document.getElementById('goBack30Days').value = true; document.getElementById('applyFilters').click(); });"
+                    rawText "document.getElementById('applyFiltersBack30').addEventListener('click', function() { document.getElementById('dateAdjustment').value = -30; document.getElementById('applyFilters').click(); });"
                 ]
                 script [ _type "text/javascript" ] [
-                    rawText "document.getElementById('applyFiltersForward').addEventListener('click', function() { document.getElementById('goForward30Days').value = true; document.getElementById('applyFilters').click(); });"
+                    rawText "document.getElementById('applyFiltersBack1').addEventListener('click', function() { document.getElementById('dateAdjustment').value = -1; document.getElementById('applyFilters').click(); });"
+                ]
+                script [ _type "text/javascript" ] [
+                    rawText "document.getElementById('applyFiltersForward1').addEventListener('click', function() { document.getElementById('dateAdjustment').value = 1; document.getElementById('applyFilters').click(); });"
+                ]
+                script [ _type "text/javascript" ] [
+                    rawText "document.getElementById('applyFiltersForward30').addEventListener('click', function() { document.getElementById('dateAdjustment').value = 30; document.getElementById('applyFilters').click(); });"
                 ]
             ]
         ]
 
-    let generateIndustriesSection() =
-        let (up20,down20) = getIndustryTrendBreakdown 20
-        let (up200,down200) = getIndustryTrendBreakdown 200
+    let generateIndustriesSection date =
 
-        let positiveClass = "has-text-success has-text-weight-bold"
-        let negativeClass = "has-text-danger has-text-weight-bold"
+        let lastKnownDate =
+            date
+            |> getIndustryTrendsLastKnownDateAsOf
 
-        let trend20CssClass =
-            match up20 >= down20 with
-            | true -> positiveClass
-            | false -> negativeClass
+        match lastKnownDate with
+            | None ->
+                div [ _class "mesage is-danger"] [
+                    div [ _class "message-header"] [
+                        str "No data found"
+                    ]
+                    div [ _class "message-body"] [
+                        str "No data found for the selected date"
+                    ]
+                ]
+            | Some d ->
+                let dateToUse = d |> Utils.convertToDateString
 
-        let trend200CssClass =
-            match up200 >= down200 with
-            | true -> positiveClass
-            | false -> negativeClass
+                let upAndDowns = 
+                    [20; 200]
+                    |> List.map (fun days -> days |> getIndustryTrendBreakdown dateToUse)
+                
+                let positiveClass = "has-text-success has-text-weight-bold"
+                let negativeClass = "has-text-danger has-text-weight-bold"
 
-        let industryTrendBreakdownRow = tr [] [
-            td [_class trend20CssClass] [up20.ToString() |> str]
-            td [_class trend20CssClass] [down20.ToString() |> str]
-            td [_class trend200CssClass] [up200.ToString() |> str]
-            td [_class trend200CssClass] [down200.ToString() |> str]
-        ]
+                let createCells upAndDown =
+                    let up = upAndDown |> fst
+                    let down = upAndDown |> snd
 
-        let industryTrendBreakdownTable = 
-            [ industryTrendBreakdownRow ] |> fullWidthTable [ "20 Up"; "20 Down"; "200 Up"; "200 Down" ]
+                    let cssClass =
+                        match up >= down with
+                        | true -> positiveClass
+                        | false -> negativeClass
 
-        let industryTrendSections =
-            [(Up, "Industries Trending Up"); (Down, "Industries Trending Down")]
-            |> List.map (fun (direction, title) -> 
-                let trendingIndustries = getTopIndutriesTrending direction  8
-                let topIndustriesTable = 
-                    trendingIndustries
-                    |> List.map (fun trend ->
-                        tr [] [
-                            trend.industry |> Links.industryLink |> generateHref trend.industry |> toTdWithNodeWithWidth 400
-                            trend.trend.streakFormatted |> toTd
-                            trend.trend.changeFormatted |> toTd
-                            trend.trend.streakRateFormatted |> toTd
-                            trend.above.ToString() |> toTd
-                            (trend.above + trend.below).ToString() |> toTd
+                    [up; down] |> List.map (fun value -> td [_class cssClass] [value.ToString() |> str])
+
+                let cells = upAndDowns |> List.map createCells |> List.concat
+
+                let industryTrendBreakdownRow = tr [] cells
+
+                let industryTrendBreakdownTable = 
+                    [ industryTrendBreakdownRow ] |> fullWidthTable [ "20 Up"; "20 Down"; "200 Up"; "200 Down" ]
+
+                let industryTrendSections =
+                    [(Up, "Industries Trending Up"); (Down, "Industries Trending Down")]
+                    |> List.map (fun (direction, title) -> 
+                        let trendingIndustries = getTopIndutriesTrending dateToUse 8 direction
+                        let topIndustriesTable = 
+                            trendingIndustries
+                            |> List.map (fun trend ->
+                                tr [] [
+                                    trend.industry |> Links.industryLink |> generateHref trend.industry |> toTdWithNodeWithWidth 400
+                                    trend.trend.streakFormatted |> toTd
+                                    trend.trend.changeFormatted |> toTd
+                                    trend.trend.streakRateFormatted |> toTd
+                                    trend.above.ToString() |> toTd
+                                    (trend.above + trend.below).ToString() |> toTd
+                                ]
+                            )
+                            |> List.ofSeq
+                            |> fullWidthTable [ "Industry"; "Streak"; "Change"; "Streak Rate"; "Above"; "Total" ]
+                        
+                        [
+                            h4 [] [
+                                title |> str
+                            ]
+                            topIndustriesTable
                         ]
                     )
-                    |> List.ofSeq
-                    |> fullWidthTable [ "Industry"; "Streak"; "Change"; "Streak Rate"; "Above"; "Total" ]
-                
-                [
-                    h4 [] [
-                        title |> str
+                    |> List.concat
+
+                let content = 
+                    industryTrendSections
+                    |> List.append [
+                        h4 [] [str $"Industry Trend Breakdown :: {dateToUse}"]
+                        industryTrendBreakdownTable
                     ]
-                    topIndustriesTable
-                ]
-            )
-            |> List.concat
 
-        let content = 
-            industryTrendSections
-            |> List.append [h4 [] [str "Industry Trend Breakdown"]; industryTrendBreakdownTable]
-
-        div [_class "content"] content
+                div [_class "content"] content
 
     let generateElementsToRender dateRange =
         
@@ -195,7 +223,7 @@ module ScreenersTrends =
 
         let filters = generateFilterSection startDate endDate
 
-        let trendingUpAndDownIndustries = generateIndustriesSection()
+        let trendingUpAndDownIndustries = generateIndustriesSection endDate
             
         let screeners = Storage.getScreeners()
 
@@ -297,8 +325,7 @@ module ScreenersTrends =
         
             let startDateParam = ctx.TryGetQueryStringValue "startDate"
             let endDateParam = ctx.TryGetQueryStringValue "endDate"
-            let goBack30Days = ctx.TryGetQueryStringValue "goBack30Days"
-            let goForward30Days = ctx.TryGetQueryStringValue "goForward30Days"
+            let dateAdjustmentParam = ctx.TryGetQueryStringValue "dateAdjustment"
 
             let dateRange = FinvizConfig.dateRangeAsStrings
 
@@ -312,21 +339,15 @@ module ScreenersTrends =
                     | Some s -> s
                     | None -> dateRange |> snd
 
-            let goBack30Days =
-                match goBack30Days with
+            let dateAdjustmentParamValue =
+                match dateAdjustmentParam with
                     | Some s -> s
-                    | None -> "false"
-
-            let goForward30Days =
-                match goForward30Days with
-                    | Some s -> s
-                    | None -> "false"
+                    | None -> ""
 
             let adjustment =
-                match (goBack30Days,goForward30Days) with
-                    | ("true", _) -> -30
-                    | (_, "true") -> 30
-                    | _ -> 0
+                match dateAdjustmentParamValue with
+                    | "" -> 0
+                    | _ -> int dateAdjustmentParamValue
 
             let (adjustedStart, adjustedEnd) =
                 match adjustment with
