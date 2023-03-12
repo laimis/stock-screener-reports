@@ -314,7 +314,7 @@ type ReportTests(output:ITestOutputHelper) =
         let dateToUse = 
             date
             |> Reports.getIndustryTrendsLastKnownDateAsOf 
-            |> Utils.convertToDateString
+            |> Option.get |> Utils.convertToDateString
 
         [20; 200]
         |> List.iter (fun days ->
