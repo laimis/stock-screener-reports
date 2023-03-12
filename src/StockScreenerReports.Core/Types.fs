@@ -31,6 +31,9 @@ module Constants =
     [<Literal>]
     let ColorRed = "#FF4136"
 
+    [<Literal>]
+    let ColorBlack = "#111111"
+
 
 type ScreenerInput = {
     name:string;
@@ -198,6 +201,13 @@ type IndustryTrend =
         days: int;
         date: System.DateTime;
     }
+
+    member this.abovePercentageFormatted() =
+        System.String.Format(
+            "{0:N2}%",
+            ((decimal this.above) / (decimal (this.below + this.above)) * 100m)
+        )
+        
 
 type JobStatus =
     | Success

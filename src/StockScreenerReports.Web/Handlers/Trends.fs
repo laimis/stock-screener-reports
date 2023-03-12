@@ -44,47 +44,41 @@ module ScreenersTrends =
 
     let private generateSMATrendRows startDate endDate =
 
-        let sma20 = 20 |> getDailySMABreakdown startDate endDate
-        let sma200 = 200 |> getDailySMABreakdown startDate endDate
+        let smaBreakdowPairs =
+            [20; 200]
+            |> List.map(fun sma -> 
+                (sma, sma |> getDailySMABreakdown startDate endDate)
+            )
 
-        let trend20 = TrendsCalculator.calculate sma20
-        let trend200 = TrendsCalculator.calculate sma200
+        let smaDirectionColumns =
+            smaBreakdowPairs
+            |> List.map(fun (sma, breakdowns) ->
+                let trend = TrendsCalculator.calculate breakdowns
+                let description = $"<b>SMA {sma}:</b> {trend}"
+                [description |> rawText] |> div [_class "column"]   
+            )
 
-        let toDescription (sma:int) (trend:Trend) =
-            $"<b>SMA {sma}:</b> {trend}"
+        let color sma =
+            match sma with
+            | 20 -> Constants.ColorRed
+            | 200 -> Constants.ColorBlue
+            | _ -> Constants.ColorBlack
 
-        let sma20DirectionDescription = trend20 |> toDescription 20
-        let sma200DirectionDescription = trend200 |> toDescription 200
+        let datasets:list<Charts.DataSet<decimal>> =
+            smaBreakdowPairs
+            |> List.map (fun (sma,breakdowns) ->
+                {
+                    data = breakdowns |> List.map (fun breakdown -> breakdown.percentAboveRounded)
+                    title = $"SMA {sma}"
+                    color = sma |> color 
+                }
+            )
 
-        let datasets:list<Charts.DataSet<decimal>> = [
-            {
-                data = sma20 |> List.map (fun breakdown -> breakdown.percentAboveRounded)
-                title = "SMA 20"
-                color = Constants.ColorRed
-            };
-            {
-                data = sma200 |> List.map (fun breakdown -> breakdown.percentAboveRounded)
-                title = "SMA 200"
-                color = Constants.ColorBlue
-            }
-        ]
-
-        let labels = sma20 |> List.map (fun breakdown -> breakdown.date.ToString("MM/dd"))
+        let labels = smaBreakdowPairs |> List.head |> snd |> List.map (fun breakdown -> breakdown.date.ToString("MM/dd"))
 
         [
-            div [_class "content"] [
-                h1 [] [
-                    str "SMA Trends"
-                ]
-            ]
-            div [_class "columns"] [
-                div [ _class "column" ] [
-                    rawText sma20DirectionDescription
-                ]
-                div [ _class "column" ] [
-                    rawText sma200DirectionDescription
-                ]
-            ]
+            div [_class "content"] [h4 [] [ "SMA Trends" |> str ]]
+            div [_class "columns"] smaDirectionColumns
             div [_class "block"]
                 (Charts.generateChartElements "SMA breakdown" Charts.ChartType.Line (Some 100) Charts.smallChart labels datasets)
         ]
@@ -194,10 +188,11 @@ module ScreenersTrends =
                                     trend.trend.streakRateFormatted |> toTd
                                     trend.above.ToString() |> toTd
                                     (trend.above + trend.below).ToString() |> toTd
+                                    trend.abovePercentageFormatted() |> toTd
                                 ]
                             )
                             |> List.ofSeq
-                            |> fullWidthTable [ "Industry"; "Streak"; "Change"; "Streak Rate"; "Above"; "Total" ]
+                            |> fullWidthTable [ "Industry"; "Streak"; "Change"; "Streak Rate"; "Above"; "Total"; "%";  ]
                         
                         [
                             h4 [] [
