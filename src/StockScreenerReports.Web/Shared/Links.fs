@@ -36,6 +36,9 @@ module Links =
     let industryLink industryName =
         $"/industries/{industryName}"
 
+    let industryExportLink industryName =
+        $"/industries/{industryName}/export"
+
     let countryLink countryName =
         $"/countries/{countryName}"
     

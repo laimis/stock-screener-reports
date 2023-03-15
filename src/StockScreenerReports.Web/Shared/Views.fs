@@ -238,6 +238,11 @@ module Views =
 
                 link [
                     _rel "stylesheet"
+                    "/styles.css" |> _href
+                ]
+
+                link [
+                    _rel "stylesheet"
                     "/node_modules/@fortawesome/fontawesome-free/css./all.min.css" |> _href
                 ]
 

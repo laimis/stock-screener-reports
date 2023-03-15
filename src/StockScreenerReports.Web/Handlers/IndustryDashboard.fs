@@ -8,10 +8,19 @@ module IndustryDashboard =
     open StockScreenerReports.Web.Shared
     open StockScreenerReports.Web.Shared.Charts
     open StockScreenerReports.Web.Shared.Views
+    open FSharp.Data
+    open Giraffe
+
+    type IndustryExportType =   CsvProvider<
+        Schema = "ticker, company, sector, industry, country",
+        HasHeaders=false>
+
+    let header = "ticker, company, sector, industry, country"
 
     let private createEarningsSection industryName = 
         // last 14 days
-        let startDate = System.DateTimeOffset.UtcNow.AddDays(-14)
+        let duration = 14
+        let startDate = System.DateTimeOffset.UtcNow.AddDays(-duration)
         let endDate = System.DateTimeOffset.UtcNow.AddDays(1)
 
         let tickersWithEarnings = 
@@ -71,7 +80,10 @@ module IndustryDashboard =
 
         match stocksWithEarnings with
         | [] -> h4 [] ["No earnings last two weeks" |> str]
-        | _ -> earningsTable
+        | _ -> section [] [
+            h4 [] [$"Earnings last {duration} days" |> str]
+            earningsTable
+        ]
 
     let handler industryName =
         
@@ -87,28 +99,35 @@ module IndustryDashboard =
                     let pct = System.Math.Round((double t.breakdown.above) * 100.0 / (double total), 2)
                     $"<b>{pct}%%</b> ({t.breakdown.above} / {total}) above <b>{t.breakdown.days} SMA</b>"
 
-            div [_class "column"] [rawText description]
+            let hasTextRight = match sma with | 200 -> "has-text-right" | _ -> ""
+            div [_class $"column {hasTextRight}"] [rawText description]
             
-        let breakdownDiv =
-            div [_class "columns"] (
-                [20; 200]
-                |> List.map createBreakdownColumnDiv
-            )
+        let breakdownSection =
+            section [] [
+                h4 [] ["SMA Breakdown" |> str]
+                div [_class "columns"] (
+                    [20; 200]
+                    |> List.map createBreakdownColumnDiv
+                )
+            ]
 
-        let createTrendDiv (trend:Option<IndustryTrend>) =
+        let createTrendDiv sma (trend:Option<IndustryTrend>) =
             let desc =
                 match trend with
                 | None -> "No trend found"
                 | Some t -> $"{t.trend}"
 
-            div [ _class "column"] [
+            let hasTextRight = match sma with | 200 -> "has-text-right" | _ -> ""
+
+            div [ _class $"column {hasTextRight}"] [
                 rawText desc
             ]
 
         let trendDiv = div [_class "columns"] (
             [20;200] |> List.map (fun sma -> 
-                let industryTrend = industryName |> Reports.getIndustryTrend sma
-                createTrendDiv (industryTrend)
+                industryName
+                |> Reports.getIndustryTrend sma
+                |> createTrendDiv sma
             )
         )
 
@@ -136,9 +155,33 @@ module IndustryDashboard =
                 createDataset 200
             ]
 
-            let labels = industryName |> Reports.getIndustrySMABreakdownsForIndustry 20 dayOffset |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
+            let windowedDataSets =
+                datasets
+                |> List.map (fun d -> 
+                    
+                    let windowed =
+                        d.data
+                        |> List.windowed 3
+                        |> List.map (fun u -> u |> List.average |> System.Math.Round)
+
+                    { d with data = windowed}
+                )
+
+            let labels = 
+                industryName
+                |> Reports.getIndustrySMABreakdownsForIndustry 20 dayOffset
+                |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
             
-            generateChartElements "sma breakdown chart" ChartType.Line (Some 100) Charts.smallChart labels datasets
+            let charts =
+                datasets 
+                |> generateChartElements "sma breakdown chart" Line (Some 100) smallChart labels
+
+            section [] [
+                h4 [ _class "mt-4"] ["SMA Trend Charts" |> str]
+                div [] charts
+                h4 [ _class "mt-4"] ["SMA Trend Windowed (3)" |> str]
+                div [] (generateChartElements "sma breakdown chart" Line (Some 100) smallChart labels windowedDataSets)
+            ]
         
         // load charts for each screener
         let screeners = Storage.getScreeners()
@@ -173,7 +216,10 @@ module IndustryDashboard =
             )
 
         let screenerChart = 
-            div [ _class "block"] (generateChartElements "screener chart" Bar None smallChart labels datasets)
+            section [] [
+                h4 [ _class "mt-4"] ["Screener Counts" |> str]
+                div [] (generateChartElements "screener chart" Bar None smallChart labels datasets)
+            ]
 
         let resultRows =
             industryName
@@ -207,49 +253,93 @@ module IndustryDashboard =
             |> fullWidthTableWithSortableHeaderCells headerNames
         
         // get stocks in industry
-        let stocks = Storage.getStocksByIndustry industryName
-
         let stockTableHeaderCells = [
             "Ticker"
             "Company"
             "Sector"
             "Industry"
+            "Country"
             "Trading View"
         ]
 
+        let stocks = industryName |> Storage.getStocksByIndustry
+            
         let stockTable =
             stocks
+            |> List.sortBy (fun stock -> stock.ticker)
             |> List.map (fun stock ->
                 tr [] [
                     stock.ticker |> StockTicker.value |> generateTickerLink |> toTdWithNode
                     stock.company |> toTd
                     stock.sector |> Links.sectorLink |> generateHref stock.sector |> toTdWithNode
                     stock.industry |> Links.industryLink |> generateHref stock.industry |> toTdWithNode
-                    stock.ticker |> StockTicker.value |> Links.tradingViewLink |> generateHref "chart" |> toTdWithNode
+                    stock.country |> Links.countryLink |> generateHref stock.country |> toTdWithNode
+                    stock.ticker |> StockTicker.value |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
                 ]
             )
             |> fullWidthTableWithSortableHeaderCells stockTableHeaderCells
 
+        let stocksSection = section [_class "mt-5"] [
+            h4 [] [
+                $"Stocks in Industry ({stocks.Length})" |> str
+                small [ _class "is-pulled-right"] [
+                    industryName |> Links.industryExportLink |> generateHref "Export"
+                ]
+            ]
+            stockTable
+        ]
+
         let topLevel = [
-            h1 [] [ str industryName ]
-            h5 [] [
-                    span [ _class "mx-1"] [
-                        industryName 
-                        |> Links.industryFinvizLink
-                        |> generateHrefNewTab "See it on Finviz"
+            div [ _class "columns"] [
+                div [ _class "column"] [
+                    h1 [] [ str industryName ]
+                ]
+                div [ _class "column has-text-right"] [
+                    h5 [] [
+                        span [ _class "mx-1"] [
+                            industryName 
+                            |> Links.industryFinvizLink
+                            |> generateHrefNewTab "See it on Finviz"
+                        ]
                     ]
                 ]
-            breakdownDiv
+            ]
+            breakdownSection
             trendDiv
         ]
 
         let earningsSection = createEarningsSection industryName
 
         let contentSections =
-            [screenerChart; earningsSection; screenerResultsTable; stockTable]
-            |> List.append (smaBreakdownCharts days)
+            [(smaBreakdownCharts days); screenerChart; earningsSection; screenerResultsTable; stocksSection]
             |> List.append topLevel
 
         let view = div [_class "content"] contentSections
         
         [view] |> mainLayout $"{industryName} Industry Dashboard"
+
+    let exportHandler industryName =
+        setHttpHeader "Content-Type" "text/csv"
+        >=> 
+            let stocks = industryName |> Storage.getStocksByIndustry
+            let filename = $"export_{industryName}.csv"
+            let escapedFilename = System.Uri.EscapeDataString(filename)
+
+            setHttpHeader "Content-Disposition" $"attachment; filename={escapedFilename}"
+        >=>
+            let rows = 
+                stocks
+                |> List.sortBy (fun s -> s.ticker)
+                |> List.map (fun s -> 
+                    IndustryExportType.Row(
+                        s.ticker |> StockTicker.value,
+                        s.company,
+                        s.sector,
+                        s.industry,
+                        s.country
+                    )
+                )
+
+            let csv = new IndustryExportType(rows)
+
+            setBodyFromString (header + System.Environment.NewLine + csv.SaveToString())

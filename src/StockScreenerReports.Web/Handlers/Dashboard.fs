@@ -11,16 +11,12 @@ module Dashboard =
         
         let screenerDate = screener.date |> Utils.convertToDateString
         
-        div [_class "content"] [
-            h2 [] [
-                
-                Views.generateHrefWithAttr
-                    $"{screener.count}"
-                    (Links.screenerResultsLink (screener.screenerid) screenerDate)
-                    (_class "button is-primary mr-2")
-
-                str screener.name
-            ]
+        div [_class "column is-one-quarter"] [
+            
+            Views.generateHrefWithAttr
+                $"{screener.count}: {screener.name}"
+                (Links.screenerResultsLink (screener.screenerid) screenerDate)
+                (_class "button is-primary mr-2 is-fullwidth")
         ]
 
     let private generateJobStatusRow() =
@@ -94,42 +90,48 @@ module Dashboard =
 
     let private generateSMATrendRows startDate endDate =
 
-        let sma20 = 20 |> getDailySMABreakdown startDate endDate
-        let sma200 = 200 |> getDailySMABreakdown startDate endDate
-
-        let trend20 = TrendsCalculator.calculate sma20
-        let trend200 = TrendsCalculator.calculate sma200
-
         let toDescription (sma:int) (trend:Trend) =
             $"<b>SMA {sma}:</b> {trend}"
 
-        let sma20DirectionDescription = trend20 |> toDescription 20
-        let sma200DirectionDescription = trend200 |> toDescription 200
+        let toColor (sma:int) =
+            match sma with
+            | 20 -> Constants.ColorRed
+            | 200 -> Constants.ColorBlue
+            | _ -> Constants.ColorBlack
 
-        let datasets:list<Charts.DataSet<decimal>> = [
-            {
-                data = sma20 |> List.map (fun breakdown -> breakdown.percentAboveRounded)
-                title = "SMA 20"
-                color = Constants.ColorRed
-            };
-            {
-                data = sma200 |> List.map (fun breakdown -> breakdown.percentAboveRounded)
-                title = "SMA 200"
-                color = Constants.ColorBlue
-            }
-        ]
+        let breakdowns =
+            [20; 200]
+            |> List.map (fun sma ->
+                let smaBreakdown = sma |> getDailySMABreakdown startDate endDate
+                (sma, smaBreakdown)
+            )
+    
+        let datasets:list<Charts.DataSet<decimal>> =
+            breakdowns
+            |> List.map (fun (sma, smaBreakdown) ->
+                {
+                    data = smaBreakdown |> List.map (fun breakdown -> breakdown.percentAboveRounded)
+                    title = $"SMA {sma}"
+                    color = sma |> toColor
+                }   
+            )
 
-        let labels = sma20 |> List.map (fun breakdown -> breakdown.date.ToString("MM/dd"))
+        let labels = breakdowns.Head |> snd |> List.map (fun breakdown -> breakdown.date.ToString("MM/dd"))
 
         [
-            div [_class "columns"] [
-                div [ _class "column" ] [
-                    rawText sma20DirectionDescription
-                ]
-                div [ _class "column" ] [
-                    rawText sma200DirectionDescription
-                ]
-            ]
+            div [_class "columns"]
+                (
+                    breakdowns
+                    |> List.map (fun (sma, breakdown) ->
+                        div [ _class "column" ] [
+                            breakdown
+                            |> TrendsCalculator.calculate
+                            |> toDescription sma
+                            |> rawText
+                        ]
+                    )
+                )
+            
             div [_class "block"]
                 (Charts.generateChartElements "SMA breakdown" Charts.ChartType.Line (Some 100) Charts.smallChart labels datasets)
         ]
@@ -138,7 +140,9 @@ module Dashboard =
         
         let (startDate, endDate) = FinvizConfig.dateRangeAsStrings
 
-        let screenerRows = screeners |> List.map generateScreenerResultSection
+        let screenerRows =
+            div [_class "columns is-multiline"] 
+                (screeners |> List.map generateScreenerResultSection)
 
         let industryTrendRows = generateIndustryTrendsRow FinvizConfig.industryTrendDayRange
         let sectorTrendRows = generateSectorTrendsRow FinvizConfig.sectorTrendDayRange
@@ -147,7 +151,7 @@ module Dashboard =
 
         let jobStatusRow = generateJobStatusRow()
 
-        screenerRows @ smaTrendRows @ industryTrendRows @ sectorTrendRows @ [ jobStatusRow ]
+        [screenerRows] @ smaTrendRows @ industryTrendRows @ sectorTrendRows @ [ jobStatusRow ]
 
     let handler()  = 
         
