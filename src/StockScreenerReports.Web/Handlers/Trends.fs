@@ -74,6 +74,17 @@ module ScreenersTrends =
                 }
             )
 
+        let smoothedDatasets = 
+            datasets
+            |> List.map (fun d ->
+                let windowed =
+                    d.data
+                    |> List.windowed 3
+                    |> List.map (fun u -> u |> List.average |> System.Math.Round)
+
+                { d with data = windowed; title = d.title + " (smoothed)"}
+            )
+
         let labels = smaBreakdowPairs |> List.head |> snd |> List.map (fun breakdown -> breakdown.date.ToString("MM/dd"))
 
         [
@@ -81,6 +92,8 @@ module ScreenersTrends =
             div [_class "columns"] smaDirectionColumns
             div [_class "block"]
                 (Charts.generateChartElements "SMA breakdown" Charts.ChartType.Line (Some 100) Charts.smallChart labels datasets)
+            div [_class "block"]
+                (Charts.generateChartElements "SMA breakdown (smoothed)" Charts.ChartType.Line (Some 100) Charts.smallChart labels smoothedDatasets)
         ]
 
     let generateFilterSection startDate endDate = 
@@ -163,10 +176,10 @@ module ScreenersTrends =
 
                 let cells = upAndDowns |> List.map createCells |> List.concat
 
-                let industryTrendBreakdownRow = tr [] cells
+                let industryTrendBreakdownRow = tr [ ] cells
 
                 let industryTrendBreakdownTable = 
-                    [ industryTrendBreakdownRow ] |> fullWidthTable [ "20 Up"; "20 Down"; "200 Up"; "200 Down" ]
+                    [ industryTrendBreakdownRow ] |> fullWidthTableTextCentered [ "20 Up"; "20 Down"; "200 Up"; "200 Down" ]
 
                 let industryTrendSections =
                     [(Up, "Industries Trending Up"); (Down, "Industries Trending Down")]

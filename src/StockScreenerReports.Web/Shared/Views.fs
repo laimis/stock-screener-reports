@@ -139,6 +139,14 @@ module Views =
              ]
             tbody [] rows
         ]
+
+    let fullWidthTableTextCentered headerCells rows =
+        table [ _class "table is-fullwidth is-striped has-text-centered" ] [
+            thead [] [ 
+                tr [] (headerCells |> List.map toHeaderCell)
+             ]
+            tbody [] rows
+        ]
     
     let fullWidthTableWithCustomHeader header rows =
         table [ _class "table is-fullwidth is-striped" ] [
