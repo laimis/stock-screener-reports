@@ -116,14 +116,33 @@ module Dashboard =
                 }   
             )
 
+        let smoothedDataSets =
+            datasets
+            |> List.map (fun d -> 
+                
+                let windowed =
+                    d.data
+                    |> List.windowed 3
+                    |> List.map (fun u -> u |> List.average |> System.Math.Round)
+
+                { d with data = windowed; title = d.title + " (smoothed)"}
+            )
+
         let labels = breakdowns.Head |> snd |> List.map (fun breakdown -> breakdown.date.ToString("MM/dd"))
+        let charts = datasets |> Charts.generateChartElements "SMA breakdown" Charts.ChartType.Line (Some 100) Charts.smallChart labels
+        let smoothed = smoothedDataSets |> Charts.generateChartElements "SMA breakdown (smoothed)" Charts.ChartType.Line (Some 100) Charts.smallChart labels
 
         [
+            section [ _class "mt-5 content" ] [
+                h4 [] [ str "SMA Breakdown" ]
+            ]
             div [_class "columns"]
                 (
                     breakdowns
                     |> List.map (fun (sma, breakdown) ->
-                        div [ _class "column" ] [
+                        let hasTextRight = match sma with | 200 -> "has-text-right" | _ -> ""
+
+                        div [ _class $"column {hasTextRight}" ] [
                             breakdown
                             |> TrendsCalculator.calculate
                             |> toDescription sma
@@ -132,8 +151,8 @@ module Dashboard =
                     )
                 )
             
-            div [_class "block"]
-                (Charts.generateChartElements "SMA breakdown" Charts.ChartType.Line (Some 100) Charts.smallChart labels datasets)
+            div [_class "block"] charts
+            div [_class "block"] smoothed
         ]
 
     let private createView (screeners:list<ScreenerResultReport>) =
