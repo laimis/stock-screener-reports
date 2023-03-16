@@ -61,7 +61,10 @@ module Earnings =
 
         let headerRow = ["Ticker"; "Chart"; "Industry"; "Sector"]
 
-        let table = rows |> fullWidthTableWithSortableHeaderCells headerRow
+        let table =
+            match rows with
+            | [] -> p [] [str "No results"]
+            | _ -> rows |> fullWidthTableWithSortableHeaderCells headerRow
 
         div [ _class "content"] [
             h2 [] [title |> str]
@@ -88,48 +91,43 @@ module Earnings =
             endDate |> Utils.convertToDateStringForOffset
         )
 
-        let newHighs =
-            Constants.NewHighsScreenerId
-            |> getScreenerResultsForDays dateRange
-        let newHighsMap = newHighs |> createMapFromScreenerResults
-        let newHighIndustries = createIndustryGrouping tickersWithEarnings newHighsMap
+        let screenerResultMappings =
+            [Constants.NewHighsScreenerId; Constants.TopGainerScreenerId; Constants.TopLoserScreenerId; Constants.NewLowsScreenerId]
+            |> List.map (fun id -> 
+                id |> getScreenerResultsForDays dateRange |> createMapFromScreenerResults)
 
-        let topGainers =
-            Constants.TopGainerScreenerId
-            |> getScreenerResultsForDays dateRange
-        let topGainersMap = topGainers |> createMapFromScreenerResults
-        let topGainerIndustries = createIndustryGrouping tickersWithEarnings topGainersMap
-
-        let topLosers =
-            Constants.TopLoserScreenerId
-            |> getScreenerResultsForDays dateRange
-        let topLosersMap = topLosers |> createMapFromScreenerResults
-        let topLoserIndustries = createIndustryGrouping tickersWithEarnings topLosersMap
-
-        let newLows =
-            Constants.NewLowsScreenerId
-            |> getScreenerResultsForDays dateRange
-        let newLowsMap = newLows |> createMapFromScreenerResults
-        let newLowIndustries = createIndustryGrouping tickersWithEarnings newLowsMap
+        let industryGroupingsByScreener =
+            screenerResultMappings
+            |> List.map (fun map -> map |> createIndustryGrouping tickersWithEarnings)
 
         let rows =
             tickersWithEarnings
             |> List.map (fun (ticker, date) ->
 
-                let generateDivWithDateAndIcon iconFunc (screenerResultOption:ScreenerResultReportItem option) =
+                let iconFunc screenerId =
+                    match screenerId with
+                    | Constants.NewHighsScreenerId -> generateNewHighIcon
+                    | Constants.TopGainerScreenerId -> generateTopGainerIcon
+                    | Constants.TopLoserScreenerId -> generateTopLoserIcon
+                    | Constants.NewLowsScreenerId -> generateNewLowIcon
+                    | _ -> failwith "No icon defined for screener id"
+
+                let generateDivWithDateAndIcon (screenerResultOption:ScreenerResultReportItem option) =
                     match screenerResultOption with
                     | Some s ->
                         div [] [
-                            true |> iconFunc
+                            true |> (s.screenerid |> iconFunc)
                             s.date |> Utils.convertToDateString |> str
                         ]
                     | None -> 
-                        false |> iconFunc
+                        i [] []
 
-                let newHighs = ticker |> newHighsMap.TryFind |> generateDivWithDateAndIcon generateNewHighIcon
-                let topGainers = ticker |> topGainersMap.TryFind |> generateDivWithDateAndIcon generateTopGainerIcon
-                let topLosers = ticker |> topLosersMap.TryFind |> generateDivWithDateAndIcon generateTopLoserIcon
-                let newLows = ticker |> newLowsMap.TryFind |> generateDivWithDateAndIcon generateNewLowIcon
+                let screenerCells =
+                    screenerResultMappings
+                    |> List.map (fun map -> 
+                        let cellContent = ticker |> map.TryFind |> generateDivWithDateAndIcon
+                        cellContent |> toTdWithNode
+                    )
 
                 let stock = stocks |> Map.tryFind ticker
                 let industry = 
@@ -137,36 +135,52 @@ module Earnings =
                     | Some s -> s.industry
                     | None -> ""
 
-                tr [] [
-                    ticker |> generateTickerLink |> toTdWithNode
-                    date.ToString("yyyy-MM-dd") |> toTd
-                    industry |> Links.industryLink |> generateHref industry |> toTdWithNode
-                    newHighs |> toTdWithNode
-                    topGainers |> toTdWithNode
-                    topLosers |> toTdWithNode
-                    newLows |> toTdWithNode
-                    ticker |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
-                ]
+                let cells = 
+                    [
+                        ticker |> generateTickerLink |> toTdWithNode
+                        date.ToString("yyyy-MM-dd") |> toTd
+                        industry |> Links.industryLink |> generateHref industry |> toTdWithNode
+                    ]
+                    @
+                    screenerCells
+                    @
+                    [
+                        ticker |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
+                    ]
+
+                tr [] cells
             )
 
         let earningsTable = 
             let headerRow = ["Ticker"; "Date"; "Industry"; "New High"; "Top Gainer"; "Top Loser"; "New Low"; "Trading View"]
             rows |> fullWidthTable headerRow
         
-        // break down div
-        let breakdownDiv = div [_class "columns"] [
-            newHighIndustries |> createNameCountTableColumnDiv "New Highs" 
-            topGainerIndustries |> createNameCountTableColumnDiv "Top Gainers" 
-            topLoserIndustries |> createNameCountTableColumnDiv "Top Losers" 
-            newLowIndustries |> createNameCountTableColumnDiv "New Lows" 
+        let screenerLabels = [
+            "New Highs"
+            "Top Gainers"
+            "Top Losers"
+            "New Lows"
         ]
 
-        let newHighsSection = tickersWithEarnings |> createFilteredSection "New Highs" newHighsMap
-        let topGainersSection = tickersWithEarnings |> createFilteredSection "Top Gainers" topGainersMap
-        let topLosersSection = tickersWithEarnings |> createFilteredSection "Top Losers" topLosersMap
-        let newLowsSection = tickersWithEarnings |> createFilteredSection "New Lows" newLowsMap
-        
-        [header; breakdownDiv; newHighsSection; topGainersSection; topLosersSection; newLowsSection; earningsTable] |> mainLayout $"Earnings"
+        let divs =
+            screenerLabels
+            |> List.indexed
+            |> List.map(fun (i,l) -> 
+                let grouping = industryGroupingsByScreener[i]
+                grouping |> createNameCountTableColumnDiv l
+            )
+
+        let breakdownDiv = div [_class "columns"] divs
+
+        let sections =
+            screenerLabels
+            |> List.indexed
+            |> List.map (fun (i,l) ->
+                let map = screenerResultMappings[i]
+                tickersWithEarnings |> createFilteredSection l map
+            )
+
+        [header; breakdownDiv] @ sections @ [earningsTable] |> mainLayout $"Earnings"
 
     let handlerCurrentWeek() =
         let startDate = Utils.getCurrentMonday()
