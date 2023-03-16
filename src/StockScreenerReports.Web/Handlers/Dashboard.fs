@@ -12,11 +12,17 @@ module Dashboard =
         let screenerDate = screener.date |> Utils.convertToDateString
         
         div [_class "column is-one-quarter"] [
-            
-            Views.generateHrefWithAttr
-                $"{screener.count}: {screener.name}"
-                (Links.screenerResultsLink (screener.screenerid) screenerDate)
-                (_class "button is-primary mr-2 is-fullwidth")
+            a [
+                _class "button is-primary is-fullwidth"
+                _style "justify-content: left;"
+                _href (Links.screenerResultsLink (screener.screenerid) screenerDate)] [
+                span [
+                    _style "font-size: 1.5em; font-weight: bold; padding-right: 10px"
+                ] [
+                    screener.count.ToString() |> str
+                ]
+                $"{screener.name}" |> str
+            ]
         ]
 
     let private generateJobStatusRow() =

@@ -7,13 +7,14 @@ module Earnings =
     open StockScreenerReports.Storage
     open StockScreenerReports.Web.Shared
     open StockScreenerReports.Web.Shared.Views
+    open StockScreenerReports.Storage.Reports
 
-    let private createMapFromStocks stocks =
+    let private createMapFromScreenerResults stocks =
         stocks
-        |> List.map (fun s -> s.ticker |> StockTicker.value, s)
+        |> List.map (fun s -> s.ticker, s)
         |> Map.ofList
     
-    let private createIndustryGrouping stockDatePairs (membershipMap:Map<string,Stock>) =
+    let private createIndustryGrouping stockDatePairs (membershipMap:Map<string,ScreenerResultReportItem>) =
         stockDatePairs
         |> List.map (fun pair -> 
             let ticker,_ = pair
@@ -43,7 +44,7 @@ module Earnings =
 
         div [_class "column"] [table]
 
-    let private createFilteredSection title (matchFilter:Map<string,Stock>) tickersWithEarnings =
+    let private createFilteredSection title (matchFilter:Map<string,ScreenerResultReportItem>) tickersWithEarnings =
         let rows = 
             tickersWithEarnings
             |> List.filter (fun (ticker,_) -> ticker |> matchFilter.ContainsKey)
@@ -51,8 +52,8 @@ module Earnings =
             |> List.sortBy (fun s -> s.industry)
             |> List.map (fun s -> 
                 tr [] [
-                    s.ticker |> StockTicker.value |> generateTickerLink |> toTdWithNode
-                    s.ticker |> StockTicker.value |> Links.tradingViewLink |> generateHref "chart" |> toTdWithNode
+                    s.ticker |> generateTickerLink |> toTdWithNode
+                    s.ticker |> Links.tradingViewLink |> generateHref "chart" |> toTdWithNode
                     s.industry |> Links.industryLink |> generateHref s.industry |> toTdWithNode
                     s.sector |> Links.sectorLink |> generateHref s.sector |> toTdWithNode
                 ]
@@ -74,7 +75,7 @@ module Earnings =
             h1 [] [str "Earnings"]
         ]
 
-        let tickersWithEarnings = Reports.getEarningsTickers startDate endDate
+        let tickersWithEarnings = getEarningsTickers startDate endDate
         let stocks =
             tickersWithEarnings
             |> List.map (fun (ticker,_) -> ticker)
@@ -82,39 +83,53 @@ module Earnings =
             |> List.map (fun s -> s.ticker |> StockTicker.value, s)
             |> Map.ofList
 
+        let dateRange = (
+            startDate |> Utils.convertToDateStringForOffset,
+            endDate |> Utils.convertToDateStringForOffset
+        )
 
         let newHighs =
             Constants.NewHighsScreenerId
-            |> Reports.getStocksForScreenerAndDates startDate endDate
-        let newHighsMap = newHighs |> createMapFromStocks
+            |> getScreenerResultsForDays dateRange
+        let newHighsMap = newHighs |> createMapFromScreenerResults
         let newHighIndustries = createIndustryGrouping tickersWithEarnings newHighsMap
 
         let topGainers =
             Constants.TopGainerScreenerId
-            |> Reports.getStocksForScreenerAndDates  startDate endDate
-        let topGainersMap = topGainers |> createMapFromStocks
+            |> getScreenerResultsForDays dateRange
+        let topGainersMap = topGainers |> createMapFromScreenerResults
         let topGainerIndustries = createIndustryGrouping tickersWithEarnings topGainersMap
 
         let topLosers =
             Constants.TopLoserScreenerId
-            |> Reports.getStocksForScreenerAndDates startDate endDate
-        let topLosersMap = topLosers |> createMapFromStocks
+            |> getScreenerResultsForDays dateRange
+        let topLosersMap = topLosers |> createMapFromScreenerResults
         let topLoserIndustries = createIndustryGrouping tickersWithEarnings topLosersMap
 
         let newLows =
             Constants.NewLowsScreenerId
-            |> Reports.getStocksForScreenerAndDates startDate endDate
-        let newLowsMap = newLows |> createMapFromStocks
+            |> getScreenerResultsForDays dateRange
+        let newLowsMap = newLows |> createMapFromScreenerResults
         let newLowIndustries = createIndustryGrouping tickersWithEarnings newLowsMap
 
         let rows =
             tickersWithEarnings
             |> List.map (fun (ticker, date) ->
 
-                let newHighs = ticker |> newHighsMap.ContainsKey |> generateNewHighIcon
-                let topGainers = ticker |> topGainersMap.ContainsKey |> generateTopGainerIcon
-                let topLosers = ticker |> topLosersMap.ContainsKey |> generateTopLoserIcon
-                let newLows = ticker |> newLowsMap.ContainsKey |> generateNewLowIcon
+                let generateDivWithDateAndIcon iconFunc (screenerResultOption:ScreenerResultReportItem option) =
+                    match screenerResultOption with
+                    | Some s ->
+                        div [] [
+                            true |> iconFunc
+                            s.date |> Utils.convertToDateString |> str
+                        ]
+                    | None -> 
+                        false |> iconFunc
+
+                let newHighs = ticker |> newHighsMap.TryFind |> generateDivWithDateAndIcon generateNewHighIcon
+                let topGainers = ticker |> topGainersMap.TryFind |> generateDivWithDateAndIcon generateTopGainerIcon
+                let topLosers = ticker |> topLosersMap.TryFind |> generateDivWithDateAndIcon generateTopLoserIcon
+                let newLows = ticker |> newLowsMap.TryFind |> generateDivWithDateAndIcon generateNewLowIcon
 
                 let stock = stocks |> Map.tryFind ticker
                 let industry = 
