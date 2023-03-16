@@ -49,7 +49,6 @@ module ScreenerDashboard =
 
     let generateLayoutForScreener (screener:StockScreenerReports.Core.Screener) =
 
-        let days = FinvizConfig.dayRange
         let dateRange = FinvizConfig.dateRangeAsStrings
 
         let header = 
@@ -75,8 +74,8 @@ module ScreenerDashboard =
             |> List.concat
 
         let results =
-            days |>
-            Reports.getScreenerResultsForDays screener.id
+            screener.id |>
+            Reports.getScreenerResultsForDays dateRange
 
         let resultsTable =
             results

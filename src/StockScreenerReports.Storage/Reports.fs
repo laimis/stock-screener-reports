@@ -184,7 +184,7 @@ module Reports =
                 }
             )
 
-    let getScreenerResultsForDays id days =
+    let getScreenerResultsForDays dateRange id =
 
         let sql = @$"
             SELECT 
@@ -196,7 +196,7 @@ module Reports =
             JOIN screeners ON screeners.id = screenerresults.screenerid
             WHERE 
                 screenerresults.screenerid = @screenerid
-                AND screenerresults.date >= current_date - @days
+                AND screenerresults.date BETWEEN date(@startDate) AND date(@endDate)
             ORDER BY screenerresults.date DESC, ticker DESC"
 
         cnnString
@@ -204,7 +204,8 @@ module Reports =
             |> Sql.query sql
             |> Sql.parameters [
                 "@screenerid", Sql.int id;
-                "@days", Sql.int days
+                "@startDate", dateRange |> fst |> Sql.string
+                "@endDate", dateRange |> snd |> Sql.string
             ]
             |> Sql.execute (fun reader ->
                 mapScreenerResultReportItem reader

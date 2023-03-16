@@ -90,8 +90,10 @@ type ReportTests(output:ITestOutputHelper) =
     let ``Particular screener result for multiple days works``() =
 
         let screener = Reports.getLatestScreeners().Head
+
+        let dayRange = FinvizConfig.dateRangeAsStrings
         
-        let results = Reports.getScreenerResultsForDays screener.screenerid 14
+        let results = screener.screenerid |> Reports.getScreenerResultsForDays dayRange
 
         Assert.NotEmpty(results)
 
@@ -153,9 +155,11 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``getting daily counts for screeners filtered by sector works``() =
-        let screener = StockScreenerReports.Core.Constants.TopGainerScreenerId
+        let screener = Constants.TopGainerScreenerId
 
-        let screenerResult = Reports.getScreenerResultsForDays screener 7
+        let dayRange = FinvizConfig.dateRangeAsStrings
+
+        let screenerResult = screener |> Reports.getScreenerResultsForDays dayRange
 
         let sector = screenerResult.Item(0).sector 
 

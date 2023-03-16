@@ -10,6 +10,7 @@ module IndustryDashboard =
     open StockScreenerReports.Web.Shared.Views
     open FSharp.Data
     open Giraffe
+    open StockScreenerReports.Storage.Reports
 
     type IndustryExportType =   CsvProvider<
         Schema = "ticker, company, sector, industry, country",
@@ -22,9 +23,11 @@ module IndustryDashboard =
         let duration = 14
         let startDate = System.DateTimeOffset.UtcNow.AddDays(-duration)
         let endDate = System.DateTimeOffset.UtcNow.AddDays(1)
+        let dateRangeAsString = (startDate |> Utils.convertToDateStringForOffset),
+                                (endDate |> Utils.convertToDateStringForOffset)
 
         let tickersWithEarnings = 
-            Reports.getEarningsTickers startDate endDate
+            getEarningsTickers startDate endDate
             |> List.map (fun (ticker,_) -> ticker)
 
         let stocksWithEarnings =
@@ -34,37 +37,47 @@ module IndustryDashboard =
 
         let newHighs =
             Constants.NewHighsScreenerId
-            |> Reports.getStocksForScreenerAndDates startDate endDate
-            |> List.map (fun s -> s.ticker)
-            |> Set.ofList
+            |> getScreenerResultsForDays dateRangeAsString
+            |> List.map (fun s -> (s.ticker |> StockTicker.create, s))
+            |> Map.ofList
 
         let topGainers = 
             Constants.TopGainerScreenerId
-            |> Reports.getStocksForScreenerAndDates startDate endDate
-            |> List.map (fun s -> s.ticker)
-            |> Set.ofList
+            |> getScreenerResultsForDays dateRangeAsString
+            |> List.map (fun s -> (s.ticker |> StockTicker.create, s))
+            |> Map.ofList
 
         let topLosers =
             Constants.TopLoserScreenerId
-            |> Reports.getStocksForScreenerAndDates startDate endDate
-            |> List.map (fun s -> s.ticker)
-            |> Set.ofList
+            |> getScreenerResultsForDays dateRangeAsString
+            |> List.map (fun s -> (s.ticker |> StockTicker.create, s))
+            |> Map.ofList
 
         let newLows =
             Constants.NewLowsScreenerId
-            |> Reports.getStocksForScreenerAndDates startDate endDate
-            |> List.map (fun s -> s.ticker)
-            |> Set.ofList
+            |> getScreenerResultsForDays dateRangeAsString
+            |> List.map (fun s -> (s.ticker |> StockTicker.create, s))
+            |> Map.ofList
 
         let earningsTableHeader = [ "Ticker"; "Company"; "New High"; "Top Gainer"; "Top Loser"; "New Low"; "Trading View" ]
         let earningsTable =
             stocksWithEarnings
             |> List.map (fun stock ->
 
-                let newHighIcon = newHighs |> Set.contains stock.ticker |> generateNewHighIcon
-                let topGainerIcon = topGainers |> Set.contains stock.ticker |> generateTopGainerIcon
-                let topLoserIcon = topLosers |> Set.contains stock.ticker |> generateTopLoserIcon
-                let newLowIcon = newLows |> Set.contains stock.ticker |> generateNewLowIcon
+                let generateDivWithDateAndIcon iconFunc (screenerResultOption:ScreenerResultReportItem option) =
+                    match screenerResultOption with
+                    | Some s ->
+                        div [] [
+                            true |> iconFunc
+                            s.date |> Utils.convertToDateString |> str
+                        ]
+                    | None -> 
+                        false |> iconFunc
+
+                let newHighIcon = newHighs |> Map.tryFind stock.ticker |> generateDivWithDateAndIcon generateNewHighIcon
+                let topGainerIcon = topGainers |> Map.tryFind stock.ticker |> generateDivWithDateAndIcon generateTopGainerIcon
+                let topLoserIcon = topLosers |> Map.tryFind stock.ticker |> generateDivWithDateAndIcon generateTopLoserIcon
+                let newLowIcon = newLows |> Map.tryFind stock.ticker |> generateDivWithDateAndIcon generateNewLowIcon
 
                 tr [] [
                     stock.ticker |> StockTicker.value |> generateTickerLink |> toTdWithNode
