@@ -13,8 +13,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Shared\Links.fs" />
-    <Compile Include="Shared\Logic.fs" />
     <Compile Include="Shared\Charts.fs" />
+    <Compile Include="Shared\Logic.fs" />
     <Compile Include="Shared\Views.fs" />
     <Compile Include="Handlers\AdhocReport.fs" />
     <Compile Include="Handlers\Trends.fs" />

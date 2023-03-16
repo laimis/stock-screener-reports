@@ -116,17 +116,7 @@ module Dashboard =
                 }   
             )
 
-        let smoothedDataSets =
-            datasets
-            |> List.map (fun d -> 
-                
-                let windowed =
-                    d.data
-                    |> List.windowed 3
-                    |> List.map (fun u -> u |> List.average |> System.Math.Round)
-
-                { d with data = windowed; title = d.title + " (smoothed)"}
-            )
+        let smoothedDataSets = datasets |> Logic.smoothedDataSets 3
 
         let labels = breakdowns.Head |> snd |> List.map (fun breakdown -> breakdown.date.ToString("MM/dd"))
         let charts = datasets |> Charts.generateChartElements "SMA breakdown" Charts.ChartType.Line (Some 100) Charts.smallChart labels

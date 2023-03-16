@@ -123,14 +123,6 @@ module IndustryDashboard =
                 rawText desc
             ]
 
-        let trendDiv = div [_class "columns"] (
-            [20;200] |> List.map (fun sma -> 
-                industryName
-                |> Reports.getIndustryTrend sma
-                |> createTrendDiv sma
-            )
-        )
-
         let smaBreakdownCharts (dayOffset:int) =
             
             let createDataset smaInterval  : DataSet<decimal> =
@@ -146,26 +138,13 @@ module IndustryDashboard =
                  
                 {
                     data = data
-                    title = $"{smaInterval} EMA Trend"
+                    title = $"{smaInterval} SMA Trend"
                     color = color
                 }
 
-            let datasets = [
-                createDataset 20;
-                createDataset 200
-            ]
+            let datasets = [20; 200] |> List.map createDataset
 
-            let windowedDataSets =
-                datasets
-                |> List.map (fun d -> 
-                    
-                    let windowed =
-                        d.data
-                        |> List.windowed 3
-                        |> List.map (fun u -> u |> List.average |> System.Math.Round)
-
-                    { d with data = windowed}
-                )
+            let smoothedDataSets = datasets |> Logic.smoothedDataSets 3
 
             let labels = 
                 industryName
@@ -176,12 +155,30 @@ module IndustryDashboard =
                 datasets 
                 |> generateChartElements "sma breakdown chart" Line (Some 100) smallChart labels
 
-            section [] [
-                h4 [ _class "mt-4"] ["SMA Trend Charts" |> str]
-                div [] charts
-                h4 [ _class "mt-4"] ["SMA Trend Windowed (3)" |> str]
-                div [] (generateChartElements "sma breakdown chart" Line (Some 100) smallChart labels windowedDataSets)
+            let smoothedCharts =
+                smoothedDataSets
+                |> generateChartElements "sma breakdown chart" Line (Some 100) smallChart labels
+
+            let trendDiv = div [_class "columns"] (
+                [20;200] |> List.map (fun sma -> 
+                    industryName
+                    |> Reports.getIndustryTrend sma
+                    |> createTrendDiv sma
+                )
+            )
+
+            div [] [
+                section [] [
+                    h4 [] ["SMA Trend Charts" |> str]
+                    trendDiv
+                    div [] charts
+                ]
+                section [] [
+                    h4 [] ["SMA Trend Windowed (3)" |> str]
+                    div [] smoothedCharts
+                ]
             ]
+            
         
         // load charts for each screener
         let screeners = Storage.getScreeners()
@@ -201,7 +198,7 @@ module IndustryDashboard =
 
                 let data =
                     list
-                    |> List.map(fun (date,count) ->
+                    |> List.map(fun (date,_) ->
                         let found = mapped.TryFind date
                         match found with
                         | Some c -> c
@@ -305,7 +302,6 @@ module IndustryDashboard =
                 ]
             ]
             breakdownSection
-            trendDiv
         ]
 
         let earningsSection = createEarningsSection industryName

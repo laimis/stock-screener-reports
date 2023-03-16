@@ -1,3 +1,7 @@
 /* section h4 {
     color: hsl(0, 0%, 48%) !important;
 } */
+
+section:not(:last-child) {
+    margin-bottom: 3em;
+}
