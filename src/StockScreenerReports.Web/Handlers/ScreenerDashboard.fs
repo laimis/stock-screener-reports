@@ -49,7 +49,7 @@ module ScreenerDashboard =
 
     let generateLayoutForScreener (screener:StockScreenerReports.Core.Screener) =
 
-        let dateRange = FinvizConfig.dateRangeAsStrings
+        let dateRange = ReportsConfig.dateRangeAsStrings
 
         let header = 
             div [_class "content"] [
@@ -64,7 +64,7 @@ module ScreenerDashboard =
         let dailyChart =
             screener.id
             |> Reports.getDailyCountsForScreener dateRange
-            |> Charts.convertNameCountsToChart screener.name Charts.Bar None None (FinvizConfig.getBackgroundColorForScreenerId screener.id)
+            |> Charts.convertNameCountsToChart screener.name Charts.Bar None None (ReportsConfig.getBackgroundColorForScreenerId screener.id)
 
         let headerWithCharts = header::dailyChart
 

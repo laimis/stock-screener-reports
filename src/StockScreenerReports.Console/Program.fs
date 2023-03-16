@@ -13,7 +13,7 @@ let readConfig() =
         | _ -> args[1]
 
     Console.WriteLine("Reading config from " + configPath)
-    System.Text.Json.JsonSerializer.Deserialize<FinvizConfig>(
+    System.Text.Json.JsonSerializer.Deserialize<ReportsConfig>(
         System.IO.File.ReadAllText(configPath)
     )
 
@@ -120,7 +120,7 @@ match runSMAUpdates() with
             [20; 200]
             |> List.map(fun days -> 
                 
-                let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry days FinvizConfig.dayRange
+                let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry days ReportsConfig.dayRange
 
                 let trend = breakdowns |> TrendsCalculator.calculateForIndustry
 
@@ -158,7 +158,7 @@ match runTrendsMigration() with
             let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustryAndDateRange days startDate endDate
 
             breakdowns
-            |> List.windowed (FinvizConfig.dayRange)
+            |> List.windowed (ReportsConfig.dayRange)
             |> List.iter( fun window ->
                 let trend = window |> TrendsCalculator.calculateForIndustry
                 let last = window |> List.last
@@ -181,7 +181,7 @@ match runTestReports() with
 
     let smaBreakdowns = 
         industry
-        |> Reports.getIndustrySMABreakdownsForIndustry 20 FinvizConfig.dayRange
+        |> Reports.getIndustrySMABreakdownsForIndustry 20 ReportsConfig.dayRange
 
     smaBreakdowns
     |> List.iter (fun x -> Console.Write($"({x.breakdown.above}, {x.breakdown.above + x.breakdown.below});"))

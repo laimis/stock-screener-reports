@@ -44,7 +44,7 @@ module StockDashboard =
                 screenerResult.volume |> volumeFormatted |> str |> toTdWithNode
             ]
 
-        let days = FinvizConfig.dayRange
+        let days = ReportsConfig.dayRange
 
         let businessDays = Logic.businessDatesWithZeroPairs days
 
@@ -79,7 +79,7 @@ module StockDashboard =
                 {
                     data = data
                     title = screenername
-                    color = screenerid |> FinvizConfig.getBackgroundColorForScreenerId
+                    color = screenerid |> ReportsConfig.getBackgroundColorForScreenerId
                 }
             )
 

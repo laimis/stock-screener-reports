@@ -285,7 +285,7 @@ module Views =
         let (id,name) = idAndNameTuple
 
         // TODO: screemer id mapping is hardcoded here
-        let backgroundColor = StockScreenerReports.Core.FinvizConfig.getBackgroundColorForScreenerId id
+        let backgroundColor = StockScreenerReports.Core.ReportsConfig.getBackgroundColorForScreenerId id
 
         div [ _class "tags has-addons" ] [
             span [ 

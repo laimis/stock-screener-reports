@@ -41,7 +41,7 @@ type ScreenerInput = {
     filename:string;
 }
 
-type FinvizConfig =
+type ReportsConfig =
     {
         screeners:list<ScreenerInput>;
         outputPath:string;
@@ -56,7 +56,7 @@ type FinvizConfig =
     )
 
     static member dateRangeAsStrings = 
-        let range = FinvizConfig.dateRange
+        let range = ReportsConfig.dateRange
         let startDate = (range |> fst).ToString("yyyy-MM-dd")
         let endDate = (range |> snd).ToString("yyyy-MM-dd")
         (startDate,endDate)
@@ -71,7 +71,7 @@ type FinvizConfig =
             | Constants.TopGainerScreenerId -> "#4DBEF7" // top gainer
             | Constants.TopLoserScreenerId -> "#C54A8B" // top loser
             | Constants.NewLowsScreenerId -> "#90323C" // new low
-            | _ -> FinvizConfig.getBackgroundColorDefault // otherwise return default
+            | _ -> ReportsConfig.getBackgroundColorDefault // otherwise return default
 
     static member getTradingHolidays () =
         let holidays = 

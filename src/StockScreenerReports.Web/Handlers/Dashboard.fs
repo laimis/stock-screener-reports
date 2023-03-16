@@ -86,6 +86,9 @@ module Dashboard =
             )
 
         [
+            section [ _class "content" ] [
+                h4 [] [ str "Industry Trends" ]
+            ]
             div [_class "columns"] columns
         ]
 
@@ -95,6 +98,9 @@ module Dashboard =
         let losers = Constants.NewLowsScreenerId |> getTopSectorsForScreener days
 
         [
+            section [ _class "content" ] [
+                h4 [] [ str "Sector Trends" ]
+            ]
             div [_class "columns"] [
                 div [ _class "column" ] [
                     Views.toNameCountTableWithLinks "Sectors Trending Up" 5 Links.sectorLink gainers
@@ -140,8 +146,8 @@ module Dashboard =
         let smoothed = smoothedDataSets |> Charts.generateChartElements "SMA breakdown (smoothed)" Charts.ChartType.Line (Some 100) Charts.smallChart labels
 
         [
-            section [ _class "mt-5 content" ] [
-                h4 [] [ str "SMA Breakdown" ]
+            section [ _class "content" ] [
+                h4 [] [ str "Market Trends" ]
             ]
             div [_class "columns"]
                 (
@@ -159,12 +165,15 @@ module Dashboard =
                 )
             
             div [_class "block"] charts
+            section [ _class "content" ] [
+                h4 [] [ str "SMA Breakdown (smoothed)" ]
+            ]
             div [_class "block"] smoothed
         ]
 
     let private createView (screeners:list<ScreenerResultReport>) =
         
-        let (startDate, endDate) = FinvizConfig.dateRangeAsStrings
+        let (startDate, endDate) = ReportsConfig.dateRangeAsStrings
 
         let screenerRows =
             div [_class "columns is-multiline"] 
@@ -172,8 +181,8 @@ module Dashboard =
                     generateRefreshButton()
                 ])
 
-        let industryTrendRows = generateIndustryTrendsRow FinvizConfig.industryTrendDayRange
-        let sectorTrendRows = generateSectorTrendsRow FinvizConfig.sectorTrendDayRange
+        let industryTrendRows = generateIndustryTrendsRow ReportsConfig.industryTrendDayRange
+        let sectorTrendRows = generateSectorTrendsRow ReportsConfig.sectorTrendDayRange
 
         let smaTrendRows = generateSMATrendRows startDate endDate
 

@@ -91,7 +91,7 @@ type ReportTests(output:ITestOutputHelper) =
 
         let screener = Reports.getLatestScreeners().Head
 
-        let dayRange = FinvizConfig.dateRangeAsStrings
+        let dayRange = ReportsConfig.dateRangeAsStrings
         
         let results = screener.screenerid |> Reports.getScreenerResultsForDays dayRange
 
@@ -101,7 +101,7 @@ type ReportTests(output:ITestOutputHelper) =
     let ``Particular screener daily counts work``() =
 
         let screener = getTestScreener
-        let dateRange = FinvizConfig.dateRangeAsStrings
+        let dateRange = ReportsConfig.dateRangeAsStrings
 
         let results = screener.Value.id |> Reports.getDailyCountsForScreener dateRange
 
@@ -114,7 +114,7 @@ type ReportTests(output:ITestOutputHelper) =
     let ``Particular screener daily volume works``() =
 
         let screener = getTestScreener
-        let dateRange = FinvizConfig.dateRangeAsStrings
+        let dateRange = ReportsConfig.dateRangeAsStrings
 
         let results = screener.Value.id |> Reports.getDailyAverageVolumeForScreener dateRange   
 
@@ -157,7 +157,7 @@ type ReportTests(output:ITestOutputHelper) =
     let ``getting daily counts for screeners filtered by sector works``() =
         let screener = Constants.TopGainerScreenerId
 
-        let dayRange = FinvizConfig.dateRangeAsStrings
+        let dayRange = ReportsConfig.dateRangeAsStrings
 
         let screenerResult = screener |> Reports.getScreenerResultsForDays dayRange
 
@@ -254,7 +254,7 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``get industry trends for industry`` () =
-        let trends = StorageTests.testStockIndustry |> Reports.getIndustrySMABreakdownsForIndustry 20 FinvizConfig.dayRange
+        let trends = StorageTests.testStockIndustry |> Reports.getIndustrySMABreakdownsForIndustry 20 ReportsConfig.dayRange
         Assert.NotEmpty(trends)
 
     [<Fact>]
@@ -270,7 +270,7 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``get daily SMA breakdowns works`` () =
-        let (startDate,endDate) = FinvizConfig.dateRangeAsStrings
+        let (startDate,endDate) = ReportsConfig.dateRangeAsStrings
         let results = Reports.getDailySMABreakdown startDate endDate 20
         Assert.NotEmpty(results)
 
@@ -329,7 +329,7 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``calculate industry trends works`` () =
-        let smaBreakdowns = StorageTests.testStockIndustry |> Reports.getIndustrySMABreakdownsForIndustry 20 FinvizConfig.dayRange
+        let smaBreakdowns = StorageTests.testStockIndustry |> Reports.getIndustrySMABreakdownsForIndustry 20 ReportsConfig.dayRange
         let trend = TrendsCalculator.calculateForIndustry smaBreakdowns
 
         Assert.True(trend.streak > 0)

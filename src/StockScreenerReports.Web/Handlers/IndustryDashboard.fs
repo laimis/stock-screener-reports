@@ -196,7 +196,7 @@ module IndustryDashboard =
         // load charts for each screener
         let screeners = Storage.getScreeners()
 
-        let days = FinvizConfig.dayRange
+        let days = ReportsConfig.dayRange
 
         let list = days |> Logic.businessDatesWithZeroPairs
 
@@ -221,7 +221,7 @@ module IndustryDashboard =
                 {
                     data = data
                     title = screener.name
-                    color = screener.id |> FinvizConfig.getBackgroundColorForScreenerId
+                    color = screener.id |> ReportsConfig.getBackgroundColorForScreenerId
                 }
             )
 

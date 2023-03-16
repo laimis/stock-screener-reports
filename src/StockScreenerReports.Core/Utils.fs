@@ -25,7 +25,7 @@ namespace StockScreenerReports.Core
             | _ -> newDate
 
         let listOfBusinessDates (startDate:DateTime,endDate:DateTime) = 
-            let holidays = FinvizConfig.getTradingHolidays()
+            let holidays = ReportsConfig.getTradingHolidays()
 
             Seq.initInfinite float
             |> Seq.map (fun i -> startDate.AddDays(i))

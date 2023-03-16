@@ -11,7 +11,7 @@ module CountryDashboard =
     let handler countryName =
         let screeners = Storage.getScreeners()
 
-        let days = FinvizConfig.dayRange
+        let days = ReportsConfig.dayRange
 
         let list = days |> Logic.businessDatesWithZeroPairs
 
@@ -29,7 +29,7 @@ module CountryDashboard =
                     | Some c -> (date,c)
                     | None -> (date,count)
                 )
-                |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart (FinvizConfig.getBackgroundColorForScreenerId screener.id)
+                |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart (ReportsConfig.getBackgroundColorForScreenerId screener.id)
                 |> div [_class "block"] 
             )
 

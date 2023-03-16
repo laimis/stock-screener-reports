@@ -253,7 +253,7 @@ module ScreenersTrends =
             |> Map.ofSeq
 
         let highsMinusLowsChart =
-            FinvizConfig.dateRange
+            ReportsConfig.dateRange
             |> Utils.listOfBusinessDates
             |> Seq.map(fun (date) ->
                 let high = 
@@ -271,7 +271,7 @@ module ScreenersTrends =
                 (date,high - low)
             )
             |> List.ofSeq
-            |> Charts.convertNameCountsToChart "Highs - Lows" Charts.Bar None Charts.smallChart FinvizConfig.getBackgroundColorDefault
+            |> Charts.convertNameCountsToChart "Highs - Lows" Charts.Bar None Charts.smallChart ReportsConfig.getBackgroundColorDefault
             |> div [_class "block"]
 
         let numberOfHitsCharts =
@@ -281,7 +281,7 @@ module ScreenersTrends =
                 
                 screenerData
                 |> List.ofSeq
-                |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart (FinvizConfig.getBackgroundColorForScreenerId screener.id) 
+                |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart (ReportsConfig.getBackgroundColorForScreenerId screener.id) 
                 |> div [_class "block"]                 
             )
 
@@ -299,7 +299,7 @@ module ScreenersTrends =
                 
                 screenerData
                 |> List.ofSeq
-                |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart (FinvizConfig.getBackgroundColorForScreenerId screener.id) 
+                |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart (ReportsConfig.getBackgroundColorForScreenerId screener.id) 
                 |> div [_class "block"]                 
             )
 
@@ -329,7 +329,7 @@ module ScreenersTrends =
             let endDateParam = ctx.TryGetQueryStringValue "endDate"
             let dateAdjustmentParam = ctx.TryGetQueryStringValue "dateAdjustment"
 
-            let dateRange = FinvizConfig.dateRangeAsStrings
+            let dateRange = ReportsConfig.dateRangeAsStrings
 
             let startDate = 
                 match startDateParam with
