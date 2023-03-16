@@ -2,10 +2,9 @@
 
 This repo contains code that can be used to run a web portal for managing stock screener results.
 
-It consists of a web application for interacting with the screeners and tickers, a console app that runs screeners (currently based on finviz), and a storage layer for storing the results.
+The key components are a web application for interacting with the screener results, a console app that can be used to kick off regular screeners jobs, and storage layer that is used to store the data.
 
-In addition of managing individual ticker results, the site also contains functionality for observing the industries, sectors, and the overall stock market.
-
+In addition of managing screener results, the portal also provides a way to observe the trends across industries and sectors. There is an earnings section that shows the earning results for the last week and which industries had things like new highs, top movers, new lows, and top losers.
 
 ### Installation
 
@@ -17,8 +16,12 @@ dotnet run --project src\StockScreenerReports.Web\StockScreenerReports.Web.fspro
 
 This will launch a web project.
 
-Another key component is a nightly screener run. The project includes Finviz based screener tool that you can run:
+### Populating data
 
-```dotnet run --project src\FinvizScraper.Console config\config.json --screeners```
+It's up to you to figure out how to push screener results and populate the data into the database. This code base includes a sample screener tool that pulls screener results from finviz.
 
-Make sure to have config.json configured with the connection string for the database. The tool will look for screeners rows in the database and run it. If you don't have the screener setup, use the web UI to configure it.
+Once you have the screener URLs configured in the UI, you can kick off the screener job by running the following command:
+
+```dotnet run --project src\StockScreenerReports.Console config\config.json --screeners```
+
+Make sure to have config.json configured with the connection string for the database.
