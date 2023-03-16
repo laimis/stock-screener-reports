@@ -7,6 +7,17 @@ module Dashboard =
     open StockScreenerReports.Web.Shared
     open StockScreenerReports.Core
 
+    let private generateRefreshButton() =
+        let link = Links.screenersRun
+        let title = "Refresh"
+        div [_class "column is-one-quarter"] [
+            a [
+                _class "button is-light is-fullwidth"
+                _style "justify-content: left;"
+                _href link] [
+                title |> str
+            ]
+        ]
     let private generateScreenerResultSection (screener:ScreenerResultReport) = 
         
         let screenerDate = screener.date |> Utils.convertToDateString
@@ -157,7 +168,9 @@ module Dashboard =
 
         let screenerRows =
             div [_class "columns is-multiline"] 
-                (screeners |> List.map generateScreenerResultSection)
+                ((screeners |> List.map generateScreenerResultSection) @ [
+                    generateRefreshButton()
+                ])
 
         let industryTrendRows = generateIndustryTrendsRow FinvizConfig.industryTrendDayRange
         let sectorTrendRows = generateSectorTrendsRow FinvizConfig.sectorTrendDayRange
