@@ -1,6 +1,6 @@
 namespace StockScreenerReports.Web.Handlers
 
-module ScreenersTrends =
+module Trends =
 
     open Giraffe
     open Giraffe.ViewEngine

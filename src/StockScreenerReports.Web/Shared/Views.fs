@@ -209,7 +209,7 @@ module Views =
 
                     generateHrefWithAttr
                         "Trends"
-                        Links.screenerTrends
+                        Links.trends
                         (_class "button is-small is-primary is-pulled-right mx-1")
 
                     generateHrefWithAttr
