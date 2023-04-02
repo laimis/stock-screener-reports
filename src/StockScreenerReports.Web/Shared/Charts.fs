@@ -38,6 +38,8 @@ module Charts =
             | None -> ""
 
         let options = "{
+                    // responsive: true,
+                    maintainAspectRatio: false,
                     scales: {
                         y: {
                             " + maxYValueString + "
@@ -105,11 +107,12 @@ module Charts =
             _id canvasId
             attr "aria-label" $"Chart for {title}"
             attr "role" "img"
+            attr "style" "width: 100%; height: 300px"
         ] 
         
         let attributes = 
             match height with
-            | Some (ChartHeight h) -> (attr "height" h)::standardAttributes
+            | Some (ChartHeight h) -> standardAttributes
             | None -> standardAttributes
 
         let chartDiv = div [] [

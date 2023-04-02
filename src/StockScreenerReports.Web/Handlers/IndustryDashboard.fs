@@ -289,11 +289,21 @@ module IndustryDashboard =
             )
             |> fullWidthTableWithSortableHeaderCells stockTableHeaderCells
 
+        let tickers = stocks |> List.map (fun stock -> stock.ticker |> StockTicker.value)
         let stocksSection = section [_class "mt-5"] [
             h4 [] [
                 $"Stocks in Industry ({stocks.Length})" |> str
                 small [ _class "is-pulled-right"] [
-                    industryName |> Links.industryExportLink |> generateHref "Export"
+                    generateHrefWithAttrs
+                        "Export"
+                        (industryName |> Links.industryExportLink)
+                        [(_class "button is-small is-primary") ; (_target "_blank")]
+                ]
+                small [ _class "is-pulled-right mr-2"] [
+                    generateHrefWithAttrs
+                        "NGTD Outcomes"
+                        ((industryName,tickers,[],"") |> Links.ngtdOutcomesReportLink)
+                        [(_class "button is-small is-primary mr-2") ; (_target "_blank")]
                 ]
             ]
             stockTable
