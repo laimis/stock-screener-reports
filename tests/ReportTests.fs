@@ -290,25 +290,25 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``top trending industries works`` () =
-        let trendUpResults = Reports.getTopIndutriesTrending "2023-03-10" 10 Up
+        let trendUpResults = Reports.getTopIndutriesTrending "2023-03-10" 20 Up
         Assert.NotEmpty(trendUpResults)
-        Assert.Equal(10, trendUpResults.Length)
+        Assert.Equal(15, trendUpResults.Length) // we ask for 20 but only 15 were >0
 
         let firstRate = trendUpResults.Item(0).trend.streakRate
         let lastRate = trendUpResults.Item(trendUpResults.Length - 1).trend.streakRate
 
         Assert.True(firstRate >= lastRate)
-        Assert.True(firstRate > 0m)
+        Assert.Empty(trendUpResults |> Seq.filter (fun x -> x.trend.streakRate <= 0m))
 
-        let trendDownResults = Reports.getTopIndutriesTrending "2023-03-10" 10 Down
+        let trendDownResults = Reports.getTopIndutriesTrending "2023-03-10" 20 Down
         Assert.NotEmpty(trendDownResults)
-        Assert.Equal(10, trendDownResults.Length)
+        Assert.Equal(20, trendDownResults.Length)
 
         let firstRate = trendDownResults.Item(0).trend.streakRate
         let lastRate = trendDownResults.Item(trendDownResults.Length - 1).trend.streakRate
 
         Assert.True(firstRate <= lastRate)
-        Assert.True(firstRate < 0m)
+        Assert.Empty(trendDownResults |> Seq.filter (fun x -> x.trend.streakRate >= 0m))
 
     [<Fact>]
     let ``industry trends breakdown contain both up and down`` () =

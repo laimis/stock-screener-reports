@@ -744,11 +744,17 @@ module Reports =
             | StockScreenerReports.Core.TrendDirection.Up -> "DESC"
             | StockScreenerReports.Core.TrendDirection.Down -> "ASC"
 
+        let changeCriteria =
+            match direction with
+            | StockScreenerReports.Core.TrendDirection.Up -> "change > 0"
+            | StockScreenerReports.Core.TrendDirection.Down -> "change < 0"
+
         let sql = @"
             SELECT industry,date,above,below,streak,direction,change,days FROM industrytrends
             WHERE 
                 date = date(@date)
                 AND days = 20
+                AND " + changeCriteria + @"
             ORDER BY change/streak " + descOrAsc + @"
             LIMIT @numberOfRecords"
 
