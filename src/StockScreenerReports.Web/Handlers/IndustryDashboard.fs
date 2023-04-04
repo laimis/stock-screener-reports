@@ -157,7 +157,7 @@ module IndustryDashboard =
 
             let datasets = [20; 200] |> List.map createDataset
 
-            let smoothedDataSets = datasets |> Logic.smoothedDataSets 3
+            let smoothedDataSets = datasets |> Utils.smoothedDataSets 3
 
             let labels = 
                 industryName
@@ -198,7 +198,7 @@ module IndustryDashboard =
 
         let days = ReportsConfig.dayRange
 
-        let list = days |> Logic.businessDatesWithZeroPairs
+        let list = days |> Utils.businessDatesWithZeroPairs
 
         let labels = list |> List.map (fun (u,_) -> u.ToString("MMM/dd"))
 

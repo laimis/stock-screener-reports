@@ -271,7 +271,7 @@ module Trends =
                 (date,high - low)
             )
             |> List.ofSeq
-            |> Charts.convertNameCountsToChart "Highs - Lows" Charts.Bar None Charts.smallChart ReportsConfig.getBackgroundColorDefault
+            |> Charts.convertNameCountsToChart "Highs - Lows" Charts.Line None Charts.smallChart ReportsConfig.getBackgroundColorDefault
             |> div [_class "block"]
 
         let numberOfHitsCharts =
@@ -312,6 +312,8 @@ module Trends =
 
         let trends = generateSMATrendRows startDate endDate
 
+        let jobStatusRow = IndustryTrendsJob |> Utils.genericJobStatusGet |> generateJobStatusDiv
+
         [
             [filters]
             trends
@@ -319,6 +321,7 @@ module Trends =
             numberOfHitsPartial
             [highsMinusLowsChart]
             volumePartial
+            [jobStatusRow]
         ] |> List.concat
 
     let handler : HttpHandler =
@@ -363,4 +366,4 @@ module Trends =
 
             let elementsToRender = generateElementsToRender (adjustedStart,adjustedEnd)
 
-            (elementsToRender |> Views.mainLayout "All Screener Trends") next ctx
+            (elementsToRender |> mainLayout "All Screener Trends") next ctx

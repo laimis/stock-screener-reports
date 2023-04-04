@@ -137,12 +137,7 @@ module IndustriesDashboard =
 
             let industriesTable = generateIndustry20And200Table()
 
-            let jobStatusRow =
-                div [ _class "columns" ] [
-                    div [ _class "column" ] [ 
-                        IndustryTrendsJob |> genericJobStatusGet |> str 
-                    ]
-                ]
+            let jobStatusRow = IndustryTrendsJob |> Utils.genericJobStatusGet |> generateJobStatusDiv
 
             let view = [
                 div [_class "content"] [

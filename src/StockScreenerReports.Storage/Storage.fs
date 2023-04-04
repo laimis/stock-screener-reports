@@ -5,7 +5,7 @@ module Storage =
     open Npgsql.FSharp
     open StockScreenerReports.Core
 
-    let private defaultLogger (message:string) = ()
+    let private defaultLogger (_:string) = ()
 
     // TODO: add logger
     let mutable private cnnString = ""

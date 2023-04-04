@@ -46,7 +46,7 @@ module StockDashboard =
 
         let days = ReportsConfig.dayRange
 
-        let businessDays = Logic.businessDatesWithZeroPairs days
+        let businessDays = Utils.businessDatesWithZeroPairs days
 
         // group recent screenerresults by date
         let recentScreenerResultsByScreener = 

@@ -13,7 +13,7 @@ module CountryDashboard =
 
         let days = ReportsConfig.dayRange
 
-        let list = days |> Logic.businessDatesWithZeroPairs
+        let list = days |> Utils.businessDatesWithZeroPairs
 
         let charts = 
             screeners

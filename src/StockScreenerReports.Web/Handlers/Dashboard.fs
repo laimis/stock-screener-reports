@@ -37,11 +37,7 @@ module Dashboard =
         ]
 
     let private generateJobStatusRow() =
-        div [ _class "columns" ] [
-            div [ _class "column" ] [ 
-                ScreenerJob |> Views.genericJobStatusGet |> str 
-            ]
-        ]
+        ScreenerJob |> Utils.genericJobStatusGet |> Views.generateJobStatusDiv
 
     let generateTrendsTable title nameCounts =
         let rows =
@@ -139,7 +135,7 @@ module Dashboard =
                 }   
             )
 
-        let smoothedDataSets = datasets |> Logic.smoothedDataSets 3
+        let smoothedDataSets = datasets |> Utils.smoothedDataSets 3
 
         let labels = breakdowns.Head |> snd |> List.map (fun breakdown -> breakdown.date.ToString("MM/dd"))
         let charts = datasets |> Charts.generateChartElements "SMA breakdown" Charts.ChartType.Line (Some 100) Charts.smallChart labels
