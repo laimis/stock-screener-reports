@@ -3,6 +3,9 @@ open StockScreenerReports.Core
 open StockScreenerReports.FinvizClient
 open StockScreenerReports.Storage
 
+let updateStatus (message:string) =
+    Console.WriteLine(message)
+
 let readConfig() =
     let args = Environment.GetCommandLineArgs()
     let defaultConfigPath = "config.json"
@@ -17,6 +20,8 @@ let readConfig() =
         System.IO.File.ReadAllText(configPath)
     )
 
+let isTradingDay = DateTime.Now |> ReportsConfig.isTradingDay
+
 let containsArgument toFind =
     let args = Environment.GetCommandLineArgs()
     let m = args |> Array.toList |> List.tryFind (fun arg -> arg = toFind)
@@ -25,10 +30,10 @@ let containsArgument toFind =
     | Some _ -> true
 
 let runSMAUpdates() =
-    containsArgument "--industry-sma-breakdowns"
+    isTradingDay && containsArgument "--industry-sma-breakdowns"
 
 let runScreeners() =
-    containsArgument "--screeners"
+    isTradingDay && containsArgument "--screeners"
 
 let runTestReports() =
     containsArgument "--test-reports"
@@ -42,11 +47,6 @@ let fetchScreenerResults input =
     let results = FinvizClient.getResults input.url
     (input,results)
 
-let saveToFile (filepath:string) content =
-    let directory = IO.Path.GetDirectoryName(filepath)
-    IO.Directory.CreateDirectory(directory) |> ignore
-    IO.File.WriteAllText(filepath,content)
-
 let saveToDb (screenerResults:list<Screener * 'a>) =
 
     System.Console.WriteLine("Saveing to db " + screenerResults.Length.ToString() + " screener results")
@@ -57,6 +57,8 @@ let saveToDb (screenerResults:list<Screener * 'a>) =
 
 let config = readConfig()
 
+updateStatus "Config read"
+
 match config.dbConnectionString with
 | null -> 
     Console.Error.WriteLine("No db connection string found in config...")
@@ -64,6 +66,10 @@ match config.dbConnectionString with
 | value -> 
     value |> Storage.configureConnectionString
     value |> Reports.configureConnectionString
+
+updateStatus "Configured db connection string"
+
+updateStatus ("Trading day: " + isTradingDay.ToString())
 
 match runScreeners() with
 | true ->
