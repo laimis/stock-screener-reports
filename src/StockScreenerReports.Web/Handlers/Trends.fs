@@ -116,6 +116,7 @@ module Trends =
             )
 
         let applyButton = button [ _class "button is-primary m-1"; _type "submit"; _id "applyFilters" ] [ str "Apply" ]
+        let resetButton = a [ _class "button is-secondary m-1"; _href Links.trends ] [ str "Reset" ]
 
         let formElements = [
             div [_class "field"] [
@@ -127,7 +128,7 @@ module Trends =
                 input [ _class "input"; _type "date"; _value endDate; _id "endDate"; _name "endDate" ]
             ]
             input [ _class "input"; _type "hidden"; _value ""; _id "dateAdjustment"; _name "dateAdjustment"]
-            div [_class "control"] (applyButton::buttons)
+            div [_class "control"] ((applyButton::buttons) @ [resetButton])
         ]
 
         let form = form [] ([formElements; scripts] |> List.concat)

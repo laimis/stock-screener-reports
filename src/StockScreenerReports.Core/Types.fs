@@ -96,6 +96,12 @@ type ReportsConfig =
             ]
         holidays
 
+    static member isTradingDay (dateTime:System.DateTime) =
+        let dayOfWeek = dateTime.DayOfWeek
+        let isWeekend = dayOfWeek = System.DayOfWeek.Saturday || dayOfWeek = System.DayOfWeek.Sunday
+        let isHoliday = ReportsConfig.getTradingHolidays() |> List.contains dateTime
+        not (isWeekend || isHoliday)
+
 type ScreenerResult = {
     ticker:StockTicker.T;
     company:string;
