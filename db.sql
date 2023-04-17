@@ -125,3 +125,9 @@ update industrytrends set below = (
 -- enforce industrytrends above and below columns to be not null
 alter table industrytrends alter column above set not null;
 alter table industrytrends alter column below set not null;
+
+-- how to delete a day's worth of data
+-- finviz=> delete from dailysmabreakdowns where date = '2023-04-07';
+-- finviz=> delete from industrysmabreakdowns where date = '2023-04-07';
+-- finviz=> delete from industrytrends where date = '2023-04-07';
+-- finviz=> delete from screenerresults where date = '2023-04-07';
