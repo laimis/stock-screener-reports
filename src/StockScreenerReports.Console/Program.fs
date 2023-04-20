@@ -98,47 +98,37 @@ match runSMAUpdates() with
     
     // pull above and below 20 and 200 for each industry, and store the results
     let knownIndustries = Storage.getIndustries()
+    let smas = [20; 200]
+
+    let industrySmaPairs = knownIndustries |> Seq.map (fun industry -> smas |> List.map (fun sma -> (industry, sma))) |> Seq.concat
 
     let industriesUpdated =
-        knownIndustries
-        |> Seq.map (fun industry -> 
-            let (above20,below20) = industry |> FinvizClient.getResultCountForIndustryAboveAndBelowSMA 20
-            let (above200,below200) = industry |> FinvizClient.getResultCountForIndustryAboveAndBelowSMA 200
-            [(industry,20,above20,below20); (industry,200,above200,below200)]
+        industrySmaPairs
+        |> Seq.map (fun (industry, sma) ->
+            Console.WriteLine($"Getting industry {industry} {sma} day sma breakdown")
+            let (above,below) = industry |> FinvizClient.getResultCountForIndustryAboveAndBelowSMA sma
+            (industry, sma, above, below)
         )
-        |> Seq.map (fun result ->
-            result
-            |> List.iter(fun r ->
-                let (industry, days, _, _) = r
-                Console.WriteLine($"Saving industry {industry} {days} days sma")
-                Storage.saveIndustrySMABreakdowns date r |> ignore
-            )
+        |> Seq.map (fun r ->
+            let (industry, days, _, _) = r
+            Console.WriteLine($"Saving industry {industry} {days} day sma breakdown")
+            Storage.saveIndustrySMABreakdowns date r |> ignore
         )
         |> Seq.length
 
-    Storage.updateSMABreakdowns date 20 |> ignore
-    Storage.updateSMABreakdowns date 200 |> ignore
+    Console.WriteLine($"Calculating trends")
 
     let trendsUpdated =
-        knownIndustries
-        |> Seq.map (fun industry -> 
+        industrySmaPairs
+        |> Seq.map (fun (industry, days) -> 
             
-            [20; 200]
-            |> List.map(fun days -> 
-                
-                let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry days ReportsConfig.dayRange
+            let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry days ReportsConfig.dayRange
+            let trend = breakdowns |> TrendsCalculator.calculateForIndustry
+            let lastBreakdown = breakdowns |> List.last
+            Console.WriteLine($"Saving industry {industry} trend: {trend.direction} {trend.streak} days with change of {trend.change}")
+            Storage.updateIndustryTrend lastBreakdown trend
 
-                let trend = breakdowns |> TrendsCalculator.calculateForIndustry
-
-                let lastBreakdown = breakdowns |> List.last
-
-                Console.WriteLine($"Saving industry {industry} trend: {trend.direction} {trend.streak} days with change of {trend.change}")
-
-                Storage.updateIndustryTrend lastBreakdown trend
-            )
-            |> List.sum
-        )
-        |> Seq.sum
+        ) |> Seq.sum
     
     Storage.saveJobStatus
         IndustryTrendsJob

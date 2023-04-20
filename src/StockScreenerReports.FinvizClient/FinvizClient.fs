@@ -127,20 +127,20 @@ module FinvizClient =
         let totalText = nodes.Item(2).SelectNodes("//td[@class='count-text']").Item(0).InnerText
 
         let removeTotalMarker (input:string) =
-            input.Replace("Total: ","")
+            input.Replace("Total","")
 
         match totalText with
             | x when x.Contains("#") ->  // the response could be Total: 4 #1
-                let total = x.Substring(0, x.IndexOf("#"))
+                let total = x.Substring(x.IndexOf("/") + 1)
                 System.Int32.Parse(total |> removeTotalMarker)
             | _ -> System.Int32.Parse(totalText |> removeTotalMarker)
 
     let getResultCountForIndustryAboveAndBelowSMA days industry =
-        let cleaned = industry |> StockScreenerReports.Core.Utils.cleanIndustry
+        let cleaned = industry |> Utils.cleanIndustry
 
         let fetchCountWithTA ta =
-            $"https://finviz.com/screener.ashx?v=111&f=ind_{cleaned},{ta}"
-            |> getResultCount
+            let url = $"https://finviz.com/screener.ashx?v=111&f=ind_{cleaned},{ta}"
+            url |> getResultCount
         
         let above20 = $"ta_sma{days}_pa" |> fetchCountWithTA
         let below20 = $"ta_sma{days}_pb" |> fetchCountWithTA
