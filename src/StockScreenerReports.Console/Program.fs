@@ -116,6 +116,9 @@ match runSMAUpdates() with
         )
         |> Seq.length
 
+    // updating breakdowns
+    smas |> List.iter (fun days -> Storage.updateSMABreakdowns date days |> ignore)
+
     Console.WriteLine($"Calculating trends")
 
     let trendsUpdated =
