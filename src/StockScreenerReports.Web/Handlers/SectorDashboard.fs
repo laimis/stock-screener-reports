@@ -60,7 +60,7 @@ module SectorDashboard =
             "Trading View"
         ]
 
-        let screenerResultsTable = resultRows |> fullWidthTable headerCells
+        let screenerResultsTable = resultRows |> fullWidthTableWithSortableHeaderCells headerCells
 
         let stocks = Storage.getStocksBySector sectorName
 
@@ -81,14 +81,26 @@ module SectorDashboard =
                     stock.industry  |> Links.industryLink |> generateHref stock.industry |> toTdWithNode
                 ]
             )
-            |> fullWidthTable stockTableHeaders
+            |> fullWidthTableWithSortableHeaderCells stockTableHeaders
 
-        let view = 
-            div [_class "content"] [
-                h1 [] [
-                    "Sector: " + sectorName |> str
+        let stocksSection = section [_class "mt-5"] [
+            h4 [] [
+                $"Stocks in Industry ({stocks.Length})" |> str
+            ]
+            stockTable
+        ]
+
+        let contentSections =
+            [
+                [
+                    h1 [] [
+                        "Sector: " + sectorName |> str
+                    ]
                 ]
-            ]::charts @ [screenerResultsTable; stockTable]
-            
+                charts
+                [screenerResultsTable; stocksSection]
+            ] |> List.concat
+
+        let view = div [_class "content"] contentSections 
         
-        view |> mainLayout $"Sector Dashboard for {sectorName}" 
+        [view] |> mainLayout $"Sector Dashboard for {sectorName}" 

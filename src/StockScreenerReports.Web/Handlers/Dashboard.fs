@@ -60,7 +60,7 @@ module Dashboard =
 
         let header = tr [] [
             th [] [ str title ]
-            th [ _class "has-text-right" ] [ str "# of stocks" ]
+            th [ _class "has-text-right" ] [ str "" ]
         ]
 
         rows |> Views.fullWidthTableWithCssClass "dashboard-industry-table" header

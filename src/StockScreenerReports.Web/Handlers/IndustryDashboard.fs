@@ -233,7 +233,7 @@ module IndustryDashboard =
 
         let resultRows =
             industryName
-            |> Reports.getScreenerResultsForIndustry 50
+            |> getScreenerResultsForIndustry 50
             |> List.map (fun screenerResult ->
                 tr [] [
                     screenerResult.date |> Utils.convertToDateString |> toTd

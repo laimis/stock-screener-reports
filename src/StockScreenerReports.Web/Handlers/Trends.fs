@@ -272,7 +272,7 @@ module Trends =
                 (date,high - low)
             )
             |> List.ofSeq
-            |> Charts.convertNameCountsToChart "Highs - Lows" Charts.Line None Charts.smallChart ReportsConfig.getBackgroundColorDefault
+            |> Charts.convertNameCountsToChart "Highs - Lows" Charts.Bar None Charts.smallChart ReportsConfig.getBackgroundColorDefault
             |> div [_class "block"]
 
         let numberOfHitsCharts =

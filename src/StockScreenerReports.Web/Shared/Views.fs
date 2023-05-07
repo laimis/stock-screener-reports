@@ -149,7 +149,7 @@ module Views =
         ]
     
     let fullWidthTableWithCustomHeader header rows =
-        table [ _class "table is-fullwidth is-striped" ] [
+        table [ _class "table is-fullwidth is-hoverable" ] [
             thead [] [ header ]
             tbody [] rows
         ]

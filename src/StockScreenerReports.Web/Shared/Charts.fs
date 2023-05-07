@@ -61,7 +61,15 @@ module Charts =
         let datasetsString = 
             datasets
             |> List.map ( fun dataset -> 
-                let formattedData = dataset.data |> List.map (fun d -> $"{d}") |> String.concat ","
+                let formattedData = 
+                    dataset.data
+                    |> List.map (fun d ->
+                        let str = $"{d}"
+                        match str with
+                        | "0" -> ""
+                        | _ -> str
+                    )
+                    |> String.concat ","
 
                 """{
                     label: '""" + dataset.title + """',

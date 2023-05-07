@@ -49,7 +49,7 @@ let fetchScreenerResults input =
 
 let saveToDb (screenerResults:list<Screener * 'a>) =
 
-    System.Console.WriteLine("Saveing to db " + screenerResults.Length.ToString() + " screener results")
+    System.Console.WriteLine("Saving to db " + screenerResults.Length.ToString() + " screener results")
     let date = Utils.getRunDate()
     screenerResults
     |> List.iter (fun x -> Storage.saveScreenerResults date x)
@@ -87,7 +87,9 @@ match runScreeners() with
             Storage.saveEarningsDate ticker (Utils.getRunDate()) earningsTime |> ignore
         )
     
-    Storage.saveJobStatus ScreenerJob (DateTimeOffset.UtcNow) Success $"Ran {screenerResults.Length} screeners" |> ignore
+    let message = $"Ran {screenerResults.Length} screeners, and found {earnings.Length} earnings dates"
+
+    Storage.saveJobStatus ScreenerJob (DateTimeOffset.UtcNow) Success message |> ignore
 
 | false -> ()
 
