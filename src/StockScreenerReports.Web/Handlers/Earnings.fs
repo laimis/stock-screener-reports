@@ -34,13 +34,15 @@ module Earnings =
 
         let newTitle = $"{title} ({countOfTickers})"
 
-        let table = 
-            withCounts
-            |> toNameCountTableWithLinksAndClickFunc 
+        let (header, rows) = 
+            withCounts |>
+            toHeaderAndRowsWithLinksAndClickFunc 
                 newTitle
                 10
                 (fun s -> s |> Links.industryLink)
-                (Some "industryClicked(event)")
+                (Some "industryClicked(event); highlightDashboardIndustry(event)")
+
+        let table = fullWidthTableWithCssClass "dashboard-industry-table" header rows
 
         div [_class "column"] [table]
 

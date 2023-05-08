@@ -163,9 +163,13 @@ module Views =
             thead [] [ header ]
             tbody [] rows
         ]
+
+    let toHeaderAndRowsWithLinksAndClickFunc title maxNumberOfRows linkFunction clickFunction listOfNameCountPairs =
+        let (header, rows) = listOfNameCountPairs |> toNameCountRows title maxNumberOfRows (fun name -> generateHref name (linkFunction name)) clickFunction
+        (header, rows)
     
     let toNameCountTableWithLinksAndClickFunc title maxNumberOfRows linkFunction clickFunction listOfNameCountPairs =
-        let (header, rows) = listOfNameCountPairs |> toNameCountRows title maxNumberOfRows (fun name -> generateHref name (linkFunction name)) clickFunction
+        let (header, rows) = toHeaderAndRowsWithLinksAndClickFunc title maxNumberOfRows linkFunction clickFunction listOfNameCountPairs
         rows |> fullWidthTableWithCustomHeader header
 
     let toNameCountTableWithLinks title maxNumberOfRows linkFunction listOfNameCountPairs =
