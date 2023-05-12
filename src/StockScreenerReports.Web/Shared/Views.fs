@@ -3,6 +3,7 @@ namespace StockScreenerReports.Web.Shared
 module Views =
     open Giraffe.ViewEngine
     open StockScreenerReports.Web.Shared
+    open StockScreenerReports.Core
 
     let billion = 1_000_000_000m
     let million = 1_000_000m
@@ -182,6 +183,14 @@ module Views =
             | _ -> None
 
         toNameCountTableWithLinksAndClickFunc title maxNumberOfRows linkFunction clickFunction listOfNameCountPairs
+
+    let toHtml (trend:Trend) =
+        let directionStr = 
+            match trend.direction with
+            | Up -> "Up"
+            | Down -> "Down"
+
+        $"Trending <b>{directionStr}</b> for <b>{trend.streak} days</b>, change of <b>{trend.change:N2}</b>"
 
     let private generateHeaderRow =
         let titleDiv = div [ _class "column" ] [

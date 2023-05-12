@@ -110,7 +110,7 @@ module Dashboard =
     let private generateSMATrendRows startDate endDate =
 
         let toDescription (sma:int) (trend:Trend) =
-            $"<b>SMA {sma}:</b> {trend}"
+            $"<b>SMA {sma}:</b> {trend |> Views.toHtml}"
 
         let toColor (sma:int) =
             match sma with

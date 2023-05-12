@@ -65,8 +65,10 @@ module Charts =
                     dataset.data
                     |> List.map (fun d ->
                         let str = $"{d}"
+                        // both return the same value, I am experimenting with
+                        // how it looks if empty string is returned on zero
                         match str with
-                        | "0" -> ""
+                        | "0" -> str
                         | _ -> str
                     )
                     |> String.concat ","

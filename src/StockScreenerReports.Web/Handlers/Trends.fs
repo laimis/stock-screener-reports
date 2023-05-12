@@ -54,7 +54,7 @@ module Trends =
             smaBreakdowPairs
             |> List.map(fun (sma, breakdowns) ->
                 let trend = TrendsCalculator.calculate breakdowns
-                let description = $"<b>SMA {sma}:</b> {trend}"
+                let description = $"<b>SMA {sma}:</b> {trend |> toHtml}"
                 [description |> rawText] |> div [_class "column"]   
             )
 

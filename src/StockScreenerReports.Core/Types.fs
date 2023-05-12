@@ -190,14 +190,6 @@ type Trend =
     member this.streakFormatted =
         System.String.Format("{0:N0}", this.streak)
         
-    override this.ToString() =
-        let directionStr = 
-            match this.direction with
-            | Up -> "Up"
-            | Down -> "Down"
-
-        $"Trending <b>{directionStr}</b> for <b>{this.streak} days</b>, change of <b>{this.change:N2}</b>"
-
 type IndustryTrend =
     {
         industry: string;
