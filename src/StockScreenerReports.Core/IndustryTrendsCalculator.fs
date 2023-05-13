@@ -1,14 +1,6 @@
 namespace StockScreenerReports.Core
 
     module TrendsCalculator =
-        open System
-
-        type TrendHelper =
-            {
-                firstValue: decimal;
-                latestValue: decimal;
-                calculatedTrend: Trend;
-            }
 
         let calculate (smaBreakdowns:list<SMABreakdown>) : Trend =
 
