@@ -3,73 +3,54 @@ namespace StockScreenerReports.Core
     module TrendsCalculator =
         open System
 
-        // NOTE: this was written before I grasped better F#'s functional
-        // capabilities and immutability. It's a bit of a mess and could
-        // be cleaned up
-        // test coverage is decent, but hesitant to touch this piece
-        // without going through more scenarios
+        type TrendHelper =
+            {
+                firstValue: decimal;
+                latestValue: decimal;
+                calculatedTrend: Trend;
+            }
+
         let calculate (smaBreakdowns:list<SMABreakdown>) : Trend =
 
-            let mutable latestValue = Option<decimal>.None
-            let mutable firstValue = Option<decimal>.None
-            let mutable direction = Option<TrendDirection>.None
-            let mutable streak = 1
-            let mutable endReached = false
+            let folder trend (breakdown:SMABreakdown) =
+                let delta = breakdown.percentAbove - trend.value
+                let change = trend.change + delta
 
-            smaBreakdowns
-                |> List.sortByDescending (fun b -> b.date)
-                |> List.iter (fun x ->
+                let direction = 
+                    match delta with
+                    | x when x > 0m -> Up
+                    | x when x < 0m -> Down
+                    | _ -> trend.direction
 
-                    if endReached then
-                        ()
-                    else
-                        match (latestValue, direction) with
-                        // case where we are seeing the first value
-                        | (None, None) -> 
-                            latestValue <- Some x.percentAbove
-                            firstValue <- Some x.percentAbove
+                // if direction has changed, change is just the delta
+                let finalChange = 
+                    match direction with
+                    | x when x = trend.direction -> change
+                    | _ -> delta
 
-                        // case where we are seeing the second value
-                        | (Some _, None) -> (
-                            if x.percentAbove > latestValue.Value then
-                                direction <- Some Down
-                                latestValue <- Some x.percentAbove
-                            else if x.percentAbove < latestValue.Value then
-                                direction <- Some Up
-                                latestValue <- Some x.percentAbove
-                            else
-                                direction <-
-                                    match latestValue.Value with
-                                    | 0m -> Some Down
-                                    | _ -> Some Up
-                            )
+                // if the trend has flatlined and sitting on zero, we want each day
+                // to reset the streak
+                let streak = 
+                    match (trend.value, breakdown.percentAbove) with
+                    | (0m, 0m) -> trend.streak + 1
+                    | (0m, _) -> 1
+                    | _ -> 
+                        match direction with
+                        | x when x = trend.direction -> trend.streak + 1
+                        | _ -> 1
 
-                        // case where we are now iterating
-                        | (Some _, Some _) ->
-                            let newDirection =
-                                match x.percentAbove > latestValue.Value with
-                                | true -> Down
-                                | false -> Up
-                            
-                            if newDirection = direction.Value then
-                                streak <- streak + 1
-                                latestValue <- Some x.percentAbove
-                                
-                                if latestValue.Value = 0m then
-                                    endReached <- true
-                                else
-                                    ()
-                            else
-                                endReached <- true
-
-                        | (None, Some _) -> raise (new Exception("should not happen where latestValue is None and direction is not"))
-                )
-
-            let change = firstValue.Value - latestValue.Value
+                {trend with streak = streak; change = finalChange; value = breakdown.percentAbove; direction = direction}
             
-            match direction with
-            | Some s -> {streak = streak; direction = s; change = change}
-            | None -> {streak = 0; direction = Up; change = 0m}
+            let initValue = {streak = 0; direction = Up; change = 0m; value = smaBreakdowns.Head.percentAbove}
+
+            let trend =
+                smaBreakdowns
+                |> List.skip 1
+                |> List.fold folder initValue
+
+            match trend.streak with
+            | 0 -> {trend with streak = 1}
+            | _ -> trend
 
         let calculateForIndustry (smaBreakdowns:list<IndustrySMABreakdown>) =
             let justBreakdowns = smaBreakdowns |> List.map (fun x -> x.breakdown)

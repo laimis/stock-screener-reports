@@ -79,9 +79,10 @@ module Reports =
                         match reader.string "direction" with
                             | "up" -> StockScreenerReports.Core.Up
                             | "down" -> StockScreenerReports.Core.Down
-                            | _ -> StockScreenerReports.Core.Up
+                            | x -> failwith $"invalid trend direction: {x}"
                     );
                     change = reader.decimal "change";
+                    value = (reader.decimal "above") / (reader.decimal "below" + reader.decimal "above");
                 }
             );
             above = reader.int "above";

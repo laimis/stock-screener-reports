@@ -173,9 +173,10 @@ type Trend =
         streak: int;
         direction: TrendDirection;
         change: decimal;
+        value: decimal;
     }
 
-    static member blank() = { streak = 0; direction = Up; change = 0.0m }
+    static member blank() = { streak = 0; direction = Up; change = 0.0m; value = 0.0m; }
     member this.streakRate =
         match this.streak with
             | 0 -> 0.0m

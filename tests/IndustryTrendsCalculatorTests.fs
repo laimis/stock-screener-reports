@@ -82,6 +82,30 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
         Assert.Equal(-40m, System.Math.Round(trend.change, 2))
 
     [<Fact>]
+    let ``test simple trends``() =
+        let runTest data streak change direction =
+            let trend = data |> generateBreakdowns |> TrendsCalculator.calculateForIndustry
+
+            Assert.Equal(streak, trend.streak)
+            Assert.Equal(change, trend.change)
+            Assert.Equal(direction, trend.direction)
+
+        runTest [(4, 10); (2, 10); (0, 10)] 2 -40m Down
+        runTest [(4, 10); (0, 10); (0, 10)] 2 -40m Down
+        runTest [(4, 10); (6, 10); (8, 10); ] 2 40m Up
+        runTest [(4, 10); (6, 10); (8, 10); (6,10)] 1 -20m Down
+        
+
+    [<Fact>]
+    let ``simple trend of zeros`` () =
+        let data = [(0, 6); (0, 6)]
+        let trend = data |> generateBreakdowns |> TrendsCalculator.calculateForIndustry
+
+        Assert.Equal(1, trend.streak)
+        Assert.Equal(0m, trend.change)
+        Assert.Equal(Up, trend.direction)
+
+    [<Fact>]
     let ``residential construction trend works``() =
         let trend = TrendsCalculator.calculateForIndustry sampleResidentialConstructionTrend
 

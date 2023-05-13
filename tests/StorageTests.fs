@@ -180,7 +180,7 @@ type StorageTests(output:ITestOutputHelper) =
         // in real app
         let date = System.DateTime.UtcNow.AddDays(-100)
 
-        let trend = {streak=7;direction=Up;change=121m}
+        let trend = {streak=7;direction=Up;change=121m;value=100m;}
 
         let (industrySmaBreakdown:IndustrySMABreakdown) = {
             industry = "testindustry";
