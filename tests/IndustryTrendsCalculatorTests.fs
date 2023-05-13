@@ -138,8 +138,7 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
 
         let cycle = trendWithCycle.cycle
         Assert.Equal(0.0, cycle.age.TotalDays, 0.01)
-        // TODO: fix high advancing based on low point advancing
-        // Assert.Equal(0.0, cycle.highPointAge.TotalDays, 0.01)
+        Assert.Equal(0.0, cycle.highPointAge.TotalDays, 0.01)
         Assert.Equal(0.0m, cycle.highPointValue)
         Assert.Equal(0.0m, cycle.lowPointValue)
 
@@ -158,9 +157,8 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
 
         let cycle = trendWithCycle.cycle
         Assert.Equal(13.0, cycle.age.TotalDays, 0.01)
-        // TODO: fix high advancing based on low point advancing
-        // Assert.Equal(0.0, cycle.highPointAge.TotalDays, 0.01)
-        // Assert.Equal(0.0m, cycle.highPointValue)
+        Assert.Equal(2.0, cycle.highPointAge.TotalDays, 0.01)
+        Assert.Equal(61m, Math.Round(cycle.highPointValue,0))
         Assert.Equal(float 13.04m, float cycle.lowPointValue, 0.02)
 
     [<Fact>]

@@ -60,7 +60,10 @@ namespace StockScreenerReports.Core
                     let highPoint =
                         match cycle.highPointValue with
                         | x when x < breakdown.percentAbove -> currentPoint
-                        | _ -> cycle.highPoint
+                        | _ ->
+                            match cycle.highPointDate < lowPoint.date with
+                            | true -> currentPoint
+                            | false -> cycle.highPoint
 
                     let newCycle = {
                         lowPoint = lowPoint;
