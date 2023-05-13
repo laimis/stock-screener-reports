@@ -34,6 +34,19 @@ module Constants =
     [<Literal>]
     let ColorBlack = "#111111"
 
+    [<Literal>]
+    let SMA20 = 20
+    
+    [<Literal>]
+    let SMA200 = 200
+    let SMAS = [SMA20; SMA200]
+
+    let mapSmaToColor sma =
+        match sma with
+        | SMA20 -> ColorRed
+        | SMA200 -> ColorBlue
+        | _ -> ColorBlack
+
 
 type ScreenerInput = {
     name:string;

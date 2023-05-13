@@ -112,14 +112,14 @@ module IndustryDashboard =
                     let pct = System.Math.Round((double t.breakdown.above) * 100.0 / (double total), 2)
                     $"<b>{pct}%%</b> ({t.breakdown.above} / {total}) above <b>{t.breakdown.days} SMA</b>"
 
-            let hasTextRight = match sma with | 200 -> "has-text-right" | _ -> ""
+            let hasTextRight = match sma with | Constants.SMA200 -> "has-text-right" | _ -> ""
             div [_class $"column {hasTextRight}"] [rawText description]
             
         let breakdownSection =
             section [] [
                 h4 [] ["SMA Breakdown" |> str]
                 div [_class "columns"] (
-                    [20; 200]
+                    Constants.SMAS
                     |> List.map createBreakdownColumnDiv
                 )
             ]
@@ -128,9 +128,9 @@ module IndustryDashboard =
             let desc =
                 match trend with
                 | None -> "No trend found"
-                | Some t -> $"{t.trend}"
+                | Some t -> t.trend |> toHtml
 
-            let hasTextRight = match sma with | 200 -> "has-text-right" | _ -> ""
+            let hasTextRight = match sma with | Constants.SMA200 -> "has-text-right" | _ -> ""
 
             div [ _class $"column {hasTextRight}"] [
                 rawText desc
@@ -141,21 +141,16 @@ module IndustryDashboard =
             let createDataset smaInterval  : DataSet<decimal> =
                 let data =
                     industryName
-                    |> Reports.getIndustrySMABreakdownsForIndustry smaInterval dayOffset
+                    |> getIndustrySMABreakdownsForIndustry smaInterval dayOffset
                     |> List.map (fun u -> System.Math.Round(u.breakdown.percentAbove, 0))
-
-                let color = 
-                    match smaInterval with
-                    | 20 -> Constants.ColorRed
-                    | _ -> Constants.ColorBlue
                  
                 {
                     data = data
                     title = $"{smaInterval} SMA Trend"
-                    color = color
+                    color = smaInterval |> Constants.mapSmaToColor
                 }
 
-            let datasets = [20; 200] |> List.map createDataset
+            let datasets = Constants.SMAS |> List.map createDataset
 
             let smoothedDataSets = datasets |> Utils.smoothedDataSets 3
 
@@ -173,11 +168,12 @@ module IndustryDashboard =
                 |> generateChartElements "sma breakdown chart" Line (Some 100) smallChart labels
 
             let trendDiv = div [_class "columns"] (
-                [20;200] |> List.map (fun sma -> 
-                    industryName
-                    |> Reports.getIndustryTrend sma
-                    |> createTrendDiv sma
-                )
+                Constants.SMAS
+                    |> List.map (fun sma -> 
+                        industryName
+                        |> getIndustryTrend sma
+                        |> createTrendDiv sma
+                    )
             )
 
             div [] [

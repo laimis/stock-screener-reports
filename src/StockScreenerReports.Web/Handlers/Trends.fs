@@ -45,7 +45,7 @@ module Trends =
     let private generateSMATrendRows startDate endDate =
 
         let smaBreakdowPairs =
-            [20; 200]
+            Constants.SMAS
             |> List.map(fun sma -> 
                 (sma, sma |> getDailySMABreakdown startDate endDate)
             )
@@ -58,19 +58,13 @@ module Trends =
                 [description |> rawText] |> div [_class "column"]   
             )
 
-        let color sma =
-            match sma with
-            | 20 -> Constants.ColorRed
-            | 200 -> Constants.ColorBlue
-            | _ -> Constants.ColorBlack
-
         let datasets:list<Charts.DataSet<decimal>> =
             smaBreakdowPairs
             |> List.map (fun (sma,breakdowns) ->
                 {
                     data = breakdowns |> List.map (fun breakdown -> breakdown.percentAboveRounded)
                     title = $"SMA {sma}"
-                    color = sma |> color 
+                    color = sma |> Constants.mapSmaToColor 
                 }
             )
 
@@ -158,7 +152,7 @@ module Trends =
                 let dateToUse = d |> Utils.convertToDateString
 
                 let upAndDowns = 
-                    [20; 200]
+                    Constants.SMAS
                     |> List.map (fun days -> days |> getIndustryTrendBreakdown dateToUse)
                 
                 let positiveClass = "has-text-success has-text-weight-bold"

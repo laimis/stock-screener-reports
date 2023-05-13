@@ -10,7 +10,7 @@ module IndustriesDashboard =
     open StockScreenerReports.Core
     
 
-    let private generateIndustry20And200Table() =
+    let private generateIndustrySMATable() =
         let latestDate = Reports.getIndustrySMABreakdownLatestDate()
         let formattedDate = latestDate |> Utils.convertToDateString
 
@@ -135,7 +135,7 @@ module IndustriesDashboard =
     let handler : HttpHandler  =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
 
-            let industriesTable = generateIndustry20And200Table()
+            let industriesTable = generateIndustrySMATable()
 
             let jobStatusRow = IndustryTrendsJob |> Utils.genericJobStatusGet |> generateJobStatusDiv
 

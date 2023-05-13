@@ -112,14 +112,8 @@ module Dashboard =
         let toDescription (sma:int) (trend:Trend) =
             $"<b>SMA {sma}:</b> {trend |> Views.toHtml}"
 
-        let toColor (sma:int) =
-            match sma with
-            | 20 -> Constants.ColorRed
-            | 200 -> Constants.ColorBlue
-            | _ -> Constants.ColorBlack
-
         let breakdowns =
-            [20; 200]
+            Constants.SMAS
             |> List.map (fun sma ->
                 let smaBreakdown = sma |> getDailySMABreakdown startDate endDate
                 (sma, smaBreakdown)
@@ -131,7 +125,7 @@ module Dashboard =
                 {
                     data = smaBreakdown |> List.map (fun breakdown -> breakdown.percentAboveRounded)
                     title = $"SMA {sma}"
-                    color = sma |> toColor
+                    color = sma |> Constants.mapSmaToColor
                 }   
             )
 
@@ -149,7 +143,7 @@ module Dashboard =
                 (
                     breakdowns
                     |> List.map (fun (sma, breakdown) ->
-                        let hasTextRight = match sma with | 200 -> "has-text-right" | _ -> ""
+                        let hasTextRight = match sma with | Constants.SMA200 -> "has-text-right" | _ -> ""
 
                         div [ _class $"column {hasTextRight}" ] [
                             breakdown

@@ -100,7 +100,7 @@ match runSMAUpdates() with
     
     // pull above and below 20 and 200 for each industry, and store the results
     let knownIndustries = Storage.getIndustries()
-    let smas = [20; 200]
+    let smas = Constants.SMAS
 
     let industrySmaPairs = knownIndustries |> Seq.map (fun industry -> smas |> List.map (fun sma -> (industry, sma))) |> Seq.concat
 
@@ -153,7 +153,7 @@ match runTrendsMigration() with
 
     knownIndustries
     |> Seq.iter (fun industry -> 
-        [20; 200]
+        Constants.SMAS
         |> List.iter(fun days -> 
 
             let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustryAndDateRange days startDate endDate

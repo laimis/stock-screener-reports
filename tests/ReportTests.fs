@@ -259,14 +259,26 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``get stock SMA breakdown works`` () =
-        let (above20, below20) = Reports.getStockSMABreakdown 20
-        let (above200, below200) = Reports.getStockSMABreakdown 200
+        let breakdowns =
+            Constants.SMAS |> List.map (fun sma -> Reports.getStockSMABreakdown sma)
 
-        Assert.True(above20 > 0)
-        Assert.True(below20 > 0)
-        Assert.True(above200 > 0)
-        Assert.True(below200 > 0)
-        Assert.True(Math.Abs(above20 + below20 - above200 - below200) <= 1) // sometimes they are off by one, something finviz
+        // we collapse tuples into array and check each member to be above 0
+        breakdowns
+            |> List.collect (fun pair -> [pair |> fst; pair |> snd])
+            |> List.iter (fun breakdown ->
+                Assert.True(breakdown > 0)
+            )
+
+        // we also add above and belows for both smas and make sure they are close
+        let sums = breakdowns |> List.map (fun pair -> (pair |> fst) + (pair |> snd))
+
+        let pairwise = 
+            sums
+            |> List.pairwise
+            |> List.map (fun (a,b) -> Math.Abs(a - b))
+            |> List.head
+
+        Assert.True(pairwise <= 1) // sometimes they are off by one, something finviz
 
     [<Fact>]
     let ``get daily SMA breakdowns works`` () =
@@ -285,7 +297,7 @@ type ReportTests(output:ITestOutputHelper) =
         let latestDate = Reports.getIndustrySMABreakdownLatestDate()
         let formattedDate = latestDate |> Utils.convertToDateString
 
-        let results = Reports.getIndustryTrends formattedDate 200
+        let results = Constants.SMA200 |> Reports.getIndustryTrends formattedDate
         Assert.NotEmpty(results)
 
     [<Fact>]
@@ -320,7 +332,7 @@ type ReportTests(output:ITestOutputHelper) =
             |> Reports.getIndustryTrendsLastKnownDateAsOf 
             |> Option.get |> Utils.convertToDateString
 
-        [20; 200]
+        Constants.SMAS
         |> List.iter (fun days ->
             let (up, down) = Reports.getIndustryTrendBreakdown dateToUse days
             Assert.True(up > 0)

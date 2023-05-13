@@ -19,7 +19,7 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
                     above = above;
                     below = total - above;
                     date = DateTime.UtcNow.AddDays(index);
-                    days = 200;
+                    days = Constants.SMA20;
                 }
             }
         )
