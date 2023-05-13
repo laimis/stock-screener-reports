@@ -219,7 +219,47 @@ type IndustryTrend =
             "{0:N2}%",
             ((decimal this.above) / (decimal (this.below + this.above)) * 100m)
         )
-        
+
+type CyclePoint =
+    {
+        date: System.DateTime;
+        value: decimal;
+    }
+
+    static member create (smaBreakdown:SMABreakdown) = 
+        {
+            date = smaBreakdown.date;
+            value = smaBreakdown.percentAbove
+        }
+
+type MarketCycle =
+    {
+        lowPoint: CyclePoint;
+        highPoint: CyclePoint;
+        currentPoint: CyclePoint;
+    }
+
+    member this.age =
+        this.currentPoint.date - this.lowPoint.date
+
+    member this.ageFormatted =
+        System.String.Format("{0:N0} days", this.age.TotalDays)
+
+    member this.highPointAge =
+        this.currentPoint.date - this.highPoint.date
+
+    member this.highPointAgeFormatted =
+        System.String.Format("{0:N0} days", this.highPointAge.TotalDays)
+
+    member this.lowPointValue = this.lowPoint.value
+
+    member this.highPointValue = this.highPoint.value
+
+type TrendWithCycle =
+    {
+        trend: Trend;
+        cycle: MarketCycle;
+    }
 
 type JobStatus =
     | Success

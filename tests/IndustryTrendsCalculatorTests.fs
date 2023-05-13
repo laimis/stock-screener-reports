@@ -18,68 +18,98 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
                 breakdown = {
                     above = above;
                     below = total - above;
-                    date = DateTime.UtcNow.AddDays(index);
+                    date = DateTime.UtcNow.AddDays(-list.Length).AddDays(index);
                     days = Constants.SMA20;
                 }
             }
         )
-    let testDataDecreasingTrend =
-        [(1, 10); (8, 10); (7, 10)]
-        |> generateBreakdowns
-
-    let testDataIncreasingTrend =
-        [(6, 10); (7, 10); (8, 10)]
-        |> generateBreakdowns
-
-    let trendFromZero =
-        [(0, 10); (0, 10); (0, 10); (7, 10); (8, 10)]
-        |> generateBreakdowns
-
-    let sampleCopperTrend =
-        [(0, 4);(0, 4);(1, 4);(2, 4);(2, 4);(1, 4);(1, 5);(1, 5);(1, 5);(1, 5);(1, 5);(2, 5);(5, 5);(5, 5);(5, 5);(5, 5);(1, 5);(2, 5);(0, 5);(0, 5);]
-        |> generateBreakdowns
-
-    let sampleResidentialConstructionTrend =
-        [(22, 22);(22, 22);(22, 22);(22, 22);(22, 22);(20, 22);(20, 22);(19, 22);(21, 22);(21, 22);(19, 22);(15, 22);(7, 22);(3, 23);(3, 23);(6, 23);(4, 23);(7, 23);(9, 23);(9, 23);(10, 23);(13, 23);(9, 23);(8, 23);(14, 23);(10, 23);(3, 23);]
-        |> generateBreakdowns
 
     let sampleLumberProduction =
         [(3, 5);(3, 5);(3, 5);(2, 5);(2, 5);(3, 5);(4, 5);(4, 5);(4, 5);(3, 5);(3, 5);(3, 5);(3, 5);(3, 5);(4, 5);(4, 5);(3, 5);(3, 5);(3, 5);(4, 5);(5, 5);(4, 5);(3, 5);(1, 5);(1, 5);(1, 5);(1, 5);(1, 5);(0, 5);(0, 5);(0, 5);(0, 5);(2, 5);(1, 5);(0, 5);(1, 5);(0, 5);(1, 5);]
         |> generateBreakdowns
 
+    let testDataDecreasingTrend =
+        [(1, 10); (8, 10); (7, 10)]
+        |> generateBreakdowns
+
     [<Fact>]
     let ``trending down works`` () =
             
-        let trend = TrendsCalculator.calculateForIndustry testDataDecreasingTrend
+        let trendWithCycle = TrendsCalculator.calculateTrendAndCycleForIndustry testDataDecreasingTrend
+
+        let trend = trendWithCycle.trend
         
         Assert.Equal(1, trend.streak)
         Assert.Equal(Down, trend.direction)
         Assert.Equal(-10m, System.Math.Round(trend.change, 2))
 
+        let cycle = trendWithCycle.cycle
+
+        Assert.Equal(2.0, cycle.age.TotalDays, 0.01)
+        Assert.Equal(1.0, cycle.highPointAge.TotalDays, 0.01)
+        Assert.Equal(80.0m, cycle.highPointValue)
+        Assert.Equal(10.0m, cycle.lowPointValue)
+
+
+    let testDataIncreasingTrend =
+        [(6, 10); (7, 10); (8, 10)]
+        |> generateBreakdowns
+
     [<Fact>]
     let ``trending up works`` () =
             
-        let trend = TrendsCalculator.calculateForIndustry testDataIncreasingTrend
-        
+        let trendWithCycle = TrendsCalculator.calculateTrendAndCycleForIndustry testDataIncreasingTrend
+        let trend = trendWithCycle.trend
         Assert.Equal(2, trend.streak)
         Assert.Equal(Up, trend.direction)
         Assert.Equal(20m, System.Math.Round(trend.change, 2))
 
+        let cycle = trendWithCycle.cycle
+
+        Assert.Equal(2.0, cycle.age.TotalDays, 0.01)
+        Assert.Equal(0.0, cycle.highPointAge.TotalDays, 0.01)
+        Assert.Equal(80.0m, cycle.highPointValue)
+        Assert.Equal(60.0m, cycle.lowPointValue)
+
+    let trendFromZero =
+        [(0, 10); (0, 10); (0, 10); (7, 10); (8, 10)]
+        |> generateBreakdowns
+
     [<Fact>]
     let ``encountering zero should stop``() =
-        let trend = TrendsCalculator.calculateForIndustry trendFromZero
+        let trendWithCycle = TrendsCalculator.calculateTrendAndCycleForIndustry trendFromZero
 
+        let trend = trendWithCycle.trend
         Assert.Equal(2, trend.streak)
         Assert.Equal(Up, trend.direction)
         Assert.Equal(80m, System.Math.Round(trend.change, 2))
 
+        let cycle = trendWithCycle.cycle
+        Assert.Equal(2.0, cycle.age.TotalDays, 0.01)
+        Assert.Equal(0.0, cycle.highPointAge.TotalDays, 0.01)
+        Assert.Equal(80.0m, cycle.highPointValue)
+        Assert.Equal(0.0m, cycle.lowPointValue)
+
+    let sampleCopperTrend =
+        [(0, 4);(0, 4);(1, 4);(2, 4);(2, 4);(1, 4);(1, 5);(1, 5);(1, 5);(1, 5);(1, 5);(2, 5);(5, 5);(5, 5);(5, 5);(5, 5);(1, 5);(2, 5);(0, 5);(0, 5);]
+        |> generateBreakdowns
+
     [<Fact>]
     let ``copper trend works``() =
-        let trend = TrendsCalculator.calculateForIndustry sampleCopperTrend
+        let trendWithCycle = TrendsCalculator.calculateTrendAndCycleForIndustry sampleCopperTrend
 
+        let trend = trendWithCycle.trend
         Assert.Equal(2, trend.streak)
         Assert.Equal(Down, trend.direction)
         Assert.Equal(-40m, System.Math.Round(trend.change, 2))
+
+        // TODO: will need a pass that adjusts high point age to be the same as the cycle age
+        // let cycle = trendWithCycle.cycle
+        // Assert.Equal(0.0, cycle.age.TotalDays, 0.01)
+        // Assert.Equal(0.0, cycle.highPointAge.TotalDays, 0.01)
+        // Assert.Equal(0.0m, cycle.highPointValue)
+        // Assert.Equal(0.0m, cycle.lowPointValue)
+
 
     [<Fact>]
     let ``test simple trends``() =
@@ -99,19 +129,39 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``simple trend of zeros`` () =
         let data = [(0, 6); (0, 6)]
-        let trend = data |> generateBreakdowns |> TrendsCalculator.calculateForIndustry
+        let trendWithCycle = data |> generateBreakdowns |> TrendsCalculator.calculateTrendAndCycleForIndustry
 
+        let trend = trendWithCycle.trend
         Assert.Equal(1, trend.streak)
         Assert.Equal(0m, trend.change)
         Assert.Equal(Up, trend.direction)
 
+        let cycle = trendWithCycle.cycle
+        Assert.Equal(0.0, cycle.age.TotalDays, 0.01)
+        // TODO: fix high advancing based on low point advancing
+        // Assert.Equal(0.0, cycle.highPointAge.TotalDays, 0.01)
+        Assert.Equal(0.0m, cycle.highPointValue)
+        Assert.Equal(0.0m, cycle.lowPointValue)
+
+    let sampleResidentialConstructionTrend =
+        [(22, 22);(22, 22);(22, 22);(22, 22);(22, 22);(20, 22);(20, 22);(19, 22);(21, 22);(21, 22);(19, 22);(15, 22);(7, 22);(3, 23);(3, 23);(6, 23);(4, 23);(7, 23);(9, 23);(9, 23);(10, 23);(13, 23);(9, 23);(8, 23);(14, 23);(10, 23);(3, 23);]
+        |> generateBreakdowns
+
     [<Fact>]
     let ``residential construction trend works``() =
-        let trend = TrendsCalculator.calculateForIndustry sampleResidentialConstructionTrend
+        let trendWithCycle = TrendsCalculator.calculateTrendAndCycleForIndustry sampleResidentialConstructionTrend
 
+        let trend = trendWithCycle.trend
         Assert.Equal(2, trend.streak)
         Assert.Equal(Down, trend.direction)
         Assert.Equal(-47.83m, System.Math.Round(trend.change, 2))
+
+        let cycle = trendWithCycle.cycle
+        Assert.Equal(13.0, cycle.age.TotalDays, 0.01)
+        // TODO: fix high advancing based on low point advancing
+        // Assert.Equal(0.0, cycle.highPointAge.TotalDays, 0.01)
+        // Assert.Equal(0.0m, cycle.highPointValue)
+        Assert.Equal(float 13.04m, float cycle.lowPointValue, 0.02)
 
     [<Fact>]
     let ``lumber production trend works``() =

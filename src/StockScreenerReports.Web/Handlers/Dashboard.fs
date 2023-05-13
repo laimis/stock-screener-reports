@@ -145,9 +145,10 @@ module Dashboard =
                     |> List.map (fun (sma, breakdown) ->
                         let hasTextRight = match sma with | Constants.SMA200 -> "has-text-right" | _ -> ""
 
+                        let trendWithCycle = breakdown |> TrendsCalculator.calculate
+                        
                         div [ _class $"column {hasTextRight}" ] [
-                            breakdown
-                            |> TrendsCalculator.calculate
+                            trendWithCycle.trend
                             |> toDescription sma
                             |> rawText
                         ]

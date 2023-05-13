@@ -2,13 +2,27 @@ namespace StockScreenerReports.Core
 
     module TrendsCalculator =
 
-        let calculate (smaBreakdowns:list<SMABreakdown>) : Trend =
+        let calculate (smaBreakdowns:list<SMABreakdown>) : TrendWithCycle =
 
-            let folder trendOption (breakdown:SMABreakdown) =
+            let folder (trendCycleOption:option<TrendWithCycle>) (breakdown:SMABreakdown) =
                  
-                match trendOption with
-                | None -> Some {streak = 0; direction = Up; change = 0m; value = breakdown.percentAbove}
-                | Some trend -> 
+                match trendCycleOption with
+                | None ->
+                    let trend = {streak = 0; direction = Up; change = 0m; value = breakdown.percentAbove}
+                    let cycle = {
+                        lowPoint = breakdown |> CyclePoint.create;
+                        highPoint = breakdown |> CyclePoint.create;
+                        currentPoint = breakdown |> CyclePoint.create;
+                    }
+
+                    Some {
+                        trend = trend;
+                        cycle = cycle;
+                    }
+                | Some trendCycle -> 
+                    let trend = trendCycle.trend
+                    let cycle = trendCycle.cycle
+
                     let delta = breakdown.percentAbove - trend.value
                     let change = trend.change + delta
 
@@ -35,16 +49,49 @@ namespace StockScreenerReports.Core
                             | x when x = trend.direction -> trend.streak + 1
                             | _ -> 1
 
-                    Some {trend with streak = streak; change = finalChange; value = breakdown.percentAbove; direction = direction}
+                    let currentPoint = breakdown |> CyclePoint.create
+
+                    let lowPoint = 
+                        match cycle.lowPointValue with
+                        | x when x > breakdown.percentAbove -> currentPoint
+                        | x when x = 0m && currentPoint.value = 0m -> currentPoint
+                        | _ -> cycle.lowPoint
+
+                    let highPoint =
+                        match cycle.highPointValue with
+                        | x when x < breakdown.percentAbove -> currentPoint
+                        | _ -> cycle.highPoint
+
+                    let newCycle = {
+                        lowPoint = lowPoint;
+                        highPoint = highPoint;
+                        currentPoint = currentPoint;
+                    }
+
+                    let newTrend = {
+                        trend with streak = streak; change = finalChange; value = breakdown.percentAbove; direction = direction
+                    }
+                    
+                    Some {
+                        trend = newTrend;
+                        cycle = newCycle;
+                    }
             
-            let trendOption =
+            let trendCycleOption =
                 smaBreakdowns
                 |> List.fold folder None
 
-            match trendOption.Value.streak with
-            | 0 -> {trendOption.Value with streak = 1}
-            | _ -> trendOption.Value
+            match trendCycleOption.Value.trend.streak with
+            | 0 -> {
+                    cycle = trendCycleOption.Value.cycle;
+                    trend = {trendCycleOption.Value.trend with streak = 1}
+                }
+            | _ -> trendCycleOption.Value
 
-        let calculateForIndustry (smaBreakdowns:list<IndustrySMABreakdown>) =
+        let calculateTrendAndCycleForIndustry (smaBreakdowns:list<IndustrySMABreakdown>) =
             let justBreakdowns = smaBreakdowns |> List.map (fun x -> x.breakdown)
             calculate justBreakdowns
+
+        let calculateForIndustry (smaBreakdowns:list<IndustrySMABreakdown>) =
+            let trendWithCycle = smaBreakdowns |> calculateTrendAndCycleForIndustry
+            trendWithCycle.trend
