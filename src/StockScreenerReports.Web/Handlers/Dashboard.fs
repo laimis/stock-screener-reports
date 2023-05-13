@@ -109,8 +109,11 @@ module Dashboard =
 
     let private generateSMATrendRows startDate endDate =
 
-        let toDescription (sma:int) (trend:Trend) =
+        let mapTrendToHtml (sma:int) (trend:Trend) =
             $"<b>SMA {sma}:</b> {trend |> Views.toHtml}"
+
+        let mapMarketCycleToHtml (cycle:MarketCycle) =
+            $"Market cycle age: <b>{cycle.ageFormatted}</b>, high of <b>{cycle.highPointValueFormatted} {cycle.highPointAgeFormatted} ago</b>"
 
         let breakdowns =
             Constants.SMAS
@@ -133,7 +136,7 @@ module Dashboard =
 
         let labels = breakdowns.Head |> snd |> List.map (fun breakdown -> breakdown.date.ToString("MM/dd"))
         let charts = datasets |> Charts.generateChartElements "SMA breakdown" Charts.ChartType.Line (Some 100) Charts.smallChart labels
-        let smoothed = smoothedDataSets |> Charts.generateChartElements "SMA breakdown (smoothed)" Charts.ChartType.Line (Some 100) Charts.smallChart labels
+        let smoothedCharts = smoothedDataSets |> Charts.generateChartElements "SMA breakdown (smoothed)" Charts.ChartType.Line (Some 100) Charts.smallChart labels
 
         [
             section [ _class "content" ] [
@@ -146,11 +149,20 @@ module Dashboard =
                         let hasTextRight = match sma with | Constants.SMA200 -> "has-text-right" | _ -> ""
 
                         let trendWithCycle = breakdown |> TrendsCalculator.calculate
-                        
+                        let trend = trendWithCycle.trend
+                        let cycle = trendWithCycle.cycle
+
+                        let trendDiv = div [] [
+                            trend |> mapTrendToHtml sma |> rawText
+                        ]
+
+                        let cycleDiv = div [] [
+                            cycle |> mapMarketCycleToHtml |> rawText
+                        ]
+                            
                         div [ _class $"column {hasTextRight}" ] [
-                            trendWithCycle.trend
-                            |> toDescription sma
-                            |> rawText
+                            trendDiv
+                            cycleDiv
                         ]
                     )
                 )
@@ -159,7 +171,7 @@ module Dashboard =
             section [ _class "content" ] [
                 h4 [] [ str "SMA Breakdown (smoothed)" ]
             ]
-            div [_class "block"] smoothed
+            div [_class "block"] smoothedCharts
         ]
 
     let private createView (screeners:list<ScreenerResultReport>) =

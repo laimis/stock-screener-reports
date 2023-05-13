@@ -247,14 +247,13 @@ type MarketCycle =
 
     member this.highPointAge =
         this.currentPoint.date - this.highPoint.date
-
     member this.highPointAgeFormatted =
         System.String.Format("{0:N0} days", this.highPointAge.TotalDays)
+    member this.highPointValue = this.highPoint.value
+    member this.highPointValueFormatted = System.String.Format("{0:N0}%", this.highPointValue)
+    member this.highPointDate = this.highPoint.date
 
     member this.lowPointValue = this.lowPoint.value
-
-    member this.highPointValue = this.highPoint.value
-    member this.highPointDate = this.highPoint.date
 
 type TrendWithCycle =
     {
