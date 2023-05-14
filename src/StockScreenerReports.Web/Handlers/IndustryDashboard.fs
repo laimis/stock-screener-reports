@@ -98,11 +98,10 @@ module IndustryDashboard =
             earningsTable
         ]
 
-    let handler industryName =
-        
+    let private createSMABreakdownSection industryName =
         // load industry trends
         let createBreakdownColumnDiv sma =
-            let breakdown = industryName |> Reports.getMostRecentIndustrySMABreakdown sma
+            let breakdown = industryName |> getMostRecentIndustrySMABreakdown sma
 
             let description =
                 match breakdown with
@@ -115,15 +114,39 @@ module IndustryDashboard =
             let hasTextRight = match sma with | Constants.SMA200 -> "has-text-right" | _ -> ""
             div [_class $"column {hasTextRight}"] [rawText description]
             
-        let breakdownSection =
-            section [] [
-                h4 [] ["SMA Breakdown" |> str]
-                div [_class "columns"] (
-                    Constants.SMAS
-                    |> List.map createBreakdownColumnDiv
-                )
-            ]
+        section [] [
+            h4 [] ["SMA Breakdown" |> str]
+            div [_class "columns"] (
+                Constants.SMAS
+                |> List.map createBreakdownColumnDiv
+            )
+        ]
 
+    let private createHeaderSection industryName  =
+
+        let score = 
+            industryName
+            |> getIndustrySMABreakdownsForIndustry Constants.SMA20 30
+            |> MarketCycleScoring.interestScoreForIndustry
+
+        div [ _class "columns"] [
+            div [ _class "column"] [
+                h1 [] [ str industryName ]
+                div [] [ rawText $"Interest Score\u2122 <b>{score}</b>"]
+            ]
+            div [ _class "column has-text-right"] [
+                h5 [] [
+                    span [ _class "mx-1"] [
+                        industryName 
+                        |> Links.industryFinvizLink
+                        |> generateHrefNewTab "See it on Finviz"
+                    ]
+                ]
+            ]
+        ]
+
+    let handler industryName =
+        
         let createTrendDiv sma (trend:Option<IndustryTrend>) =
             let desc =
                 match trend with
@@ -306,21 +329,8 @@ module IndustryDashboard =
         ]
 
         let topLevel = [
-            div [ _class "columns"] [
-                div [ _class "column"] [
-                    h1 [] [ str industryName ]
-                ]
-                div [ _class "column has-text-right"] [
-                    h5 [] [
-                        span [ _class "mx-1"] [
-                            industryName 
-                            |> Links.industryFinvizLink
-                            |> generateHrefNewTab "See it on Finviz"
-                        ]
-                    ]
-                ]
-            ]
-            breakdownSection
+            createHeaderSection industryName 
+            createSMABreakdownSection industryName
         ]
 
         let earningsSection = createEarningsSection industryName
