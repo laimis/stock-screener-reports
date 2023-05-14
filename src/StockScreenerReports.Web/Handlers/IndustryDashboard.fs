@@ -128,7 +128,7 @@ module IndustryDashboard =
             let desc =
                 match trend with
                 | None -> "No trend found"
-                | Some t -> t.trend |> toHtml
+                | Some t -> t.trend |> trendToHtml
 
             let hasTextRight = match sma with | Constants.SMA200 -> "has-text-right" | _ -> ""
 

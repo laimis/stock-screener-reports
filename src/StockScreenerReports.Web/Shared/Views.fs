@@ -184,13 +184,16 @@ module Views =
 
         toNameCountTableWithLinksAndClickFunc title maxNumberOfRows linkFunction clickFunction listOfNameCountPairs
 
-    let toHtml (trend:Trend) =
+    let trendToHtml (trend:Trend) =
         let directionStr = 
             match trend.direction with
             | Up -> "Up"
             | Down -> "Down"
 
         $"Trending <b>{directionStr}</b> for <b>{trend.streak} days</b>, change of <b>{trend.change:N2}</b>"
+
+    let marketCycleToHtml (cycle:MarketCycle) =
+        $"started on {cycle.lowPointDateFormatted}, <b>{cycle.ageFormatted}</b> ago, high of <b>{cycle.highPointValueFormatted} {cycle.highPointAgeFormatted} ago</b>"
 
     let private generateHeaderRow =
         let titleDiv = div [ _class "column" ] [

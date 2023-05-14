@@ -54,8 +54,13 @@ module Trends =
             smaBreakdowPairs
             |> List.map(fun (sma, breakdowns) ->
                 let trendWithCycle = TrendsCalculator.calculate breakdowns
-                let description = $"<b>SMA {sma}:</b> {trendWithCycle.trend |> toHtml}"
-                [description |> rawText] |> div [_class "column"]   
+                let trendHtml = $"<b>SMA {sma}:</b> {trendWithCycle.trend |> trendToHtml}"
+                let cycleHtml = $"Market cycle: {trendWithCycle.cycle |> marketCycleToHtml}"
+
+                div [_class "column"] [
+                    div [] [trendHtml |> rawText]
+                    div [] [cycleHtml |> rawText]
+                ]   
             )
 
         let datasets:list<Charts.DataSet<decimal>> =

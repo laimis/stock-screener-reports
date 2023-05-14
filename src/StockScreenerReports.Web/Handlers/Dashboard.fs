@@ -110,10 +110,10 @@ module Dashboard =
     let private generateSMATrendRows startDate endDate =
 
         let mapTrendToHtml (sma:int) (trend:Trend) =
-            $"<b>SMA {sma}:</b> {trend |> Views.toHtml}"
+            $"SMA <b>{sma}</b>: {trend |> Views.trendToHtml}"
 
         let mapMarketCycleToHtml (cycle:MarketCycle) =
-            $"Market cycle age: <b>{cycle.ageFormatted}</b>, high of <b>{cycle.highPointValueFormatted} {cycle.highPointAgeFormatted} ago</b>"
+            $"Market cycle: {cycle |> Views.marketCycleToHtml}"
 
         let breakdowns =
             Constants.SMAS

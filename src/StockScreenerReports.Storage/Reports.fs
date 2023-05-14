@@ -784,21 +784,38 @@ module Reports =
     let getIndustryTrendBreakdown date days =
         let sql = @"
             SELECT
-                SUM(case WHEN direction = 'up' THEN 1 ELSE 0 END) up,
-                SUM(case WHEN direction = 'down' THEN 1 ELSE 0 END) down
+                COALESCE(SUM(case WHEN direction = 'up' THEN 1 ELSE 0 END),0) up,
+                COALESCE(SUM(case WHEN direction = 'down' THEN 1 ELSE 0 END),0) down
             FROM industrytrends
             WHERE 
                 date = date(@date)
                 AND days = @days"
         
-        cnnString
-        |> Sql.connect
-        |> Sql.query sql
-        |> Sql.parameters [
-            "@days", Sql.int days;
-            "@date", Sql.string date;
-        ]
-        |> Sql.executeRow (fun reader -> (reader.int "up", reader.int "down"))
+        // try catch in f#
+
+        try
+            cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters [
+                "@days", Sql.int days;
+                "@date", Sql.string date;
+            ]
+            |> Sql.executeRow (fun reader -> (reader.int "up", reader.int "down"))
+        with
+            | ex -> 
+                System.Console.WriteLine("Error: " + date + " " + days.ToString())
+                reraise()
+
+
+        // cnnString
+        // |> Sql.connect
+        // |> Sql.query sql
+        // |> Sql.parameters [
+        //     "@days", Sql.int days;
+        //     "@date", Sql.string date;
+        // ]
+        // |> Sql.executeRow (fun reader -> (reader.int "up", reader.int "down"))
 
     let getIndustryTrend days industry =
         let sql = @"

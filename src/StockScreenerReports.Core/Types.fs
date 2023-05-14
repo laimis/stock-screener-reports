@@ -254,6 +254,7 @@ type MarketCycle =
     member this.highPointDate = this.highPoint.date
 
     member this.lowPointValue = this.lowPoint.value
+    member this.lowPointDateFormatted = this.lowPoint.date.ToString("d")
 
 type TrendWithCycle =
     {
