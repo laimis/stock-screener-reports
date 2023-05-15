@@ -242,6 +242,9 @@ type MarketCycle =
     member this.age =
         this.currentPoint.date - this.lowPoint.date
 
+    member this.ageDays =
+        System.Math.Floor((this.currentPoint.date - this.lowPoint.date).TotalDays)
+
     member this.ageFormatted =
         System.String.Format("{0:N0} days", this.age.TotalDays)
 
@@ -255,6 +258,7 @@ type MarketCycle =
 
     member this.lowPointValue = this.lowPoint.value
     member this.lowPointDateFormatted = this.lowPoint.date.ToString("d")
+    member this.currentPointValue = this.currentPoint.value
 
 type TrendWithCycle =
     {

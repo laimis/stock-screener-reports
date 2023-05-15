@@ -321,3 +321,5 @@ module Views =
                 message |> str 
             ]
         ]
+
+    let interestScoreTm = "Interest Score\u2122"

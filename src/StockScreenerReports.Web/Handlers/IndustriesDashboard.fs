@@ -48,7 +48,7 @@ module IndustriesDashboard =
                 | Some update20 -> (update200.breakdown.percentAbove, update20.breakdown.percentAbove)
                 | None -> raise (System.Exception("Could not find 20 day SMA breakdown for " + key))
             )
-            |> List.map (fun (key, iu) ->
+            |> List.map (fun (industryName, iu) ->
 
                 let toSMACells (smaOption:Option<IndustrySMABreakdown>) (trendOption:Option<IndustryTrend>) =
                     let smaBreakdown =
@@ -71,16 +71,16 @@ module IndustriesDashboard =
 
                 counter <- counter + 1
 
-                let smaBreakdown = industrySMABreakdowns20 |> Map.tryFind key
-                let trend20 = industryTrend20 |> Map.tryFind key
-                let trend200 = industryTrend200 |> Map.tryFind key
+                let smaBreakdown = industrySMABreakdowns20 |> Map.tryFind industryName
+                let trend20 = industryTrend20 |> Map.tryFind industryName
+                let trend200 = industryTrend200 |> Map.tryFind industryName
                 
                 let sma20Cells = toSMACells smaBreakdown trend20
                 let sma200Cells = toSMACells (Some iu) trend200
 
                 let breakdownDiff breakdownMap =
                     let toCompare =
-                        match (breakdownMap |> Map.tryFind key) with
+                        match (breakdownMap |> Map.tryFind industryName) with
                         | Some update -> update
                         | None -> iu
 
@@ -103,7 +103,20 @@ module IndustriesDashboard =
                     industryLinks |> toTdWithNodes
                 ]
 
+                // TODO: precalculate these, it can get expensive
+                let smaBreakdowns = 
+                    industryName
+                    |> Reports.getIndustrySMABreakdownsForIndustry Constants.SMA20 ReportsConfig.dayRange
+                    
+                let interestScore1 =
+                    smaBreakdowns |> MarketCycleScoring.interestScoreAdding 
+
+                let interestScore2 = 
+                    smaBreakdowns |> MarketCycleScoring.interestScoreMultiplying
+
                 let diffCells = [
+                    interestScore1.ToString() |> toTd
+                    interestScore2.ToString() |> toTd
                     breakdownDiff smaBreakdown200_30days
                     breakdownDiff smaBreakdown200_60days
                 ]
@@ -126,6 +139,8 @@ module IndustriesDashboard =
             "Trend Change"
             "Trend Streak"
             "Rate"
+            (interestScoreTm + "+")
+            (interestScoreTm + "*") 
             "30 diff"
             "60 diff"
         ]

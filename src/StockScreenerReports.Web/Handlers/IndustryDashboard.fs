@@ -124,15 +124,20 @@ module IndustryDashboard =
 
     let private createHeaderSection industryName  =
 
-        let score = 
+        let breakdowns = 
             industryName
-            |> getIndustrySMABreakdownsForIndustry Constants.SMA20 30
-            |> MarketCycleScoring.interestScoreForIndustry
+            |> getIndustrySMABreakdownsForIndustry Constants.SMA20 ReportsConfig.dayRange
+            
+        let score = breakdowns |> MarketCycleScoring.interestScoreComponents
+
+        let trendWithCycle = TrendsCalculator.calculateTrendAndCycleForIndustry breakdowns
 
         div [ _class "columns"] [
             div [ _class "column"] [
                 h1 [] [ str industryName ]
-                div [] [ rawText $"Interest Score\u2122 <b>{score}</b>"]
+                div [] [ rawText $"{interestScoreTm} <b>{score}</b>"]
+                div [] [ trendWithCycle.trend |> Views.trendToHtml |> rawText]
+                div [] [ trendWithCycle.cycle |> Views.marketCycleToHtml |> rawText]
             ]
             div [ _class "column has-text-right"] [
                 h5 [] [

@@ -2,11 +2,15 @@ namespace StockScreenerReports.Core
 
 module MarketCycleScoring =
     
-    let interestScore (breakdowns:list<SMABreakdown>) =
+    type ScoreComponents = { direction:int; age:int; change:int }
+
+    let interestScoreComponents (industryBreakdowns:list<IndustrySMABreakdown>) =
+        let breakdowns = industryBreakdowns |> List.map (fun x -> x.breakdown)
         
         let trendWithCycle = breakdowns |> TrendsCalculator.calculate
 
-        // it has to be recent, like the last three days, ideally come from low point, like under 20
+        // TODO: ---> don't forget: it has to be recent, like the last three days, ideally come from low point, like under 20
+
         let trend = trendWithCycle.trend
         let cycle = trendWithCycle.cycle
 
@@ -16,9 +20,9 @@ module MarketCycleScoring =
             | Up -> 1
 
         let age =
-            match cycle.age with
-            | x when x < System.TimeSpan.FromDays(3.5) -> 10
-            | x when x < System.TimeSpan.FromDays(5.0) -> 5
+            match cycle.ageDays with
+            | x when x > 1 && x <= 3 -> 10
+            | x when x > 1 && x <= 6 -> 5
             | _ -> 0
 
 
@@ -29,8 +33,18 @@ module MarketCycleScoring =
             | x when x > 0m && x >= 20m  -> 3
             | _ -> 0
 
-        direction * (age + change)
+        { direction = direction; age = age; change = change }
+
+
     
-    let interestScoreForIndustry (breakdowns:list<IndustrySMABreakdown>) =
-        breakdowns |> List.map (fun x -> x.breakdown) |> interestScore
-    
+    let private interestScore componentFunction breakdowns =
+        let components = interestScoreComponents breakdowns
+        componentFunction components
+
+    let interestScoreAdding =
+        let func components = components.direction * (components.age + components.change)
+        interestScore func
+
+    let interestScoreMultiplying =
+        let func components = components.direction * components.age * components.change
+        interestScore func
