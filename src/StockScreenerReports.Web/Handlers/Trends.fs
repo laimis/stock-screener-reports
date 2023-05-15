@@ -220,11 +220,42 @@ module Trends =
                     )
                     |> List.concat
 
+                let industries = 
+                    getIndustrySMABreakdowns Constants.SMA20 date
+                    |> List.map (fun b -> b.industry)
+
+                let scoreRows = 
+                    industries
+                    |> List.map (fun industry ->
+                        let breakdowns = getIndustrySMABreakdownsForIndustry Constants.SMA20 ReportsConfig.dayRange industry
+                        let scoreAdd = MarketCycleScoring.interestScoreAdding breakdowns
+                        let scoreMult = MarketCycleScoring.interestScoreMultiplying breakdowns
+                        (industry, scoreAdd, scoreMult)
+                    )
+                    |> List.filter (fun (_, scoreAdd, scoreMult) -> scoreAdd > 0 || scoreMult > 0)
+                    |> List.sortByDescending (fun (_, scoreAdd, scoreMult) -> scoreAdd + scoreMult)
+                    |> List.map (fun (industry, scoreAdd, scoreMult) ->
+                        tr [] [
+                            industry |> Links.industryLink |> generateHref industry |> toTdWithNodeWithWidth 400
+                            scoreAdd.ToString() |> toTd
+                            scoreMult.ToString() |> toTd
+                        ]
+                    )
+
+                let industryScoresSection =
+                    section [] [
+                        h4 [] [str "Industry Scores"]
+                        scoreRows
+                        |> fullWidthTableWithSortableHeaderCells [ "Industry"; "Add"; "Mult" ]
+                    ]
+
+
                 let content = 
                     industryTrendSections
                     |> List.append [
                         h4 [] [str $"Industry Trend Breakdown"]
                         industryTrendBreakdownTable
+                        industryScoresSection
                     ]
 
                 div [_class "content"] content
