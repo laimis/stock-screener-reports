@@ -24,17 +24,6 @@ namespace StockScreenerReports.Core
             | DayOfWeek.Sunday -> newDate.AddDays(-2)
             | _ -> newDate
 
-        let listOfBusinessDates (startDate:DateTime,endDate:DateTime) = 
-            let holidays = ReportsConfig.getTradingHolidays()
-
-            Seq.initInfinite float
-            |> Seq.map (fun i -> startDate.AddDays(i))
-            |> Seq.takeWhile (fun date -> date <= endDate)
-            |> Seq.where( fun (date) ->
-                date.DayOfWeek = DayOfWeek.Saturday |> not &&
-                date.DayOfWeek = DayOfWeek.Sunday |> not &&
-                holidays |> List.contains date.Date |> not
-            )
 
         let convertToDateString (date:DateTime) =
             date.ToString("yyyy-MM-dd")

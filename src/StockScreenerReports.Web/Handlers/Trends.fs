@@ -32,7 +32,7 @@ module Trends =
 
         let data =
             parsedDateRange
-            |> Utils.listOfBusinessDates
+            |> ReportsConfig.listOfBusinessDates
             |> Seq.map(fun (date) ->
                 let found = mapped.TryFind date.Date
                 match found with
@@ -130,10 +130,20 @@ module Trends =
             div [_class "control"] ((applyButton::buttons) @ [resetButton])
         ]
 
-        let form = form [] ([formElements; scripts] |> List.concat)
+        let toggleFunctions = "toggleDisplayNone(document.getElementById('filterSummary')); toggleDisplayNone(document.getElementById('filterForm'))"
 
-        div [_class "content"] [
+        let form =
+            form [
+                _id "filterForm"
+                _style "display:none;"
+            ] ([formElements; scripts] |> List.concat)
+
+        div [ _class "content"] [
             h4 [] [ str "Filters" ]
+            div [
+                _id "filterSummary"
+                _onclick toggleFunctions
+                ] [ $"<b>{startDate}</b> - <b>{endDate}</b>" |> rawText ]
             form
         ]
 
@@ -254,7 +264,7 @@ module Trends =
 
         let highsMinusLowsChart =
             ReportsConfig.dateRange
-            |> Utils.listOfBusinessDates
+            |> ReportsConfig.listOfBusinessDates
             |> Seq.map(fun (date) ->
                 let high = 
                     match (newHighsDataMap |> Map.tryFind date.Date)

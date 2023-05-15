@@ -115,6 +115,18 @@ type ReportsConfig =
         let isHoliday = ReportsConfig.getTradingHolidays() |> List.contains dateTime
         not (isWeekend || isHoliday)
 
+    static member listOfBusinessDates (startDate:System.DateTime,endDate:System.DateTime) = 
+            let holidays = ReportsConfig.getTradingHolidays()
+
+            Seq.initInfinite float
+            |> Seq.map (fun i -> startDate.AddDays(i))
+            |> Seq.takeWhile (fun date -> date <= endDate)
+            |> Seq.where( fun (date) ->
+                date.DayOfWeek = System.DayOfWeek.Saturday |> not &&
+                date.DayOfWeek = System.DayOfWeek.Sunday |> not &&
+                holidays |> List.contains date.Date |> not
+            )
+
 type ScreenerResult = {
     ticker:StockTicker.T;
     company:string;
@@ -238,6 +250,9 @@ type MarketCycle =
         highPoint: CyclePoint;
         currentPoint: CyclePoint;
     }
+
+    member this.ageInMarketDays =
+        (this.lowPoint.date, this.currentPoint.date) |> ReportsConfig.listOfBusinessDates |> Seq.length
 
     member this.age =
         this.currentPoint.date - this.lowPoint.date

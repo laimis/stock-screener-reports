@@ -20,9 +20,9 @@ module MarketCycleScoring =
             | Up -> 1
 
         let age =
-            match cycle.ageDays with
+            match cycle.ageInMarketDays with
             | x when x > 1 && x <= 3 -> 10
-            | x when x > 1 && x <= 6 -> 5
+            | x when x > 1 && x <= 7 -> 5
             | _ -> 0
 
 
