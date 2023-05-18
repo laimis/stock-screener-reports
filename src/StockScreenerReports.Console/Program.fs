@@ -106,14 +106,14 @@ match runSMAUpdates() with
 
     let industriesUpdated =
         industrySmaPairs
-        |> Seq.map (fun (industry, sma) ->
-            Console.WriteLine($"Getting industry {industry} {sma} day sma breakdown")
+        |> Seq.map (fun (industry,sma) ->
+            Console.WriteLine($"Processing industry {industry} {sma} day sma breakdown")
+            (industry,sma))
+        |> Seq.map (fun (industry, sma) ->   
             let (above,below) = industry |> FinvizClient.getResultCountForIndustryAboveAndBelowSMA sma
             (industry, sma, above, below)
         )
         |> Seq.map (fun r ->
-            let (industry, days, _, _) = r
-            Console.WriteLine($"Saving industry {industry} {days} day sma breakdown")
             Storage.saveIndustrySMABreakdowns date r |> ignore
         )
         |> Seq.length
