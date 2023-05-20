@@ -20,6 +20,12 @@ type ParsingTests(output:ITestOutputHelper) =
         Assert.NotEmpty(results)
 
     [<Fact>]
+    let ``End to end earnings works`` () =
+        let earnings = FinvizClient.getEarnings()
+
+        Assert.NotEmpty(earnings)
+
+    [<Fact>]
     let ``Fetch count works`` () =
         let count = 
             screenerUrl
