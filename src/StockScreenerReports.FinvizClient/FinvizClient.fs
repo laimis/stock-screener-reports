@@ -3,6 +3,11 @@ namespace StockScreenerReports.FinvizClient
 module FinvizClient =
     open StockScreenerReports.Core
 
+    let mutable outputFunc = (fun str -> ())
+
+    let setOutputFunc (f:string -> unit) =
+        outputFunc <- f
+
     let private fetchScreenerHtml (url:string) =
         // make sure that we sleep a bit before each request
         System.Threading.Thread.Sleep(500)
@@ -77,15 +82,11 @@ module FinvizClient =
                     volume=volumeNode
                 }
 
-        let nodes = doc.DocumentNode.SelectNodes("//table[@id='screener-views-table']/tr")
+        // this code is very sensitive to changes on finviz side...
+        let nodes = doc.DocumentNode.SelectNodes("//table[@class='table-light is-new']")
 
         // 3rd node has the tickers
         nodes 
-            |> skipAndTake 3 1                      // skip three tr nodes, take one that has the tickers table
-            |> Seq.collect (fun n -> n.ChildNodes)  // this should contain #text, <td>, #text
-            |> skipAndTake 1 1                      // skip one #text, take one that has td
-            |> Seq.collect (fun n -> n.ChildNodes)  // this should contain #text <table> #text
-            |> skipAndTake 1 1                      // skip one #text, take table
             |> Seq.collect (fun n -> n.ChildNodes)  // this should be all tr nodes
             |> Seq.skip 2                           // skip what looks like text element and a header row
             |> Seq.map processScreenerRow

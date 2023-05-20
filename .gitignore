@@ -8,4 +8,6 @@ cache/
 *secret*
 node_modules/
 
+TestResults/
+
 *.json
