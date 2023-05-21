@@ -222,142 +222,143 @@ module IndustryDashboard =
             ]
         ]
 
-    let handler industryName =
+    let handler industryName : HttpHandler =
+        fun (next : HttpFunc) (ctx:Microsoft.AspNetCore.Http.HttpContext) ->
         
-        // load charts for each screener
-        let screeners = Storage.getScreeners()
+            let dateRange = getFilterSectionParams ctx
 
-        let days = ReportsConfig.dayRange
+            // load charts for each screener
+            let screeners = Storage.getScreeners()
 
-        let list = days |> Utils.businessDatesWithZeroPairs
+            let days = ReportsConfig.dayRange
 
-        let labels = list |> List.map (fun (u,_) -> u.ToString("MMM/dd"))
+            let list = days |> Utils.businessDatesWithZeroPairs
 
-        let datasets = 
-            screeners
-            |> List.map (fun screener ->
-                let dailyCounts = Reports.getDailyCountsForScreenerAndIndustry screener.id industryName days
+            let labels = list |> List.map (fun (u,_) -> u.ToString("MMM/dd"))
 
-                let mapped = dailyCounts |> Map.ofList
+            let datasets = 
+                screeners
+                |> List.map (fun screener ->
+                    let dailyCounts = Reports.getDailyCountsForScreenerAndIndustry screener.id industryName days
 
-                let data =
-                    list
-                    |> List.map(fun (date,_) ->
-                        let found = mapped.TryFind date
-                        match found with
-                        | Some c -> c
-                        | None -> 0
-                    )
-                
-                {
-                    data = data
-                    title = screener.name
-                    color = screener.id |> ReportsConfig.getBackgroundColorForScreenerId
-                }
-            )
+                    let mapped = dailyCounts |> Map.ofList
 
-        let screenerChart = 
-            section [] [
-                h4 [ _class "mt-4"] ["Screener Counts" |> str]
-                div [] (generateChartElements "screener chart" Bar None smallChart labels datasets)
+                    let data =
+                        list
+                        |> List.map(fun (date,_) ->
+                            let found = mapped.TryFind date
+                            match found with
+                            | Some c -> c
+                            | None -> 0
+                        )
+                    
+                    {
+                        data = data
+                        title = screener.name
+                        color = screener.id |> ReportsConfig.getBackgroundColorForScreenerId
+                    }
+                )
+
+            let screenerChart = 
+                section [] [
+                    h4 [ _class "mt-4"] ["Screener Counts" |> str]
+                    div [] (generateChartElements "screener chart" Bar None smallChart labels datasets)
+                ]
+
+            let resultRows =
+                industryName
+                |> getScreenerResultsForIndustry 50
+                |> List.map (fun screenerResult ->
+                    tr [] [
+                        screenerResult.date |> Utils.convertToDateString |> toTd
+                        (screenerResult.screenerid,screenerResult.screenername) |> generateScreenerTags |> toTdWithNode
+                        screenerResult.ticker       |> generateTickerLink   |> toTdWithNode
+                        screenerResult.marketCap    |> marketCapFormatted   |> toTd
+                        screenerResult.price        |> dollarFormatted      |> toTd
+                        screenerResult.change       |> percentFormatted     |> toTd
+                        screenerResult.volume       |> volumeFormatted      |> toTd
+                        screenerResult.ticker       |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
+                    ]
+                )
+
+            let headerNames = [
+                "Date";
+                "screener";
+                "Ticker";
+                "Market Cap";
+                "Price";
+                "Change";
+                "Volume";
+                "Trading View"
             ]
 
-        let resultRows =
-            industryName
-            |> getScreenerResultsForIndustry 50
-            |> List.map (fun screenerResult ->
-                tr [] [
-                    screenerResult.date |> Utils.convertToDateString |> toTd
-                    (screenerResult.screenerid,screenerResult.screenername) |> generateScreenerTags |> toTdWithNode
-                    screenerResult.ticker       |> generateTickerLink   |> toTdWithNode
-                    screenerResult.marketCap    |> marketCapFormatted   |> toTd
-                    screenerResult.price        |> dollarFormatted      |> toTd
-                    screenerResult.change       |> percentFormatted     |> toTd
-                    screenerResult.volume       |> volumeFormatted      |> toTd
-                    screenerResult.ticker       |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
-                ]
-            )
-
-        let headerNames = [
-            "Date";
-            "screener";
-            "Ticker";
-            "Market Cap";
-            "Price";
-            "Change";
-            "Volume";
-            "Trading View"
-        ]
-
-        let screenerResultsTable =
-            resultRows
-            |> fullWidthTableWithSortableHeaderCells headerNames
-        
-        // get stocks in industry
-        let stockTableHeaderCells = [
-            "Ticker"
-            "Company"
-            "Sector"
-            "Industry"
-            "Country"
-            "Trading View"
-        ]
-
-        let stocks = industryName |> Storage.getStocksByIndustry
+            let screenerResultsTable =
+                resultRows
+                |> fullWidthTableWithSortableHeaderCells headerNames
             
-        let stockTable =
-            stocks
-            |> List.sortBy (fun stock -> stock.ticker)
-            |> List.map (fun stock ->
-                tr [] [
-                    stock.ticker    |> StockTicker.value |> generateTickerLink |> toTdWithNode
-                    stock.company   |> toTd
-                    stock.sector    |> Links.sectorLink |> generateHref stock.sector |> toTdWithNode
-                    stock.industry  |> Links.industryLink |> generateHref stock.industry |> toTdWithNode
-                    stock.country   |> Links.countryLink |> generateHref stock.country |> toTdWithNode
-                    stock.ticker    |> StockTicker.value |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
-                ]
-            )
-            |> fullWidthTableWithSortableHeaderCells stockTableHeaderCells
-
-        let tickers = stocks |> List.map (fun stock -> stock.ticker |> StockTicker.value)
-        let stocksSection = section [_class "mt-5"] [
-            h4 [] [
-                $"Stocks in Industry ({stocks.Length})" |> str
-                small [ _class "is-pulled-right"] [
-                    generateHrefWithAttrs
-                        "Export"
-                        (industryName |> Links.industryExportLink)
-                        [(_class "button is-small is-primary") ; (_target "_blank")]
-                ]
-                small [ _class "is-pulled-right mr-2"] [
-                    generateHrefWithAttrs
-                        "NGTD Outcomes"
-                        ((industryName,tickers,[],"") |> Links.ngtdOutcomesReportLink)
-                        [(_class "button is-small is-primary mr-2") ; (_target "_blank")]
-                ]
+            // get stocks in industry
+            let stockTableHeaderCells = [
+                "Ticker"
+                "Company"
+                "Sector"
+                "Industry"
+                "Country"
+                "Trading View"
             ]
-            stockTable
-        ]
 
-        let dateRange = ReportsConfig.dateRangeAsStrings
-        
-        let topLevel = [
-            industryName |> createHeaderSection dateRange
-            industryName |> createSMABreakdownSection
-        ]
+            let stocks = industryName |> Storage.getStocksByIndustry
+                
+            let stockTable =
+                stocks
+                |> List.sortBy (fun stock -> stock.ticker)
+                |> List.map (fun stock ->
+                    tr [] [
+                        stock.ticker    |> StockTicker.value |> generateTickerLink |> toTdWithNode
+                        stock.company   |> toTd
+                        stock.sector    |> Links.sectorLink |> generateHref stock.sector |> toTdWithNode
+                        stock.industry  |> Links.industryLink |> generateHref stock.industry |> toTdWithNode
+                        stock.country   |> Links.countryLink |> generateHref stock.country |> toTdWithNode
+                        stock.ticker    |> StockTicker.value |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
+                    ]
+                )
+                |> fullWidthTableWithSortableHeaderCells stockTableHeaderCells
 
-        let earningsSection = createEarningsSection industryName
+            let tickers = stocks |> List.map (fun stock -> stock.ticker |> StockTicker.value)
+            let stocksSection = section [_class "mt-5"] [
+                h4 [] [
+                    $"Stocks in Industry ({stocks.Length})" |> str
+                    small [ _class "is-pulled-right"] [
+                        generateHrefWithAttrs
+                            "Export"
+                            (industryName |> Links.industryExportLink)
+                            [(_class "button is-small is-primary") ; (_target "_blank")]
+                    ]
+                    small [ _class "is-pulled-right mr-2"] [
+                        generateHrefWithAttrs
+                            "NGTD Outcomes"
+                            ((industryName,tickers,[],"") |> Links.ngtdOutcomesReportLink)
+                            [(_class "button is-small is-primary mr-2") ; (_target "_blank")]
+                    ]
+                ]
+                stockTable
+            ]
+            
+            let topLevel = [
+                industryName |> createHeaderSection dateRange
+                industryName |> createSMABreakdownSection
+            ]
 
-        let smaBreakdownsAndChartSections = industryName |> smaBreakdownsAndSMACharts days 
+            let earningsSection = createEarningsSection industryName
 
-        let contentSections =
-            [smaBreakdownsAndChartSections; screenerChart; earningsSection; screenerResultsTable; stocksSection]
-            |> List.append topLevel
+            let smaBreakdownsAndChartSections = industryName |> smaBreakdownsAndSMACharts days 
 
-        let view = div [_class "content"] contentSections
-        
-        [view] |> mainLayout $"{industryName} Industry Dashboard"
+            let contentSections =
+                [smaBreakdownsAndChartSections; screenerChart; earningsSection; screenerResultsTable; stocksSection]
+                |> List.append topLevel
+
+            let view = div [_class "content"] contentSections
+            
+            ([view] |> mainLayout $"{industryName} Industry Dashboard") next ctx
 
     let exportHandler industryName =
         setHttpHeader "Content-Type" "text/csv"
