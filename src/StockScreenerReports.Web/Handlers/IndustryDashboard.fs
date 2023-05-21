@@ -122,22 +122,29 @@ module IndustryDashboard =
             )
         ]
 
-    let private createHeaderSection industryName  =
+    let private createHeaderSection dateRange industryName  =
 
         let breakdowns = 
             industryName
             |> getIndustrySMABreakdownsForIndustry Constants.SMA20 ReportsConfig.dayRange
             
-        let score = breakdowns |> MarketCycleScoring.interestScoreComponents
+        let score =
+            breakdowns
+            |> MarketCycleScoring.interestScoreComponents
 
-        let trendWithCycle = TrendsCalculator.calculateTrendAndCycleForIndustry breakdowns
+        let trendWithCycle =
+            breakdowns
+            |> TrendsCalculator.calculateTrendAndCycleForIndustry
+
+        let startDate = dateRange |> fst
+        let endDate = dateRange |> snd
 
         div [ _class "columns"] [
             div [ _class "column"] [
                 h1 [] [ str industryName ]
                 div [] [ rawText $"{interestScoreTm} <b>{score}</b>"]
-                div [] [ trendWithCycle.trend |> Views.trendToHtml |> rawText]
-                div [] [ trendWithCycle.cycle |> Views.marketCycleToHtml |> rawText]
+                div [] [ trendWithCycle.trend |> trendToHtml |> rawText]
+                div [] [ trendWithCycle.cycle |> marketCycleToHtml |> rawText]
             ]
             div [ _class "column has-text-right"] [
                 h5 [] [
@@ -146,12 +153,13 @@ module IndustryDashboard =
                         |> Links.industryFinvizLink
                         |> generateHrefNewTab "See it on Finviz"
                     ]
+                    generateFilterSection startDate endDate 
                 ]
             ]
         ]
 
-    let handler industryName =
-        
+    let private smaBreakdownsAndSMACharts (dayOffset:int) industryName =
+
         let createTrendDiv sma (trend:Option<IndustryTrend>) =
             let desc =
                 match trend with
@@ -164,58 +172,57 @@ module IndustryDashboard =
                 rawText desc
             ]
 
-        let smaBreakdownCharts (dayOffset:int) =
-            
-            let createDataset smaInterval  : DataSet<decimal> =
-                let data =
-                    industryName
-                    |> getIndustrySMABreakdownsForIndustry smaInterval dayOffset
-                    |> List.map (fun u -> System.Math.Round(u.breakdown.percentAbove, 0))
-                 
-                {
-                    data = data
-                    title = $"{smaInterval} SMA Trend"
-                    color = smaInterval |> Constants.mapSmaToColor
-                }
-
-            let datasets = Constants.SMAS |> List.map createDataset
-
-            let smoothedDataSets = datasets |> Utils.smoothedDataSets 3
-
-            let labels = 
+        let createDataset smaInterval  : DataSet<decimal> =
+            let data =
                 industryName
-                |> Reports.getIndustrySMABreakdownsForIndustry 20 dayOffset
-                |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
-            
-            let charts =
-                datasets 
-                |> generateChartElements "sma breakdown chart" Line (Some 100) smallChart labels
+                |> getIndustrySMABreakdownsForIndustry smaInterval dayOffset
+                |> List.map (fun u -> System.Math.Round(u.breakdown.percentAbove, 0))
+                
+            {
+                data = data
+                title = $"{smaInterval} SMA Trend"
+                color = smaInterval |> Constants.mapSmaToColor
+            }
 
-            let smoothedCharts =
-                smoothedDataSets
-                |> generateChartElements "sma breakdown chart" Line (Some 100) smallChart labels
+        let datasets = Constants.SMAS |> List.map createDataset
 
-            let trendDiv = div [_class "columns"] (
-                Constants.SMAS
-                    |> List.map (fun sma -> 
-                        industryName
-                        |> getIndustryTrend sma
-                        |> createTrendDiv sma
-                    )
-            )
+        let smoothedDataSets = datasets |> Utils.smoothedDataSets 3
 
-            div [] [
-                section [] [
-                    h4 [] ["SMA Trend Charts" |> str]
-                    trendDiv
-                    div [] charts
-                ]
-                section [] [
-                    h4 [] ["SMA Trend Windowed (3)" |> str]
-                    div [] smoothedCharts
-                ]
+        let labels = 
+            industryName
+            |> Reports.getIndustrySMABreakdownsForIndustry 20 dayOffset
+            |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
+        
+        let charts =
+            datasets 
+            |> generateChartElements "sma breakdown chart" Line (Some 100) smallChart labels
+
+        let smoothedCharts =
+            smoothedDataSets
+            |> generateChartElements "sma breakdown chart" Line (Some 100) smallChart labels
+
+        let trendDiv = div [_class "columns"] (
+            Constants.SMAS
+                |> List.map (fun sma -> 
+                    industryName
+                    |> getIndustryTrend sma
+                    |> createTrendDiv sma
+                )
+        )
+
+        div [] [
+            section [] [
+                h4 [] ["SMA Trend Charts" |> str]
+                trendDiv
+                div [] charts
             ]
-            
+            section [] [
+                h4 [] ["SMA Trend Windowed (3)" |> str]
+                div [] smoothedCharts
+            ]
+        ]
+
+    let handler industryName =
         
         // load charts for each screener
         let screeners = Storage.getScreeners()
@@ -303,12 +310,12 @@ module IndustryDashboard =
             |> List.sortBy (fun stock -> stock.ticker)
             |> List.map (fun stock ->
                 tr [] [
-                    stock.ticker |> StockTicker.value |> generateTickerLink |> toTdWithNode
-                    stock.company |> toTd
-                    stock.sector |> Links.sectorLink |> generateHref stock.sector |> toTdWithNode
-                    stock.industry |> Links.industryLink |> generateHref stock.industry |> toTdWithNode
-                    stock.country |> Links.countryLink |> generateHref stock.country |> toTdWithNode
-                    stock.ticker |> StockTicker.value |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
+                    stock.ticker    |> StockTicker.value |> generateTickerLink |> toTdWithNode
+                    stock.company   |> toTd
+                    stock.sector    |> Links.sectorLink |> generateHref stock.sector |> toTdWithNode
+                    stock.industry  |> Links.industryLink |> generateHref stock.industry |> toTdWithNode
+                    stock.country   |> Links.countryLink |> generateHref stock.country |> toTdWithNode
+                    stock.ticker    |> StockTicker.value |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
                 ]
             )
             |> fullWidthTableWithSortableHeaderCells stockTableHeaderCells
@@ -333,15 +340,19 @@ module IndustryDashboard =
             stockTable
         ]
 
+        let dateRange = ReportsConfig.dateRangeAsStrings
+        
         let topLevel = [
-            createHeaderSection industryName 
-            createSMABreakdownSection industryName
+            industryName |> createHeaderSection dateRange
+            industryName |> createSMABreakdownSection
         ]
 
         let earningsSection = createEarningsSection industryName
 
+        let smaBreakdownsAndChartSections = industryName |> smaBreakdownsAndSMACharts days 
+
         let contentSections =
-            [(smaBreakdownCharts days); screenerChart; earningsSection; screenerResultsTable; stocksSection]
+            [smaBreakdownsAndChartSections; screenerChart; earningsSection; screenerResultsTable; stocksSection]
             |> List.append topLevel
 
         let view = div [_class "content"] contentSections

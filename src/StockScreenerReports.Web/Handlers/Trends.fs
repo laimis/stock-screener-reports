@@ -95,58 +95,6 @@ module Trends =
                 (Charts.generateChartElements "SMA breakdown (smoothed)" Charts.ChartType.Line (Some 100) Charts.smallChart labels smoothedDatasets)
         ]
 
-    let generateFilterSection startDate endDate = 
-        let offsets = [-30; -1; 1; 30]
-
-        let buttons = 
-            offsets
-            |> List.indexed
-            |> List.map( fun(index,offset) ->
-                button [ _class "button is-primary m-1"; _type "button"; _id $"applyFilters{index}" ] [ str $"{offset}" ]
-            )
-
-        let scripts = 
-            offsets
-            |> List.indexed
-            |> List.map( fun(index,offset) ->
-                script [ _type "text/javascript" ] [
-                    rawText $"document.getElementById('applyFilters{index}').addEventListener('click', function() {{ document.getElementById('dateAdjustment').value = {offset}; document.getElementById('applyFilters').click(); }});"
-                ]
-            )
-
-        let applyButton = button [ _class "button is-primary m-1"; _type "submit"; _id "applyFilters" ] [ str "Apply" ]
-        let resetButton = a [ _class "button is-secondary m-1"; _href Links.trends ] [ str "Reset" ]
-
-        let formElements = [
-            div [_class "field"] [
-                label [_class "label"; _for "startDate"] [str "Start Date"]
-                input [ _class "input"; _type "date"; _value startDate; _id "startDate"; _name "startDate" ]
-            ]
-            div [_class "field"] [
-                label [_class "label"; _for "endDate"] [str "End Date"]
-                input [ _class "input"; _type "date"; _value endDate; _id "endDate"; _name "endDate" ]
-            ]
-            input [ _class "input"; _type "hidden"; _value ""; _id "dateAdjustment"; _name "dateAdjustment"]
-            div [_class "control"] ((applyButton::buttons) @ [resetButton])
-        ]
-
-        let toggleFunctions = "toggleDisplayNone(document.getElementById('filterSummary')); toggleDisplayNone(document.getElementById('filterForm'))"
-
-        let form =
-            form [
-                _id "filterForm"
-                _style "display:none;"
-            ] ([formElements; scripts] |> List.concat)
-
-        div [ _class "content"] [
-            h4 [] [ str "Filters" ]
-            div [
-                _id "filterSummary"
-                _onclick toggleFunctions
-                ] [ $"<b>{startDate}</b> - <b>{endDate}</b>" |> rawText ]
-            form
-        ]
-
     let generateIndustriesSection date =
 
         let lastKnownDate =
@@ -369,42 +317,8 @@ module Trends =
 
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
         
-            let startDateParam = ctx.TryGetQueryStringValue "startDate"
-            let endDateParam = ctx.TryGetQueryStringValue "endDate"
-            let dateAdjustmentParam = ctx.TryGetQueryStringValue "dateAdjustment"
+            let dateRange = getFilterSectionParams ctx
 
-            let dateRange = ReportsConfig.dateRangeAsStrings
-
-            let startDate = 
-                match startDateParam with
-                    | Some s -> s
-                    | None -> dateRange |> fst
-
-            let endDate =
-                match endDateParam with
-                    | Some s -> s
-                    | None -> dateRange |> snd
-
-            let dateAdjustmentParamValue =
-                match dateAdjustmentParam with
-                    | Some s -> s
-                    | None -> ""
-
-            let adjustment =
-                match dateAdjustmentParamValue with
-                    | "" -> 0
-                    | _ -> int dateAdjustmentParamValue
-
-            let (adjustedStart, adjustedEnd) =
-                match adjustment with
-                    | 0 -> (startDate, endDate)  
-                    | _ ->
-                        let startDate = System.DateTime.Parse(startDate)
-                        let endDate = System.DateTime.Parse(endDate)
-                        let adjustedStart = startDate.AddDays(adjustment)
-                        let adjustedEnd = endDate.AddDays(adjustment)
-                        (adjustedStart |> Utils.convertToDateString, adjustedEnd |> Utils.convertToDateString)
-
-            let elementsToRender = generateElementsToRender (adjustedStart,adjustedEnd)
+            let elementsToRender = generateElementsToRender dateRange
 
             (elementsToRender |> mainLayout "All Screener Trends") next ctx
