@@ -369,7 +369,7 @@ module Reports =
                 )
             )
 
-    let private getDailyCountsForScreenerAndStockFilter id filterColumn filterValue days =
+    let private getDailyCountsForScreenerAndStockFilter id filterColumn filterValue dateRange =
         let sql = @$"
             SELECT 
                 date,count(*) as count
@@ -377,7 +377,7 @@ module Reports =
             JOIN stocks ON stocks.id = screenerresults.stockid
             WHERE 
                 screenerid = @screenerid
-                AND date >= current_date - @days
+                AND date BETWEEN date(@startDate) AND date(@endDate)
                 AND " + filterColumn + " = @" + filterColumn + "
             GROUP BY date
             ORDER BY date"
@@ -387,7 +387,8 @@ module Reports =
             |> Sql.query sql
             |> Sql.parameters [
                 "@screenerid", Sql.int id;
-                "@days", Sql.int days;
+                "@startDate", (dateRange |> fst |> Sql.string);
+                "@endDate", (dateRange |> snd |> Sql.string);
                 $"@{filterColumn}", Sql.string filterValue
             ]
             |> Sql.execute (fun reader -> 
@@ -397,14 +398,14 @@ module Reports =
                 )
             )
 
-    let getDailyCountsForScreenerAndSector id sector days =
-        getDailyCountsForScreenerAndStockFilter id "sector" sector days
+    let getDailyCountsForScreenerAndSector id sector =
+        getDailyCountsForScreenerAndStockFilter id "sector" sector
 
-    let getDailyCountsForScreenerAndIndustry id industry days =
-        getDailyCountsForScreenerAndStockFilter id "industry" industry days
+    let getDailyCountsForScreenerAndIndustry id industry =
+        getDailyCountsForScreenerAndStockFilter id "industry" industry
 
-    let getDailyCountsForScreenerAndCountry id country days =
-        getDailyCountsForScreenerAndStockFilter id "country" country days
+    let getDailyCountsForScreenerAndCountry id country =
+        getDailyCountsForScreenerAndStockFilter id "country" country
 
     let getScreenerResultsForTickerDayRange (ticker:StockScreenerReports.Core.StockTicker.T) days =
             
@@ -663,13 +664,13 @@ module Reports =
         ]
         |> Sql.execute industrySMABreakdownMapper
         
-    let getIndustrySMABreakdownsForIndustry days dayOffset industry =
+    let getIndustrySMABreakdownsForIndustry days dateRange industry =
         let sql = @"
             SELECT industry,date,days,above,below
             FROM IndustrySMABreakdowns
             WHERE industry = @industry
             AND days = @days
-            AND date >= current_date - @dayOffset
+            AND date BETWEEN date(@startDate) AND date(@endDate)
             ORDER BY date"
 
         cnnString
@@ -678,7 +679,8 @@ module Reports =
         |> Sql.parameters [
             "@industry", Sql.string industry;
             "@days", Sql.int days;
-            "@dayOffset", Sql.int dayOffset
+            "@startDate", dateRange |> fst |> Sql.string;
+            "@endDate", dateRange |> snd |> Sql.string;
         ]
         |> Sql.execute industrySMABreakdownMapper
 

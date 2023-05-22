@@ -106,7 +106,7 @@ module IndustriesDashboard =
                 // TODO: precalculate these, it can get expensive
                 let smaBreakdowns = 
                     industryName
-                    |> Reports.getIndustrySMABreakdownsForIndustry Constants.SMA20 ReportsConfig.dayRange
+                    |> Reports.getIndustrySMABreakdownsForIndustry Constants.SMA20 ReportsConfig.dateRangeAsStrings
                     
                 let interestScore1 =
                     smaBreakdowns |> MarketCycleScoring.interestScoreAdding 

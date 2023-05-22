@@ -126,7 +126,7 @@ module IndustryDashboard =
 
         let breakdowns = 
             industryName
-            |> getIndustrySMABreakdownsForIndustry Constants.SMA20 ReportsConfig.dayRange
+            |> getIndustrySMABreakdownsForIndustry Constants.SMA20 dateRange
             
         let score =
             breakdowns
@@ -158,7 +158,7 @@ module IndustryDashboard =
             ]
         ]
 
-    let private smaBreakdownsAndSMACharts (dayOffset:int) industryName =
+    let private smaBreakdownsAndSMACharts (dateRange) industryName =
 
         let createTrendDiv sma (trend:Option<IndustryTrend>) =
             let desc =
@@ -175,7 +175,7 @@ module IndustryDashboard =
         let createDataset smaInterval  : DataSet<decimal> =
             let data =
                 industryName
-                |> getIndustrySMABreakdownsForIndustry smaInterval dayOffset
+                |> getIndustrySMABreakdownsForIndustry smaInterval dateRange
                 |> List.map (fun u -> System.Math.Round(u.breakdown.percentAbove, 0))
                 
             {
@@ -190,7 +190,7 @@ module IndustryDashboard =
 
         let labels = 
             industryName
-            |> Reports.getIndustrySMABreakdownsForIndustry 20 dayOffset
+            |> Reports.getIndustrySMABreakdownsForIndustry 20 dateRange
             |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
         
         let charts =
@@ -227,30 +227,31 @@ module IndustryDashboard =
         
             let dateRange = getFilterSectionParams ctx
 
+            let startDate = dateRange |> fst |> Utils.convertToDateTime
+            let endDate = dateRange |> snd |> Utils.convertToDateTime
+
             // load charts for each screener
+            let tradingDates = (startDate,endDate) |> ReportsConfig.listOfBusinessDates
+
+            let labels = tradingDates |> Seq.map (fun u -> u.ToString("MMM/dd"))
+
             let screeners = Storage.getScreeners()
-
-            let days = ReportsConfig.dayRange
-
-            let list = days |> Utils.businessDatesWithZeroPairs
-
-            let labels = list |> List.map (fun (u,_) -> u.ToString("MMM/dd"))
-
             let datasets = 
                 screeners
                 |> List.map (fun screener ->
-                    let dailyCounts = Reports.getDailyCountsForScreenerAndIndustry screener.id industryName days
+                    let dailyCounts = getDailyCountsForScreenerAndIndustry screener.id industryName dateRange
 
                     let mapped = dailyCounts |> Map.ofList
 
                     let data =
-                        list
-                        |> List.map(fun (date,_) ->
+                        tradingDates
+                        |> Seq.map(fun (date) ->
                             let found = mapped.TryFind date
                             match found with
                             | Some c -> c
                             | None -> 0
                         )
+                        |> Seq.toList
                     
                     {
                         data = data
@@ -350,7 +351,7 @@ module IndustryDashboard =
 
             let earningsSection = createEarningsSection industryName
 
-            let smaBreakdownsAndChartSections = industryName |> smaBreakdownsAndSMACharts days 
+            let smaBreakdownsAndChartSections = industryName |> smaBreakdownsAndSMACharts dateRange 
 
             let contentSections =
                 [smaBreakdownsAndChartSections; screenerChart; earningsSection; screenerResultsTable; stocksSection]

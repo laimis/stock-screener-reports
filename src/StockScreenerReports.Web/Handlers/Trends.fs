@@ -95,10 +95,11 @@ module Trends =
                 (Charts.generateChartElements "SMA breakdown (smoothed)" Charts.ChartType.Line (Some 100) Charts.smallChart labels smoothedDatasets)
         ]
 
-    let generateIndustriesSection date =
+    let generateIndustriesSection dateRange =
 
         let lastKnownDate =
-            date
+            dateRange
+            |> snd
             |> getIndustryTrendsLastKnownDateAsOf
 
         match lastKnownDate with
@@ -169,13 +170,13 @@ module Trends =
                     |> List.concat
 
                 let industries = 
-                    getIndustrySMABreakdowns Constants.SMA20 date
+                    getIndustrySMABreakdowns Constants.SMA20 (dateRange |> snd)
                     |> List.map (fun b -> b.industry)
 
                 let scoreRows = 
                     industries
                     |> List.map (fun industry ->
-                        let breakdowns = getIndustrySMABreakdownsForIndustry Constants.SMA20 ReportsConfig.dayRange industry
+                        let breakdowns = getIndustrySMABreakdownsForIndustry Constants.SMA20 dateRange industry
                         let scoreAdd = MarketCycleScoring.interestScoreAdding breakdowns
                         let scoreMult = MarketCycleScoring.interestScoreMultiplying breakdowns
                         (industry, scoreAdd, scoreMult)
@@ -214,7 +215,7 @@ module Trends =
 
         let filters = generateFilterSection startDate endDate
 
-        let trendingUpAndDownIndustries = generateIndustriesSection endDate
+        let trendingUpAndDownIndustries = generateIndustriesSection dateRange
             
         let screeners = Storage.getScreeners()
 

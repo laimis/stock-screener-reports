@@ -127,7 +127,7 @@ match runSMAUpdates() with
         industrySmaPairs
         |> Seq.map (fun (industry, days) -> 
             
-            let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry days ReportsConfig.dayRange
+            let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry days ReportsConfig.dateRangeAsStrings
             let trend = breakdowns |> TrendsCalculator.calculateForIndustry
             let lastBreakdown = breakdowns |> List.last
             Console.WriteLine($"Saving industry {industry} trend: {trend.direction} {trend.streak} days with change of {trend.change}")
@@ -182,7 +182,7 @@ match runTestReports() with
 
     let smaBreakdowns = 
         industry
-        |> Reports.getIndustrySMABreakdownsForIndustry 20 ReportsConfig.dayRange
+        |> Reports.getIndustrySMABreakdownsForIndustry 20 ReportsConfig.dateRangeAsStrings
 
     smaBreakdowns
     |> List.iter (fun x -> Console.Write($"({x.breakdown.above}, {x.breakdown.above + x.breakdown.below});"))

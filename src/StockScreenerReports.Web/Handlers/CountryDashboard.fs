@@ -11,23 +11,24 @@ module CountryDashboard =
     let handler countryName =
         let screeners = Storage.getScreeners()
 
-        let days = ReportsConfig.dayRange
+        let dateRange = ReportsConfig.dateRange
+        let dateRangeAsStrings = ReportsConfig.dateRangeAsStrings
 
-        let list = days |> Utils.businessDatesWithZeroPairs
+        let list = dateRange |> ReportsConfig.listOfBusinessDates
 
         let charts = 
             screeners
             |> List.map (fun screener ->
-                let data = Reports.getDailyCountsForScreenerAndCountry screener.id countryName days
+                let data = Reports.getDailyCountsForScreenerAndCountry screener.id countryName dateRangeAsStrings
 
                 let mapped = data |> Map.ofList
 
                 list
-                |> List.map(fun (date,count) ->
+                |> Seq.map(fun (date) ->
                     let found = mapped.TryFind date
                     match found with
                     | Some c -> (date,c)
-                    | None -> (date,count)
+                    | None -> (date,0)
                 )
                 |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart (ReportsConfig.getBackgroundColorForScreenerId screener.id)
                 |> div [_class "block"] 

@@ -23,7 +23,7 @@ module Charts =
         chartType
         (maxYValue:option<int>)
         chartCanvasId
-        labels
+        (labels:seq<string>)
         (datasets:list<DataSet<'a>>)
         =
 
@@ -83,7 +83,7 @@ module Charts =
             )
             |> String.concat ","
 
-        let formattedLabels = labels |> List.map (fun l -> $"'{l}'") |> String.concat ","
+        let formattedLabels = labels |> Seq.map (fun l -> $"'{l}'") |> String.concat ","
 
         rawText ("""
             const config""" + chartCanvasId + """ = {
@@ -107,7 +107,7 @@ module Charts =
         chartType
         (maxYValue:option<int>)
         (height:option<ChartHeight>)
-        labels
+        (labels:seq<string>)
         datasets =
 
         let chartGuid = Guid.NewGuid().ToString("N")
@@ -148,8 +148,8 @@ module Charts =
         color
         listOfNameCountPairs =
 
-        let labels = listOfNameCountPairs |> List.map (fun ((name:DateTime),_) -> name.ToString("MMM/dd"))
-        let data = listOfNameCountPairs |> List.map (fun (_,count) -> count)
+        let labels = listOfNameCountPairs |> Seq.map (fun ((name:DateTime),_) -> name.ToString("MMM/dd"))
+        let data = listOfNameCountPairs |> Seq.map (fun (_,count) -> count) |> Seq.toList
 
         let datasets = [
             {

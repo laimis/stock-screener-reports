@@ -163,18 +163,20 @@ type ReportTests(output:ITestOutputHelper) =
 
         let sector = screenerResult.Item(0).sector 
 
-        let results = Reports.getDailyCountsForScreenerAndSector screener sector 14
+        let results = Reports.getDailyCountsForScreenerAndSector screener sector dayRange
         
         Assert.NotEmpty(results)
 
     [<Fact>]
     let ``getting daily counts for screeners filtered by industry works``() =
         let screener = getTestScreener
-        
+
+        let dateRange = ReportsConfig.dateRangeAsStrings
+
         // try several industries, we should fine at least one that has results
         let exists =
             getTestIndustries
-            |> List.map (fun industry -> Reports.getDailyCountsForScreenerAndIndustry screener.Value.id industry 60)
+            |> List.map (fun industry -> Reports.getDailyCountsForScreenerAndIndustry screener.Value.id industry dateRange)
             |> List.exists (fun results -> results |> Seq.length > 0)
         
         Assert.True(exists)
@@ -183,8 +185,9 @@ type ReportTests(output:ITestOutputHelper) =
     let ``getting daily counts for screeners filtered by country works``() =
         let screener = getTestScreener
         let industry = getTestCountry
+        let dateRange = ReportsConfig.dateRangeAsStrings
 
-        let results = Reports.getDailyCountsForScreenerAndCountry screener.Value.id industry 30
+        let results = Reports.getDailyCountsForScreenerAndCountry screener.Value.id industry dateRange
         
         Assert.NotEmpty(results)
 
@@ -254,7 +257,10 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``get industry trends for industry`` () =
-        let trends = StorageTests.testStockIndustry |> Reports.getIndustrySMABreakdownsForIndustry 20 ReportsConfig.dayRange
+        let dateRange = ReportsConfig.dateRangeAsStrings
+        let trends =
+            StorageTests.testStockIndustry
+            |> Reports.getIndustrySMABreakdownsForIndustry 20 dateRange
         Assert.NotEmpty(trends)
 
     [<Fact>]
@@ -341,7 +347,9 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``calculate industry trends works`` () =
-        let smaBreakdowns = StorageTests.testStockIndustry |> Reports.getIndustrySMABreakdownsForIndustry 20 ReportsConfig.dayRange
+        let smaBreakdowns =
+            StorageTests.testStockIndustry
+            |> Reports.getIndustrySMABreakdownsForIndustry 20 ReportsConfig.dateRangeAsStrings
         let trend = TrendsCalculator.calculateForIndustry smaBreakdowns
 
         Assert.True(trend.streak > 0)
