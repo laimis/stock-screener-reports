@@ -128,9 +128,17 @@ module IndustryDashboard =
             industryName
             |> getIndustrySMABreakdownsForIndustry Constants.SMA20 dateRange
             
-        let score =
+        let interestScoreComponents =
             breakdowns
             |> MarketCycleScoring.interestScoreComponents
+
+        let addScore = 
+            breakdowns
+            |> MarketCycleScoring.interestScoreAdding
+
+        let multiScore =
+            breakdowns
+            |> MarketCycleScoring.interestScoreMultiplying
 
         let trendWithCycle =
             breakdowns
@@ -142,7 +150,7 @@ module IndustryDashboard =
         div [ _class "columns"] [
             div [ _class "column"] [
                 h1 [] [ str industryName ]
-                div [] [ rawText $"{interestScoreTm} <b>{score}</b>"]
+                div [] [ rawText $"{interestScoreTm} <b>{interestScoreComponents}</b> with scores of <b>{addScore}</b> and <b>{multiScore}</b>"]
                 div [] [ trendWithCycle.trend |> trendToHtml |> rawText]
                 div [] [ trendWithCycle.cycle |> marketCycleToHtml |> rawText]
             ]

@@ -19,12 +19,16 @@ module MarketCycleScoring =
             | Down -> -1
             | Up -> 1
 
+        // let age =
+        //     match cycle.ageInMarketDays with
+        //     | x when x > 1 && x <= 3 -> 10
+        //     | x when x > 1 && x <= 7 -> 5
+        //     | _ -> 0
+
         let age =
             match cycle.ageInMarketDays with
-            | x when x > 1 && x <= 3 -> 10
-            | x when x > 1 && x <= 7 -> 5
+            | x when x <= 10 -> 10 - cycle.ageInMarketDays
             | _ -> 0
-
 
         let change =
             match trend.change with

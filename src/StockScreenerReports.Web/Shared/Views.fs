@@ -368,7 +368,7 @@ module Views =
             offsets
             |> List.indexed
             |> List.map( fun(index,offset) ->
-                button [ _class "button is-primary m-1"; _type "button"; _id $"applyFilters{index}" ] [ str $"{offset}" ]
+                button [ _class "button is-small is-primary m-1"; _type "button"; _id $"applyFilters{index}" ] [ str $"{offset}" ]
             )
 
         let scripts = 
@@ -380,17 +380,17 @@ module Views =
                 ]
             )
 
-        let applyButton = button [ _class "button is-primary m-1"; _type "submit"; _id "applyFilters" ] [ str "Apply" ]
-        let resetButton = a [ _class "button is-secondary m-1"; _href Links.trends ] [ str "Reset" ]
+        let applyButton = button [ _class "button is-small is-primary m-1"; _type "submit"; _id "applyFilters" ] [ str "Apply" ]
+        let resetButton = button [ _class "button is-small is-secondary m-1"; _onclick "window.navigation.navigate(document.location.pathname)" ] [ str "Reset" ]
 
         let formElements = [
             div [_class "field"] [
-                label [_class "label"; _for "startDate"] [str "Start Date"]
-                input [ _class "input"; _type "date"; _value startDate; _id "startDate"; _name "startDate" ]
+                label [_class "label is-small"; _for "startDate"] [str "Start Date"]
+                input [ _class "input is-small"; _type "date"; _value startDate; _id "startDate"; _name "startDate" ]
             ]
             div [_class "field"] [
-                label [_class "label"; _for "endDate"] [str "End Date"]
-                input [ _class "input"; _type "date"; _value endDate; _id "endDate"; _name "endDate" ]
+                label [_class "label is-small"; _for "endDate"] [str "End Date"]
+                input [ _class "input is-small"; _type "date"; _value endDate; _id "endDate"; _name "endDate" ]
             ]
             input [ _class "input"; _type "hidden"; _value ""; _id "dateAdjustment"; _name "dateAdjustment"]
             div [_class "control"] ((applyButton::buttons) @ [resetButton])
