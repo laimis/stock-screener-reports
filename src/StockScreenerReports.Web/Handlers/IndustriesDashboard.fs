@@ -107,12 +107,15 @@ module IndustriesDashboard =
                 let smaBreakdowns = 
                     industryName
                     |> Reports.getIndustrySMABreakdownsForIndustry Constants.SMA20 ReportsConfig.dateRangeAsStrings
+
+                let cycleScoreComponents = 
+                    smaBreakdowns |> MarketCycleScoring.cycleScoreComponents
                     
                 let interestScore1 =
-                    smaBreakdowns |> MarketCycleScoring.interestScoreAdding 
+                    cycleScoreComponents |> MarketCycleScoring.componentScoreAdding 
 
                 let interestScore2 = 
-                    smaBreakdowns |> MarketCycleScoring.interestScoreMultiplying
+                    cycleScoreComponents |> MarketCycleScoring.componentScoreMultiplying
 
                 let diffCells = [
                     interestScore1.ToString() |> toTd
@@ -139,8 +142,8 @@ module IndustriesDashboard =
             "Trend Change"
             "Trend Streak"
             "Rate"
-            (interestScoreTm + "+")
-            (interestScoreTm + "*") 
+            (marketCycleScoreTm + "+")
+            (marketCycleScoreTm + "*") 
             "30 diff"
             "60 diff"
         ]

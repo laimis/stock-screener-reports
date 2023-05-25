@@ -170,24 +170,30 @@ module Trends =
                     |> List.concat
 
                 let industries = 
-                    getIndustrySMABreakdowns Constants.SMA20 (dateRange |> snd)
+                    getIndustrySMABreakdowns Constants.SMA20 dateToUse
                     |> List.map (fun b -> b.industry)
 
                 let scoreRows = 
                     industries
                     |> List.map (fun industry ->
                         let breakdowns = getIndustrySMABreakdownsForIndustry Constants.SMA20 dateRange industry
-                        let scoreAdd = MarketCycleScoring.interestScoreAdding breakdowns
-                        let scoreMult = MarketCycleScoring.interestScoreMultiplying breakdowns
-                        (industry, scoreAdd, scoreMult)
+                        let cycleScoreComponents = MarketCycleScoring.cycleScoreComponents breakdowns
+                        let scoreAdd = cycleScoreComponents |> MarketCycleScoring.componentScoreAdding
+                        let scoreMult = cycleScoreComponents |> MarketCycleScoring.componentScoreMultiplying
+                        let trendScoreComponents = MarketCycleScoring.trendScoreComponents breakdowns
+                        let trendScoreAdd = trendScoreComponents |> MarketCycleScoring.componentScoreAdding
+                        let trendScoreMult = trendScoreComponents |> MarketCycleScoring.componentScoreMultiplying
+                        (industry, scoreAdd, scoreMult, trendScoreAdd, trendScoreMult)
                     )
-                    |> List.filter (fun (_, scoreAdd, scoreMult) -> scoreAdd > 0 || scoreMult > 0)
-                    |> List.sortByDescending (fun (_, scoreAdd, scoreMult) -> scoreAdd + scoreMult)
-                    |> List.map (fun (industry, scoreAdd, scoreMult) ->
+                    |> List.filter (fun (_, scoreAdd, scoreMult, _, _) -> scoreAdd > 0 || scoreMult > 0)
+                    |> List.sortByDescending (fun (_, scoreAdd, scoreMult, _, _) -> scoreAdd + scoreMult)
+                    |> List.map (fun (industry, cycleAdd, cycleMult, trendAdd, trendMult) ->
                         tr [] [
                             industry |> Links.industryLink |> generateHref industry |> toTdWithNodeWithWidth 400
-                            scoreAdd.ToString() |> toTd
-                            scoreMult.ToString() |> toTd
+                            cycleAdd.ToString() |> toTd
+                            cycleMult.ToString() |> toTd
+                            trendAdd.ToString() |> toTd
+                            trendMult.ToString() |> toTd
                         ]
                     )
 
@@ -195,7 +201,7 @@ module Trends =
                     section [] [
                         h4 [] [str "Industry Scores"]
                         scoreRows
-                        |> fullWidthTableWithSortableHeaderCells [ "Industry"; "Add"; "Mult" ]
+                        |> fullWidthTableWithSortableHeaderCells [ "Industry"; "Cycle Add"; "Cycle Mult"; "Trend Add"; "Trend Mult" ]
                     ]
 
 

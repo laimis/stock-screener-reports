@@ -128,17 +128,29 @@ module IndustryDashboard =
             industryName
             |> getIndustrySMABreakdownsForIndustry Constants.SMA20 dateRange
             
-        let interestScoreComponents =
+        let cycleScoreComponents =
             breakdowns
-            |> MarketCycleScoring.interestScoreComponents
+            |> MarketCycleScoring.cycleScoreComponents
 
-        let addScore = 
-            breakdowns
-            |> MarketCycleScoring.interestScoreAdding
+        let cycleAddScore = 
+            cycleScoreComponents
+            |> MarketCycleScoring.componentScoreAdding
 
-        let multiScore =
+        let cycleMultiScore =
+            cycleScoreComponents
+            |> MarketCycleScoring.componentScoreMultiplying
+
+        let trendScoreComponent =
             breakdowns
-            |> MarketCycleScoring.interestScoreMultiplying
+            |> MarketCycleScoring.trendScoreComponents
+
+        let trendAddScore = 
+            trendScoreComponent
+            |> MarketCycleScoring.componentScoreAdding
+
+        let trendMultiScore =
+            trendScoreComponent
+            |> MarketCycleScoring.componentScoreMultiplying
 
         let trendWithCycle =
             breakdowns
@@ -150,9 +162,11 @@ module IndustryDashboard =
         div [ _class "columns"] [
             div [ _class "column"] [
                 h1 [] [ str industryName ]
-                div [] [ rawText $"{interestScoreTm} <b>{interestScoreComponents}</b> with scores of <b>{addScore}</b> and <b>{multiScore}</b>"]
                 div [] [ trendWithCycle.trend |> trendToHtml |> rawText]
+                div [] [ rawText $"{trendCycleScoreTm} <b>{trendScoreComponent}</b> with scores of <b>{trendAddScore}</b> and <b>{trendMultiScore}</b>"]
                 div [] [ trendWithCycle.cycle |> marketCycleToHtml |> rawText]
+                div [] [ rawText $"{marketCycleScoreTm} <b>{cycleScoreComponents}</b> with scores of <b>{cycleAddScore}</b> and <b>{cycleMultiScore}</b>"]
+                
             ]
             div [ _class "column has-text-right"] [
                 h5 [] [

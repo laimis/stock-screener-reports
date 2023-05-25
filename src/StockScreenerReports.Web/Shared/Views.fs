@@ -194,7 +194,7 @@ module Views =
         $"Trending <b>{directionStr}</b> for <b>{trend.streak} days</b>, change of <b>{trend.change:N2}</b>"
 
     let marketCycleToHtml (cycle:MarketCycle) =
-        $"started on {cycle.lowPointDateFormatted}, <b>{cycle.ageFormatted}</b> ago ({cycle.ageInMarketDays} market days), high of <b>{cycle.highPointValueFormatted} {cycle.highPointAgeFormatted} ago</b>"
+        $"Market cycle started on <b>{cycle.lowPointDateFormatted}</b>, <b>{cycle.ageFormatted}</b> ago ({cycle.ageInMarketDays} market days), high of <b>{cycle.highPointValueFormatted} {cycle.highPointAgeFormatted} ago</b>"
 
     let private generateHeaderRow =
         let titleDiv = div [ _class "column" ] [
@@ -323,7 +323,8 @@ module Views =
             ]
         ]
 
-    let interestScoreTm = "Interest Score\u2122"
+    let marketCycleScoreTm = "Cycle Score\u2122"
+    let trendCycleScoreTm = "Trend Score\u2122"
 
     let getFilterSectionParams (ctx: Microsoft.AspNetCore.Http.HttpContext) =
         let startDateParam = ctx.TryGetQueryStringValue "startDate"
