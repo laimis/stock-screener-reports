@@ -5,13 +5,15 @@ module FinvizClient =
 
     let mutable outputFunc = (fun str -> ())
 
+    let private SLEEP_BETWEEN_REQUESTS_MS = 250
+
     let setOutputFunc (f:string -> unit) =
         outputFunc <- f
         FinvizParsing.setOutputFunc f
 
     let private fetchScreenerHtml (url:string) =
         // make sure that we sleep a bit before each request
-        System.Threading.Thread.Sleep(500)
+        System.Threading.Thread.Sleep(SLEEP_BETWEEN_REQUESTS_MS)
         let web = HtmlAgilityPack.HtmlWeb()
         web.Load(url)
 
