@@ -359,7 +359,8 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``get industry trend works`` () =
-        let trend = Reports.getIndustryTrend 20 StorageTests.testStockIndustry
+        let range = ReportsConfig.dateRangeAsStrings
+        let trend = Reports.getIndustryTrend 20 (snd range) StorageTests.testStockIndustry
         Assert.True(trend.IsSome)
 
     [<Fact>]
@@ -369,7 +370,6 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``get tickers with earnings for date range works`` () =
-        let startDate = DateTimeOffset.Parse("2023-02-01")
-        let endDate = DateTimeOffset.Parse("2023-02-14")
-        let results = Reports.getEarningsTickers startDate endDate
+        let dateRange = ("2023-02-01", "2023-02-14")
+        let results = dateRange |> Reports.getEarningsTickers
         Assert.NotEmpty(results)

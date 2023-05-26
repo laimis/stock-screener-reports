@@ -23,6 +23,7 @@ module MarketCycleScoring =
             | x when x > 0m && x >= 40m  -> 10
             | x when x > 0m && x >= 30m  -> 8
             | x when x > 0m && x >= 20m  -> 3
+            | x when x > 0m && x > 10m  -> 1
             | _ -> 0
 
         { direction = directionComponent; age = ageComponent; change = changeComponent }

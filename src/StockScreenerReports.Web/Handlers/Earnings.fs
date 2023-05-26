@@ -80,7 +80,12 @@ module Earnings =
             h1 [] [str "Earnings"]
         ]
 
-        let tickersWithEarnings = getEarningsTickers startDate endDate
+        let dateRange = (
+            startDate |> Utils.convertToDateStringForOffset,
+            endDate |> Utils.convertToDateStringForOffset
+        )
+
+        let tickersWithEarnings = getEarningsTickers dateRange
         let stocks =
             tickersWithEarnings
             |> List.map (fun (ticker,_) -> ticker)

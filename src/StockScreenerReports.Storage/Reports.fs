@@ -233,7 +233,7 @@ module Reports =
         |> Sql.query sql
         |> Sql.execute (fun reader -> (reader.string "ticker", reader.dateTime "date"))
 
-    let getEarningsTickers (startDate:DateTimeOffset) (endDate:DateTimeOffset) =
+    let getEarningsTickers dateRange =
         let sql = @$"SELECT ticker,date FROM earnings
             WHERE date >= date(@start) AND date <= date(@end)
             ORDER BY date ASC, ticker ASC"
@@ -242,8 +242,8 @@ module Reports =
         |> Sql.connect
         |> Sql.query sql
         |> Sql.parameters [
-            "@start",  startDate |> convertToDateStringForOffset |> Sql.string;
-            "@end", endDate |> convertToDateStringForOffset |> Sql.string
+            "@start",  dateRange |> fst |> Sql.string;
+            "@end", dateRange |> snd |> Sql.string
         ]
         |> Sql.execute (fun reader -> (reader.string "ticker", reader.dateTime "date"))
     
@@ -479,7 +479,7 @@ module Reports =
             ]
             |> Sql.execute mapScreenerResultReportItem
 
-    let getScreenerResultsForIndustry limit industry =
+    let getScreenerResultsForIndustry dateRange limit industry =
                 
             let sql = @$"
                 SELECT 
@@ -491,6 +491,7 @@ module Reports =
                 JOIN screeners ON screeners.id = screenerresults.screenerid
                 WHERE 
                     industry = @industry
+                    AND screenerresults.date BETWEEN date(@startDate) AND date(@endDate)
                 ORDER BY screenerresults.date DESC
                 LIMIT @limit"
     
@@ -500,6 +501,8 @@ module Reports =
                 |> Sql.parameters [
                     "@industry", Sql.string industry
                     "@limit", Sql.int limit
+                    "@startDate", Sql.string (dateRange |> fst)
+                    "@endDate", Sql.string (dateRange |> snd)
                 ]
                 |> Sql.execute mapScreenerResultReportItem
 
@@ -819,11 +822,11 @@ module Reports =
         // ]
         // |> Sql.executeRow (fun reader -> (reader.int "up", reader.int "down"))
 
-    let getIndustryTrend days industry =
+    let getIndustryTrend days date industry =
         let sql = @"
             SELECT industry,date,above,below,streak,direction,change,days FROM industrytrends
             WHERE industry = @industry AND days = @days
-            AND date = (SELECT MAX(date) FROM industrytrends WHERE industry = @industry AND days = @days)"
+            AND date = date(@date)"
 
         cnnString
         |> Sql.connect
@@ -831,6 +834,7 @@ module Reports =
         |> Sql.parameters [
             "@industry", Sql.string industry;
             "@days", Sql.int days;
+            "@date", Sql.string date;
         ]
         |> Sql.execute industryTrendMapper
         |> Storage.singleOrThrow "More than one industry trend for the same industry and days"

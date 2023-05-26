@@ -18,16 +18,10 @@ module IndustryDashboard =
 
     let header = "ticker, company, sector, industry, country"
 
-    let private createEarningsSection industryName = 
-        // last 14 days
-        let duration = 14
-        let startDate = System.DateTimeOffset.UtcNow.AddDays(-duration)
-        let endDate = System.DateTimeOffset.UtcNow.AddDays(1)
-        let dateRangeAsString = (startDate |> Utils.convertToDateStringForOffset),
-                                (endDate |> Utils.convertToDateStringForOffset)
-
+    let private createEarningsSection industryName dateRange = 
+        
         let tickersWithEarnings = 
-            getEarningsTickers startDate endDate
+            getEarningsTickers dateRange
             |> List.map (fun (ticker,_) -> ticker)
 
         let stocksWithEarnings =
@@ -37,25 +31,25 @@ module IndustryDashboard =
 
         let newHighs =
             Constants.NewHighsScreenerId
-            |> getScreenerResultsForDays dateRangeAsString
+            |> getScreenerResultsForDays dateRange
             |> List.map (fun s -> (s.ticker |> StockTicker.create, s))
             |> Map.ofList
 
         let topGainers = 
             Constants.TopGainerScreenerId
-            |> getScreenerResultsForDays dateRangeAsString
+            |> getScreenerResultsForDays dateRange
             |> List.map (fun s -> (s.ticker |> StockTicker.create, s))
             |> Map.ofList
 
         let topLosers =
             Constants.TopLoserScreenerId
-            |> getScreenerResultsForDays dateRangeAsString
+            |> getScreenerResultsForDays dateRange
             |> List.map (fun s -> (s.ticker |> StockTicker.create, s))
             |> Map.ofList
 
         let newLows =
             Constants.NewLowsScreenerId
-            |> getScreenerResultsForDays dateRangeAsString
+            |> getScreenerResultsForDays dateRange
             |> List.map (fun s -> (s.ticker |> StockTicker.create, s))
             |> Map.ofList
 
@@ -94,7 +88,7 @@ module IndustryDashboard =
         match stocksWithEarnings with
         | [] -> h4 [] ["No earnings last two weeks" |> str]
         | _ -> section [] [
-            h4 [] [$"Earnings last {duration} days" |> str]
+            h4 [] [$"Earnings from {dateRange |> fst} to {dateRange |> snd}" |> str]
             earningsTable
         ]
 
@@ -212,7 +206,7 @@ module IndustryDashboard =
 
         let labels = 
             industryName
-            |> Reports.getIndustrySMABreakdownsForIndustry 20 dateRange
+            |> getIndustrySMABreakdownsForIndustry 20 dateRange
             |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
         
         let charts =
@@ -227,7 +221,7 @@ module IndustryDashboard =
             Constants.SMAS
                 |> List.map (fun sma -> 
                     industryName
-                    |> getIndustryTrend sma
+                    |> getIndustryTrend sma (snd dateRange) 
                     |> createTrendDiv sma
                 )
         )
@@ -290,7 +284,7 @@ module IndustryDashboard =
 
             let resultRows =
                 industryName
-                |> getScreenerResultsForIndustry 50
+                |> getScreenerResultsForIndustry dateRange 50
                 |> List.map (fun screenerResult ->
                     tr [] [
                         screenerResult.date |> Utils.convertToDateString |> toTd
@@ -371,7 +365,7 @@ module IndustryDashboard =
                 industryName |> createSMABreakdownSection
             ]
 
-            let earningsSection = createEarningsSection industryName
+            let earningsSection = createEarningsSection industryName dateRange
 
             let smaBreakdownsAndChartSections = industryName |> smaBreakdownsAndSMACharts dateRange 
 
