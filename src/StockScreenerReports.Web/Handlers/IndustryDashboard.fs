@@ -18,8 +18,14 @@ module IndustryDashboard =
 
     let header = "ticker, company, sector, industry, country"
 
-    let private createEarningsSection industryName dateRange = 
+    let private createEarningsSection industryName fullDateRange = 
         
+        // start date should be two weeks from the last date in the range
+        // get the first item in tuple, then convert it from string to date, then subtract 14 days
+        // and then convert it back to a string
+        let startDate = fullDateRange |> snd |> Utils.convertToDateTime |> fun d -> d.AddDays(-14) |> Utils.convertToDateString
+        let dateRange = (startDate, fullDateRange |> snd)
+
         let tickersWithEarnings = 
             getEarningsTickers dateRange
             |> List.map (fun (ticker,_) -> ticker)
