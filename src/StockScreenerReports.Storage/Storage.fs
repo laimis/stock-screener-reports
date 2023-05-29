@@ -26,6 +26,27 @@ module Storage =
             country = reader.string "country";
         }
 
+    let industryCycleMapper (reader:RowReader) =
+        
+        let startPoint = {
+            date = reader.dateTime "startdate";
+            value = reader.decimal "startvalue"
+        }
+        let highPoint = {
+            date = reader.dateTime "highdate";
+            value = reader.decimal "highvalue"
+        }
+        let currentPoint = {
+            date = reader.dateTime "currentdate";
+            value = reader.decimal "currentvalue"
+        }
+
+        {
+            startPoint = startPoint;
+            highPoint = highPoint;
+            currentPoint = currentPoint;
+        }
+
     let private toJobNameString jobName =
         match jobName with
             | ScreenerJob _ -> "screenerjob"
@@ -292,6 +313,54 @@ module Storage =
             ]
             |> Sql.executeNonQuery
         | _ -> 0
+
+    let saveIndustryCycle days (cycle:MarketCycle) industry =
+
+        let sql = @"INSERT INTO industrycycles (industry,days,startDate,startValue,highDate,highValue,currentDate,currentValue)
+            VALUES (@industry,@days,date(@start),@startValue,date(@highDate),@highValue,date(@currentDate),@currentValue)
+            ON CONFLICT (industry,days) DO UPDATE SET
+                startDate = date(@start),
+                startValue = @startValue,
+                highDate = date(@highDate),
+                highValue = @highValue,
+                currentDate = date(@currentDate),
+                currentValue = @currentValue"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@industry", Sql.string industry;
+            "@days", Sql.int days;
+            "@start", Sql.string cycle.startPointDateFormatted;
+            "@startValue", Sql.decimal cycle.startPointValue;
+            "@highDate", Sql.string cycle.highPointDateFormatted;
+            "@highValue", Sql.decimal cycle.highPointValue;
+            "@currentDate", Sql.string cycle.currentPointDateFormatted;
+            "@currentValue", Sql.decimal cycle.currentPointValue;
+        ]
+        |> Sql.executeNonQuery
+
+    let getIndustryCycle days industry =
+        let sql = @"SELECT * FROM industrycycles WHERE industry = @industry AND days = @days"
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@industry", Sql.string industry;
+            "@days", Sql.int days;
+        ]
+        |> Sql.executeRow industryCycleMapper
+
+    let getIndustryCycles days =
+        let sql = @"SELECT * FROM industrycycles WHERE days = @days"
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@days", Sql.int days;
+        ]
+        |> Sql.execute industryCycleMapper
 
     let saveIndustrySMABreakdowns date  (industry,days,above:int,below:int) =
         let sql = @"

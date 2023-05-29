@@ -18,8 +18,8 @@ let dbEnvironmentVariableName = "SSR_CONNECTIONSTRING"
 type StorageTests(output:ITestOutputHelper) =
     do
         let cnnString = System.Environment.GetEnvironmentVariable(dbEnvironmentVariableName)
-        output.WriteLine($"Connection string for tests: {cnnString}")
         Storage.configureConnectionString cnnString
+        Reports.configureConnectionString cnnString
         Storage.configureLogger (fun message -> output.WriteLine(message))
 
     let generateTicker() =
@@ -195,6 +195,24 @@ type StorageTests(output:ITestOutputHelper) =
         let updated = Storage.updateIndustryTrend industrySmaBreakdown trend
 
         Assert.Equal(1, updated)
+
+    [<Fact>]
+    let ``market cycle for industry works`` () =
+
+        let range = ReportsConfig.dateRangeAsStrings
+
+        let trendAndCycle =
+            testStockIndustry
+            |> Reports.getIndustrySMABreakdownsForIndustry Constants.SMA20 range
+            |> TrendsCalculator.calculateTrendAndCycleForIndustry
+        
+        let cycle = trendAndCycle.cycle
+
+        Storage.saveIndustryCycle Constants.SMA20 cycle testStockIndustry |> ignore
+
+        let saved = Storage.getIndustryCycle Constants.SMA20 testStockIndustry
+
+        Assert.Equal(cycle, saved)
 
     [<Fact>]
     let ``get stocks for tickers works`` () =

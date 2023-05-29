@@ -131,3 +131,16 @@ alter table industrytrends alter column below set not null;
 -- finviz=> delete from industrysmabreakdowns where date = '2023-04-07';
 -- finviz=> delete from industrytrends where date = '2023-04-07';
 -- finviz=> delete from screenerresults where date = '2023-04-07';
+
+create table industrycycles (
+    id serial primary key,
+    industry text not null,
+    days numeric not null,
+    startdate timestamp not null,
+    startvalue numeric not null,
+    highdate timestamp not null,
+    highvalue numeric not null,
+    currentdate timestamp not null,
+    currentvalue numeric not null,
+    UNIQUE(industry, days)
+);

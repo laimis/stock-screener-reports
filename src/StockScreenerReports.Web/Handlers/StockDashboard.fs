@@ -44,9 +44,10 @@ module StockDashboard =
                 screenerResult.volume |> volumeFormatted |> str |> toTdWithNode
             ]
 
-        let days = ReportsConfig.dayRange
+        let days = ReportsConfig.days
+        let dateRange = ReportsConfig.dateRange
 
-        let businessDays = Utils.businessDatesWithZeroPairs days
+        let businessDays = ReportsConfig.listOfBusinessDates dateRange
 
         // group recent screenerresults by date
         let recentScreenerResultsByScreener = 
@@ -55,7 +56,7 @@ module StockDashboard =
             |> List.groupBy (fun screenerResult -> (screenerResult.screenerid, screenerResult.screenername))
             |> Map.ofList
             
-        let labels = businessDays |> List.map (fun (date, _) -> date |> Utils.convertToDateString)
+        let labels = businessDays |> Seq.map (fun (date) -> date |> Utils.convertToDateString)
 
         let datasets:list<Charts.DataSet<int>> = 
             recentScreenerResultsByScreener
@@ -63,7 +64,7 @@ module StockDashboard =
             |> List.map( fun ((screenerid,screenername),results) ->
                 let data =
                     businessDays
-                    |> List.map (fun (date, _) ->
+                    |> Seq.map (fun date ->
                         let resultsByDate =
                             results
                             |> List.groupBy (fun screenerResult -> screenerResult.date)
@@ -75,6 +76,7 @@ module StockDashboard =
                         | Some list -> list.Length
                         | None -> 0
                     )
+                    |> Seq.toList
                 
                 {
                     data = data

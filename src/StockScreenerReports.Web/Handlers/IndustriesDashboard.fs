@@ -10,6 +10,44 @@ module IndustriesDashboard =
     open StockScreenerReports.Core
     
 
+    let internal generateIndustryCycleStartChart (cycles:MarketCycle list) =
+
+        let cyclesGroupedByDate =
+            cycles
+            |> List.groupBy (fun x -> x.startPointDateFormatted)
+            |> Map.ofList
+
+        let startPointDateSelector = fun x -> x.startPoint.date
+        let minStart = cycles |> List.minBy startPointDateSelector |> startPointDateSelector
+        let maxStart = cycles |> List.maxBy startPointDateSelector |> startPointDateSelector
+
+        let dateCounts = 
+            ReportsConfig.listOfBusinessDates (minStart, maxStart)
+            |> Seq.map (fun date -> 
+                let dateFormatted = date.ToString("d")
+                let cyclesForDate = cyclesGroupedByDate |> Map.tryFind dateFormatted
+                match cyclesForDate with
+                | Some cycles -> (date, decimal cycles.Length)
+                | None -> (date, 0m)
+            )
+
+        let dataset:Charts.DataSet<decimal> =
+            {
+                data = dateCounts |> Seq.map snd |> List.ofSeq
+                title = $"start counts"
+                color = Constants.ColorRed
+            }
+
+        let maxValue = (dateCounts |> Seq.map snd |> Seq.max) + 5m |> int
+
+        let labels = dateCounts |> Seq.map (fun (date,_) -> date.ToString("MM/dd"))
+        let chart = [dataset] |> Charts.generateChartElements "Start counts" Charts.ChartType.Bar (Some maxValue) Charts.smallChart labels
+
+        section [ _class "content" ] [
+            h4 [] [ str "Industry Cycle Start Counts" ]
+            div [] chart
+        ]
+            
     let private generateIndustrySMATable() =
         let latestDate = Reports.getIndustrySMABreakdownLatestDate()
         let formattedDate = latestDate |> Utils.convertToDateString
@@ -37,8 +75,6 @@ module IndustriesDashboard =
         let industryTrend20 = getIndustryTrendsAndTurnToMap formattedDate 20
         let industryTrend200 = getIndustryTrendsAndTurnToMap formattedDate 200
 
-        let mutable counter = 0
-
         let industry20And200Rows =
             industrySMABreakdown200
             |> Map.toList
@@ -48,7 +84,8 @@ module IndustriesDashboard =
                 | Some update20 -> (update200.breakdown.percentAbove, update20.breakdown.percentAbove)
                 | None -> raise (System.Exception("Could not find 20 day SMA breakdown for " + key))
             )
-            |> List.map (fun (industryName, iu) ->
+            |> List.indexed
+            |> List.map (fun (index,(industryName, iu)) ->
 
                 let toSMACells (smaOption:Option<IndustrySMABreakdown>) (trendOption:Option<IndustryTrend>) =
                     let smaBreakdown =
@@ -68,8 +105,6 @@ module IndustriesDashboard =
                         trend.streakFormatted |> toTd
                         trend.streakRateFormatted |> toTd
                     ]
-
-                counter <- counter + 1
 
                 let smaBreakdown = industrySMABreakdowns20 |> Map.tryFind industryName
                 let trend20 = industryTrend20 |> Map.tryFind industryName
@@ -99,7 +134,7 @@ module IndustriesDashboard =
                 ]
 
                 let commonCells = [
-                    counter.ToString() |> toTd
+                    (index+1).ToString() |> toTd
                     industryLinks |> toTdWithNodes
                 ]
 
@@ -153,15 +188,20 @@ module IndustriesDashboard =
     let handler : HttpHandler  =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
 
+            let industryCyclesData = Storage.getIndustryCycles Constants.SMA20
+
+            let industryCycleSection = industryCyclesData |> generateIndustryCycleStartChart
+
             let industriesTable = generateIndustrySMATable()
 
             let jobStatusRow = IndustryTrendsJob |> Utils.genericJobStatusGet |> generateJobStatusDiv
 
             let view = [
-                div [_class "content"] [
-                    h1 [] [str "Industries"]
+                industryCycleSection
+                section [_class "content"] [
+                    h1 [] [str "Industry SMA Breakdowns"]
+                    industriesTable
                 ]
-                industriesTable
                 jobStatusRow
             ]
             

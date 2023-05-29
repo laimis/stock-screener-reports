@@ -48,7 +48,7 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
         Assert.Equal(2.0, cycle.age.TotalDays, 0.01)
         Assert.Equal(1.0, cycle.highPointAge.TotalDays, 0.01)
         Assert.Equal(80.0m, cycle.highPointValue)
-        Assert.Equal(10.0m, cycle.lowPointValue)
+        Assert.Equal(10.0m, cycle.startPointValue)
 
 
     let testDataIncreasingTrend =
@@ -69,7 +69,7 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
         Assert.Equal(2.0, cycle.age.TotalDays, 0.01)
         Assert.Equal(0.0, cycle.highPointAge.TotalDays, 0.01)
         Assert.Equal(80.0m, cycle.highPointValue)
-        Assert.Equal(60.0m, cycle.lowPointValue)
+        Assert.Equal(60.0m, cycle.startPointValue)
 
     let trendFromZero =
         [(0, 10); (0, 10); (0, 10); (7, 10); (8, 10)]
@@ -88,7 +88,7 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
         Assert.Equal(2.0, cycle.age.TotalDays, 0.01)
         Assert.Equal(0.0, cycle.highPointAge.TotalDays, 0.01)
         Assert.Equal(80.0m, cycle.highPointValue)
-        Assert.Equal(0.0m, cycle.lowPointValue)
+        Assert.Equal(0.0m, cycle.startPointValue)
 
     let sampleCopperTrend =
         [(0, 4);(0, 4);(1, 4);(2, 4);(2, 4);(1, 4);(1, 5);(1, 5);(1, 5);(1, 5);(1, 5);(2, 5);(5, 5);(5, 5);(5, 5);(5, 5);(1, 5);(2, 5);(0, 5);(0, 5);]
@@ -140,7 +140,7 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
         Assert.Equal(0.0, cycle.age.TotalDays, 0.01)
         Assert.Equal(0.0, cycle.highPointAge.TotalDays, 0.01)
         Assert.Equal(0.0m, cycle.highPointValue)
-        Assert.Equal(0.0m, cycle.lowPointValue)
+        Assert.Equal(0.0m, cycle.startPointValue)
 
     let sampleResidentialConstructionTrend =
         [(22, 22);(22, 22);(22, 22);(22, 22);(22, 22);(20, 22);(20, 22);(19, 22);(21, 22);(21, 22);(19, 22);(15, 22);(7, 22);(3, 23);(3, 23);(6, 23);(4, 23);(7, 23);(9, 23);(9, 23);(10, 23);(13, 23);(9, 23);(8, 23);(14, 23);(10, 23);(3, 23);]
@@ -159,7 +159,7 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
         Assert.Equal(13.0, cycle.age.TotalDays, 0.01)
         Assert.Equal(2.0, cycle.highPointAge.TotalDays, 0.01)
         Assert.Equal(61m, Math.Round(cycle.highPointValue,0))
-        Assert.Equal(float 13.04m, float cycle.lowPointValue, 0.02)
+        Assert.Equal(float 13.04m, float cycle.startPointValue, 0.02)
 
     [<Fact>]
     let ``lumber production trend works``() =

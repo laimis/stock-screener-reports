@@ -4,7 +4,6 @@ module Reports =
 
     open Npgsql.FSharp
     open System
-    open StockScreenerReports.Core.Utils
 
     let mutable private cnnString = ""
 

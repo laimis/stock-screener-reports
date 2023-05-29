@@ -18,12 +18,12 @@
     <Compile Include="Shared\Views.fs" />
     <Compile Include="Handlers\AdhocReport.fs" />
     <Compile Include="Handlers\Trends.fs" />
+    <Compile Include="Handlers\IndustriesDashboard.fs" />
     <Compile Include="Handlers\Dashboard.fs" />
     <Compile Include="Handlers\Countries.fs" />
     <Compile Include="Handlers\CountryDashboard.fs" />
     <Compile Include="Handlers\Earnings.fs" />
     <Compile Include="Handlers\IndustryDashboard.fs" />
-    <Compile Include="Handlers\IndustriesDashboard.fs" />
     <Compile Include="Handlers\ScreenerResults.fs" />
     <Compile Include="Handlers\ScreenerDashboard.fs" />
     <Compile Include="Handlers\ScreenerManagement.fs" />

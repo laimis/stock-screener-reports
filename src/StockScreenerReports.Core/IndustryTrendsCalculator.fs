@@ -10,7 +10,7 @@ namespace StockScreenerReports.Core
                 | None ->
                     let trend = {streak = 0; direction = Up; change = 0m; value = breakdown.percentAbove}
                     let cycle = {
-                        lowPoint = breakdown |> CyclePoint.create;
+                        startPoint = breakdown |> CyclePoint.create;
                         highPoint = breakdown |> CyclePoint.create;
                         currentPoint = breakdown |> CyclePoint.create;
                     }
@@ -52,10 +52,10 @@ namespace StockScreenerReports.Core
                     let currentPoint = breakdown |> CyclePoint.create
 
                     let lowPoint = 
-                        match cycle.lowPointValue with
+                        match cycle.startPointValue with
                         | x when x > breakdown.percentAbove -> currentPoint
                         | x when x = 0m && currentPoint.value = 0m -> currentPoint
-                        | _ -> cycle.lowPoint
+                        | _ -> cycle.startPoint
 
                     let highPoint =
                         match cycle.highPointValue with
@@ -66,7 +66,7 @@ namespace StockScreenerReports.Core
                             | false -> cycle.highPoint
 
                     let newCycle = {
-                        lowPoint = lowPoint;
+                        startPoint = lowPoint;
                         highPoint = highPoint;
                         currentPoint = currentPoint;
                     }

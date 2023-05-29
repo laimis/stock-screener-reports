@@ -61,7 +61,7 @@ type ReportsConfig =
         dbConnectionString:string;
     }
 
-    static member dayRange = 91
+    static member days = 91
 
     static member dateRange = (
         System.DateTime.Now.AddDays(-1.0 * 91.0),
@@ -246,19 +246,19 @@ type CyclePoint =
 
 type MarketCycle =
     {
-        lowPoint: CyclePoint;
+        startPoint: CyclePoint;
         highPoint: CyclePoint;
         currentPoint: CyclePoint;
     }
 
     member this.ageInMarketDays =
-        (this.lowPoint.date, this.currentPoint.date) |> ReportsConfig.listOfBusinessDates |> Seq.length
+        (this.startPoint.date, this.currentPoint.date) |> ReportsConfig.listOfBusinessDates |> Seq.length
 
     member this.age =
-        this.currentPoint.date - this.lowPoint.date
+        this.currentPoint.date - this.startPoint.date
 
     member this.ageDays =
-        System.Math.Floor((this.currentPoint.date - this.lowPoint.date).TotalDays)
+        System.Math.Floor((this.currentPoint.date - this.startPoint.date).TotalDays)
 
     member this.ageFormatted =
         System.String.Format("{0:N0} days", this.age.TotalDays)
@@ -270,10 +270,13 @@ type MarketCycle =
     member this.highPointValue = this.highPoint.value
     member this.highPointValueFormatted = System.String.Format("{0:N0}%", this.highPointValue)
     member this.highPointDate = this.highPoint.date
+    member this.highPointDateFormatted = this.highPoint.date.ToString("d")
 
-    member this.lowPointValue = this.lowPoint.value
-    member this.lowPointDateFormatted = this.lowPoint.date.ToString("d")
+    member this.startPointValue = this.startPoint.value
+    member this.startPointDateFormatted = this.startPoint.date.ToString("d")
+
     member this.currentPointValue = this.currentPoint.value
+    member this.currentPointDateFormatted = this.currentPoint.date.ToString("d")
 
 type TrendWithCycle =
     {
