@@ -362,7 +362,8 @@ module Views =
                 let adjustedEnd = endDate.AddDays(adjustment)
                 (adjustedStart |> Utils.convertToDateString, adjustedEnd |> Utils.convertToDateString)
 
-    let generateFilterSection startDate endDate = 
+    let generateFilterSection dateRange =
+        let (startDate, endDate) = dateRange
         let offsets = [-30; -1; 1; 30]
 
         let buttons = 

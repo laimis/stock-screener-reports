@@ -42,12 +42,12 @@ module Trends =
 
         (screener,data)
 
-    let private generateSMATrendRows startDate endDate =
+    let private generateSMATrendRows dateRange =
 
         let smaBreakdowPairs =
             Constants.SMAS
             |> List.map(fun sma -> 
-                (sma, sma |> getDailySMABreakdown startDate endDate)
+                (sma, sma |> getDailySMABreakdown dateRange)
             )
 
         let smaDirectionColumns =
@@ -217,9 +217,7 @@ module Trends =
 
     let generateElementsToRender dateRange =
         
-        let (startDate,endDate) = dateRange
-
-        let filters = generateFilterSection startDate endDate
+        let filters = generateFilterSection dateRange
 
         let trendingUpAndDownIndustries = generateIndustriesSection dateRange
             
@@ -306,7 +304,7 @@ module Trends =
                 ]
             ]::volumeCharts        
 
-        let trends = generateSMATrendRows startDate endDate
+        let trends = generateSMATrendRows dateRange
 
         let jobStatusRow = IndustryTrendsJob |> Utils.genericJobStatusGet |> generateJobStatusDiv
 

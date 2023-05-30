@@ -603,7 +603,7 @@ module Reports =
                 )
             )
 
-    let getDailySMABreakdown startDate endDate days = 
+    let getDailySMABreakdown dateRange days = 
             
             let sql = @$"
                SELECT date,days,above,below
@@ -617,8 +617,8 @@ module Reports =
                 |> Sql.query sql
                 |> Sql.parameters [
                     "@days", Sql.int days;
-                    "@startDate", Sql.string startDate;
-                    "@endDate", Sql.string endDate;
+                    "@startDate", dateRange |> fst |> Sql.string;
+                    "@endDate", dateRange |> snd |> Sql.string;
                 ]
                 |> Sql.execute smaBreakdownMapper
 

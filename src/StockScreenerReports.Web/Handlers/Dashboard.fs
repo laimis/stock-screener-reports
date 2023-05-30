@@ -165,16 +165,17 @@ module Dashboard =
             ]
         ]
 
-    let private createView (screeners:list<ScreenerResultReport>) =
+    let private createView () =
         
-        let (startDate, endDate) = ReportsConfig.dateRangeAsStrings
-
+        let screeners = getLatestScreeners()
+        
         let screenerRows =
             div [_class "columns is-multiline"] 
                 ((screeners |> List.map generateScreenerResultSection) @ [
                     generateRefreshButton()
                 ])
 
+        
         // industry trends
         let industryTrendData =
             [
@@ -207,7 +208,7 @@ module Dashboard =
         let breakdowns =
             Constants.SMAS
             |> List.map (fun sma ->
-                let smaBreakdown = sma |> getDailySMABreakdown startDate endDate
+                let smaBreakdown = sma |> getDailySMABreakdown (ReportsConfig.dateRangeAsStrings)
                 (sma, smaBreakdown)
             )
 
@@ -238,6 +239,5 @@ module Dashboard =
     let handler()  = 
         
         // get screeners, render them in HTML
-        getLatestScreeners()
-        |> createView
+        createView()
         |> Views.mainLayout "Dashboard"

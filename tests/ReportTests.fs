@@ -288,8 +288,7 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``get daily SMA breakdowns works`` () =
-        let (startDate,endDate) = ReportsConfig.dateRangeAsStrings
-        let results = Reports.getDailySMABreakdown startDate endDate 20
+        let results = Reports.getDailySMABreakdown (ReportsConfig.dateRangeAsStrings) 20
         Assert.NotEmpty(results)
 
         // check order

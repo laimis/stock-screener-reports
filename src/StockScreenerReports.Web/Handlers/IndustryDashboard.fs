@@ -156,9 +156,6 @@ module IndustryDashboard =
             breakdowns
             |> TrendsCalculator.calculateTrendAndCycleForIndustry
 
-        let startDate = dateRange |> fst
-        let endDate = dateRange |> snd
-
         div [ _class "columns"] [
             div [ _class "column"] [
                 h1 [] [ str industryName ]
@@ -175,7 +172,7 @@ module IndustryDashboard =
                         |> Links.industryFinvizLink
                         |> generateHrefNewTab "See it on Finviz"
                     ]
-                    generateFilterSection startDate endDate 
+                    generateFilterSection dateRange
                 ]
             ]
         ]
