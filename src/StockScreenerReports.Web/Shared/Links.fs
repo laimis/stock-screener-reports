@@ -53,6 +53,7 @@ module Links =
     let industries = "/industries"
     let countries = "/countries"
     let earnings = "/earnings"
+    let cycles = "/cycles"
 
     let industryFinvizLink (industryName:string) =
         let value =

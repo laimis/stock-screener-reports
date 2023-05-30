@@ -210,9 +210,10 @@ type StorageTests(output:ITestOutputHelper) =
 
         Storage.saveIndustryCycle Constants.SMA20 cycle testStockIndustry |> ignore
 
-        let saved = Storage.getIndustryCycle Constants.SMA20 testStockIndustry
+        let (industry, saved) = Storage.getIndustryCycle Constants.SMA20 testStockIndustry
 
         Assert.Equal(cycle, saved)
+        Assert.Equal(testStockIndustry, industry)
 
     [<Fact>]
     let ``get stocks for tickers works`` () =

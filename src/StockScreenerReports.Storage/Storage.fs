@@ -26,7 +26,7 @@ module Storage =
             country = reader.string "country";
         }
 
-    let industryCycleMapper (reader:RowReader) =
+    let industryCycleMapper (reader:RowReader) : IndustryWithCycle =
         
         let startPoint = {
             date = reader.dateTime "startdate";
@@ -41,11 +41,15 @@ module Storage =
             value = reader.decimal "currentvalue"
         }
 
-        {
+        let cycle = {
             startPoint = startPoint;
             highPoint = highPoint;
             currentPoint = currentPoint;
         }
+
+        let industry = reader.string "industry"
+
+        (industry, cycle)
 
     let private toJobNameString jobName =
         match jobName with

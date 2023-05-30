@@ -33,6 +33,7 @@ let webApp =
                 routef "/industries/%s/export" IndustryDashboard.exportHandler
                 routef "/industries/%s" IndustryDashboard.handler
                 route "/industries" >=> warbler (fun _ -> IndustriesDashboard.handler)
+                route "/cycles" >=> warbler (fun _ -> Cycles.handler)
 
                 route "/countries" >=> warbler (fun _ -> Countries.handler())
                 routef "/countries/%s" CountryDashboard.handler

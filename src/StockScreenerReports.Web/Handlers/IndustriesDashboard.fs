@@ -8,45 +8,6 @@ module IndustriesDashboard =
     open StockScreenerReports.Web.Shared.Views
     open Giraffe.ViewEngine
     open StockScreenerReports.Core
-    
-
-    let internal generateIndustryCycleStartChart (cycles:MarketCycle list) =
-
-        let cyclesGroupedByDate =
-            cycles
-            |> List.groupBy (fun x -> x.startPointDateFormatted)
-            |> Map.ofList
-
-        let startPointDateSelector = fun x -> x.startPoint.date
-        let minStart = cycles |> List.minBy startPointDateSelector |> startPointDateSelector
-        let maxStart = cycles |> List.maxBy startPointDateSelector |> startPointDateSelector
-
-        let dateCounts = 
-            ReportsConfig.listOfBusinessDates (minStart, maxStart)
-            |> Seq.map (fun date -> 
-                let dateFormatted = date.ToString("d")
-                let cyclesForDate = cyclesGroupedByDate |> Map.tryFind dateFormatted
-                match cyclesForDate with
-                | Some cycles -> (date, decimal cycles.Length)
-                | None -> (date, 0m)
-            )
-
-        let dataset:Charts.DataSet<decimal> =
-            {
-                data = dateCounts |> Seq.map snd |> List.ofSeq
-                title = $"start counts"
-                color = Constants.ColorRed
-            }
-
-        let maxValue = (dateCounts |> Seq.map snd |> Seq.max) + 5m |> int
-
-        let labels = dateCounts |> Seq.map (fun (date,_) -> date.ToString("MM/dd"))
-        let chart = [dataset] |> Charts.generateChartElements "Start counts" Charts.ChartType.Bar (Some maxValue) Charts.smallChart labels
-
-        section [ _class "content" ] [
-            h4 [] [ str "Industry Cycle Start Counts" ]
-            div [] chart
-        ]
             
     let private generateIndustrySMATable() =
         let latestDate = Reports.getIndustrySMABreakdownLatestDate()
@@ -188,16 +149,11 @@ module IndustriesDashboard =
     let handler : HttpHandler  =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
 
-            let industryCyclesData = Storage.getIndustryCycles Constants.SMA20
-
-            let industryCycleSection = industryCyclesData |> generateIndustryCycleStartChart
-
             let industriesTable = generateIndustrySMATable()
 
             let jobStatusRow = IndustryTrendsJob |> Utils.genericJobStatusGet |> generateJobStatusDiv
 
             let view = [
-                industryCycleSection
                 section [_class "content"] [
                     h1 [] [str "Industry SMA Breakdowns"]
                     industriesTable

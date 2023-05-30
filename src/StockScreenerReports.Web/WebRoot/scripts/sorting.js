@@ -36,6 +36,13 @@ function sortBy(header) {
         }
     }
 
+    console.log("sorting by index: " + index)
+    console.log(header)
+
+    // sample one item from the column that is supposed to be sorted
+    var sample = arrTable[1][index];
+    console.log("sample: " + sample)
+
     th = arrTable.shift(); // remove the header row from the array, and save it
     
     if (index !== prevColumnIndex) { // different column is clicked, so sort by the new column
@@ -65,24 +72,30 @@ function sortBy(header) {
                     bVal = bVal.replace('B', '');
                 }
 
-                var aParsed = parseFloat(aVal);
-                var bParsed = parseFloat(bVal);
+                if (Date.parse(aValRaw) && Date.parse(bValRaw) && isNaN(aVal) && isNaN(bVal)) {
+                    aVal = Date.parse(aValRaw);
+                    bVal = Date.parse(bValRaw);
+                } else if (parseFloat(aValRaw) && parseFloat(bValRaw)) {
+                    aVal = parseFloat(aValRaw);
+                    bVal = parseFloat(bValRaw);
+                }
 
                 if (aValRaw.endsWith('M')) {
-                    aParsed = aParsed * 1000000;
+                    aVal = aVal * 1000000;
                 }
-                if (aValRaw.endsWith('B')) {
-                    aParsed = aParsed * 1000000000;
-                }
-                if (bValRaw.endsWith('M')) {
-                    bParsed = bParsed * 1000000;
-                }
-                if (bValRaw.endsWith('B')) {
-                    bParsed = bParsed * 1000000000;
+                else if (aValRaw.endsWith('B')) {
+                    aVal = aVal * 1000000000;
                 }
 
-                aVal = isNaN(aParsed) ? aVal : aParsed;
-                bVal = isNaN(bParsed) ? bVal : bParsed;
+                if (bValRaw.endsWith('M')) {
+                    bVal = bVal * 1000000;
+                }
+                else if (bValRaw.endsWith('B')) {
+                    bVal = bVal * 1000000000;
+                }
+
+                console.log("aVal: " + aVal)
+                console.log("bVal: " + bVal)
 
                 if (aVal === bVal) {
                     return 0;

@@ -128,11 +128,13 @@ match runSMAUpdates() with
         |> Seq.map (fun (industry, days) -> 
             
             let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry days ReportsConfig.dateRangeAsStrings
-            let trend = breakdowns |> TrendsCalculator.calculateForIndustry
+            let trendAndCycle = breakdowns |> TrendsCalculator.calculateTrendAndCycleForIndustry
+            let trend = trendAndCycle.trend
             let lastBreakdown = breakdowns |> List.last
             Console.WriteLine($"Saving industry {industry} trend: {trend.direction} {trend.streak} days with change of {trend.change}")
-            Storage.updateIndustryTrend lastBreakdown trend
-
+            Storage.updateIndustryTrend lastBreakdown trend |> ignore
+            let cycle = trendAndCycle.cycle
+            Storage.saveIndustryCycle days cycle industry
         ) |> Seq.sum
     
     Storage.saveJobStatus

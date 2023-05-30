@@ -230,7 +230,7 @@ module Dashboard =
         let marketCycleSection =
             Constants.SMA20
             |> Storage.getIndustryCycles
-            |> IndustriesDashboard.generateIndustryCycleStartChart
+            |> Cycles.generateIndustryCycleStartChart
 
         let jobStatusRow = generateJobStatusRow()
 

@@ -18,6 +18,7 @@
     <Compile Include="Shared\Views.fs" />
     <Compile Include="Handlers\AdhocReport.fs" />
     <Compile Include="Handlers\Trends.fs" />
+    <Compile Include="Handlers\Cycles.fs" />
     <Compile Include="Handlers\IndustriesDashboard.fs" />
     <Compile Include="Handlers\Dashboard.fs" />
     <Compile Include="Handlers\Countries.fs" />

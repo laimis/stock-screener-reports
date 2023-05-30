@@ -273,6 +273,7 @@ type MarketCycle =
     member this.highPointDateFormatted = this.highPoint.date.ToString("d")
 
     member this.startPointValue = this.startPoint.value
+    member this.startPointDate = this.startPoint.date
     member this.startPointDateFormatted = this.startPoint.date.ToString("d")
 
     member this.currentPointValue = this.currentPoint.value
@@ -283,6 +284,8 @@ type TrendWithCycle =
         trend: Trend;
         cycle: MarketCycle;
     }
+
+type IndustryWithCycle = string * MarketCycle
 
 type JobStatus =
     | Success

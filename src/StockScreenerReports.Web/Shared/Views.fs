@@ -225,6 +225,11 @@ module Views =
                         (_class "button is-small is-primary is-pulled-right mx-1")
 
                     generateHrefWithAttr
+                        "Cycles"
+                        Links.cycles
+                        (_class "button is-small is-primary is-pulled-right mx-1")
+
+                    generateHrefWithAttr
                         "Trends"
                         Links.trends
                         (_class "button is-small is-primary is-pulled-right mx-1")
