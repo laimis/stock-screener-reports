@@ -156,14 +156,32 @@ module IndustryDashboard =
             breakdowns
             |> TrendsCalculator.calculateTrendAndCycleForIndustry
 
+        let trendCardClass =
+            match trendAddScore with
+            | x when x > 5 -> "card-positive"
+            | _ -> "card-negative"
+
+        let cycleCardClass =
+            match cycleAddScore with
+            | x when x > 5 -> "card-positive"
+            | _ -> "card-negative"
+
         div [ _class "columns"] [
             div [ _class "column"] [
                 h1 [] [ str industryName ]
-                div [] [ trendWithCycle.trend |> trendToHtml |> rawText]
-                div [] [ rawText $"{trendCycleScoreTm} <b>{trendScoreComponent}</b> with scores of <b>{trendAddScore}</b> and <b>{trendMultiScore}</b>"]
-                div [] [ trendWithCycle.cycle |> marketCycleToHtml |> rawText]
-                div [] [ rawText $"{marketCycleScoreTm} <b>{cycleScoreComponents}</b> with scores of <b>{cycleAddScore}</b> and <b>{cycleMultiScore}</b>"]
+
+                div [_class "card-container"] [
+                    div [_class $"card {trendCardClass}"] [
+                        div [_class "score-title"] [ "Trend" |> str ] 
+                        div [_class "score-number"] [ $"{trendAddScore}/{trendMultiScore}" |> str ] 
+                    ]
+                    div [_class $"card {cycleCardClass}"] [
+                        div [_class "score-title"] [ "Cycle" |> str ] 
+                        div [_class "score-number"] [ $"{cycleAddScore}/{cycleMultiScore}" |> str ] 
+                    ]
+                ]
                 
+                div [ _class "mt-5"] [ trendWithCycle.cycle |> marketCycleToHtml |> rawText]
             ]
             div [ _class "column has-text-right"] [
                 h5 [] [
@@ -327,21 +345,7 @@ module IndustryDashboard =
             ]
 
             let stocks = industryName |> Storage.getStocksByIndustry
-                
-            let stockTable =
-                stocks
-                |> List.sortBy (fun stock -> stock.ticker)
-                |> List.map (fun stock ->
-                    tr [] [
-                        stock.ticker    |> StockTicker.value |> generateTickerLink |> toTdWithNode
-                        stock.company   |> toTd
-                        stock.sector    |> Links.sectorLink |> generateHref stock.sector |> toTdWithNode
-                        stock.industry  |> Links.industryLink |> generateHref stock.industry |> toTdWithNode
-                        stock.country   |> Links.countryLink |> generateHref stock.country |> toTdWithNode
-                        stock.ticker    |> StockTicker.value |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
-                    ]
-                )
-                |> fullWidthTableWithSortableHeaderCells stockTableHeaderCells
+            let stockTable = stocks |> generateStockTable
 
             let tickers = stocks |> List.map (fun stock -> stock.ticker |> StockTicker.value)
             let stocksSection = section [_class "mt-5"] [

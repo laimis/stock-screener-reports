@@ -14,6 +14,11 @@ module Views =
         | d when d > billion -> System.Math.Round(d / billion, 2).ToString() + "B"
         | d -> System.Math.Round(d / million, 2).ToString() + "M"
 
+    let marketCapOptionFormatted marketCapOption =
+        match marketCapOption with
+        | Some marketCap -> marketCapFormatted marketCap
+        | None -> ""
+
     let dollarFormatted (value:decimal) =
         value.ToString("C")
 
@@ -419,3 +424,27 @@ module Views =
                 ] [ $"<b>{startDate}</b> - <b>{endDate}</b>" |> rawText ]
             form
         ]
+
+    let generateStockTable stocks =
+        let stockTableHeaders = [
+            "ticker"
+            "company"
+            "sector"
+            "industry"
+            "market cap"
+            "chart"
+        ]
+
+        stocks
+        |> List.sortBy (fun stock -> stock.ticker)
+        |> List.map (fun stock ->
+            tr [] [
+                stock.ticker    |> StockTicker.value |> generateTickerLink |> toTdWithNode
+                stock.company   |> toTd
+                stock.sector    |> Links.sectorLink |> generateHref stock.sector |> toTdWithNode
+                stock.industry  |> Links.industryLink |> generateHref stock.industry |> toTdWithNode
+                stock.marketCap |> marketCapOptionFormatted |> toTd
+                stock.ticker    |> StockTicker.value |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
+            ]
+        )
+        |> fullWidthTableWithSortableHeaderCells stockTableHeaders

@@ -63,30 +63,12 @@ module SectorDashboard =
 
         let screenerResultsTable = resultRows |> fullWidthTableWithSortableHeaderCells headerCells
 
-        let stocks = Storage.getStocksBySector sectorName
-
-        let stockTableHeaders = [
-            "ticker"
-            "company"
-            "sector"
-            "industry"
-        ]
-
-        let stockTable =
-            stocks
-            |> List.map (fun stock ->
-                tr [] [
-                    stock.ticker    |> StockTicker.value |> generateTickerLink |> toTdWithNode
-                    stock.company   |> toTd
-                    stock.sector    |> Links.sectorLink |> generateHref stock.sector |> toTdWithNode
-                    stock.industry  |> Links.industryLink |> generateHref stock.industry |> toTdWithNode
-                ]
-            )
-            |> fullWidthTableWithSortableHeaderCells stockTableHeaders
+        let stocks = sectorName |> Storage.getStocksBySector
+        let stockTable = stocks |> generateStockTable
 
         let stocksSection = section [_class "mt-5"] [
             h4 [] [
-                $"Stocks in Industry ({stocks.Length})" |> str
+                $"Stocks in sector ({stocks.Length})" |> str
             ]
             stockTable
         ]
