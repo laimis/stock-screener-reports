@@ -146,6 +146,8 @@ type Stock = {
     sector: string;
     industry: string;
     country: string;
+    marketCap: decimal option;
+    lastUpdate: System.DateTime option
 }
 
 type Screener = {

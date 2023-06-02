@@ -27,9 +27,16 @@ type StorageTests(output:ITestOutputHelper) =
     
     let generateScreener() =
         "screener" + System.Guid.NewGuid().ToString()
+
+    let generateInt min max =
+        let rnd = System.Random()
+        rnd.Next(min, max)
+
+    let generateNumber min max =
+        generateInt min max |> decimal
         
     let saveAndReturnTestStock ticker =
-        Storage.saveStock ticker testStockName testStockSector testStockIndustry testStockCountry
+        Storage.saveStock ticker testStockName testStockSector testStockIndustry testStockCountry 1_000_000m
 
     [<Fact>]
     let ``Getting stock works`` () =
@@ -47,6 +54,7 @@ type StorageTests(output:ITestOutputHelper) =
         Assert.Equal(testStockSector, stock.sector)
         Assert.Equal(testStockIndustry, stock.industry)
         Assert.Equal(testStockCountry, stock.country)
+        Assert.True(stock.marketCap > Some 0m)
 
         let deleted = Storage.deleteStock stock
         Assert.Equal(1, deleted)
@@ -98,7 +106,7 @@ type StorageTests(output:ITestOutputHelper) =
             | None ->
                 Assert.True(true)
 
-    // write test for screener results
+
     [<Fact>]
     let ``Storing and retrieving screener results works`` () =
         
@@ -131,6 +139,59 @@ type StorageTests(output:ITestOutputHelper) =
 
         Storage.deleteScreenerResults screener date |> ignore
         Storage.deleteStock stock |> ignore
+        Storage.deleteScreener screener |> ignore
+
+    [<Fact>]
+    let ``Storing results creates appropriate stock entries``() =
+        let screenerName = generateScreener()
+        let ticker = generateTicker()
+
+        let screener = Storage.saveScreener screenerName screenerUrl
+
+        let date = Utils.getRunDate()
+
+        Storage.deleteScreenerResults screener date |> ignore
+
+        let stock = Storage.getStockByTicker ticker
+        Assert.True(stock.IsNone)
+
+        let results = Reports.getScreenerResults screener.id date
+        Assert.Empty(results)
+
+        let result = {
+            ticker = ticker;
+            company = testStockName;
+            sector = testStockSector;
+            industry = testStockIndustry;
+            country = testStockCountry;
+            marketCap = generateNumber 1_000_000_000 2_000_000_000;
+            price = generateNumber 1 100;
+            change = generateNumber 1 10;
+            volume = generateInt 1_000_000 10_000_000;
+        }
+
+        let results = (screener,[result])
+
+        Storage.saveScreenerResults date results
+
+        let stock = Storage.getStockByTicker ticker
+
+        match stock with
+            | Some stock ->
+                Assert.Equal(ticker, stock.ticker)
+                Assert.Equal(testStockName, stock.company)
+                Assert.Equal(testStockSector, stock.sector)
+                Assert.Equal(testStockIndustry, stock.industry)
+                Assert.Equal(testStockCountry, stock.country)
+                Assert.Equal(stock.marketCap, Some (result.marketCap))
+            | None ->
+                Assert.True(false, "Expected stock to be created")
+
+        let screenerResults = Reports.getScreenerResults screener.id date
+        Assert.NotEmpty(screenerResults)
+
+        Storage.deleteScreenerResults screener date |> ignore
+        Storage.deleteStock stock.Value |> ignore
         Storage.deleteScreener screener |> ignore
 
     [<Fact>]

@@ -55,9 +55,9 @@ module Earnings =
             |> List.map (fun s -> 
                 tr [] [
                     s.ticker |> generateTickerLink |> toTdWithNode
-                    s.ticker |> Links.tradingViewLink |> generateHref "chart" |> toTdWithNode
-                    s.industry |> Links.industryLink |> generateHref s.industry |> toTdWithNode
                     s.sector |> Links.sectorLink |> generateHref s.sector |> toTdWithNode
+                    s.industry |> Links.industryLink |> generateHref s.industry |> toTdWithNode
+                    s.ticker |> Links.tradingViewLink |> generateHref "chart" |> toTdWithNode
                 ]
             )
 

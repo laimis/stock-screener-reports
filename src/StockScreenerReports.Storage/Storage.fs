@@ -16,6 +16,8 @@ module Storage =
     let configureLogger log =
         logger <- log
 
+    let private stockSelect = "SELECT id, ticker, name, sector, industry, country, lastmarketcap, lastupdated FROM stocks"
+
     let stockMapper (reader:RowReader) =
         {
             id = reader.int "id";
@@ -24,6 +26,8 @@ module Storage =
             sector = reader.string "sector";
             industry = reader.string "industry";
             country = reader.string "country";
+            marketCap = reader.decimalOrNone "lastmarketcap";
+            lastUpdate = reader.dateTimeOrNone "lastupdated"
         }
 
     let industryCycleMapper (reader:RowReader) : IndustryWithCycle =
@@ -79,7 +83,7 @@ module Storage =
         | _ -> raise (new System.Exception(message))
 
     let getStockByTickers (tickers:string list) =
-        let sql = "SELECT id,ticker,name,sector,industry,country FROM stocks WHERE ticker = ANY(@tickers)"
+        let sql = $"{stockSelect} WHERE ticker = ANY(@tickers)"
 
         cnnString
             |> Sql.connect
@@ -88,7 +92,7 @@ module Storage =
             |> Sql.execute stockMapper
         
     let getStockByTicker (ticker:StockTicker.T) =
-        let sql = "SELECT id,ticker,name,sector,industry,country FROM stocks WHERE ticker = @ticker"
+        let sql = $"{stockSelect} WHERE ticker = @ticker"
 
         cnnString
             |> Sql.connect
@@ -98,7 +102,7 @@ module Storage =
             |> singleOrThrow "Expected single result for stock"
 
     let getStocksBySector (sector:string) =
-        let sql = "SELECT id,ticker,name,sector,industry,country FROM stocks WHERE sector = @sector"
+        let sql = $"{stockSelect} WHERE sector = @sector"
 
         cnnString
             |> Sql.connect
@@ -107,7 +111,7 @@ module Storage =
             |> Sql.execute stockMapper
 
     let getStocksByIndustry (industry:string) =
-        let sql = "SELECT id,ticker,name,sector,industry,country FROM stocks WHERE industry = @industry"
+        let sql = $"{stockSelect} WHERE industry = @industry"
 
         cnnString
             |> Sql.connect
@@ -116,10 +120,13 @@ module Storage =
             |> Sql.execute stockMapper
     
     // TODO: should we consider types for ticker, sectory, industry, country?
-    let saveStock (ticker:StockTicker.T) name sector industry country =
+    let saveStock (ticker:StockTicker.T) name sector industry country marketCap =
         
-        let sql = @"INSERT INTO stocks (ticker,name,sector,industry,country)
-            VALUES (@ticker,@name,@sector,@industry,@country) RETURNING *"
+        let sql = @"INSERT INTO stocks (ticker,name,sector,industry,country,lastmarketcap,lastupdated)
+            VALUES (@ticker,@name,@sector,@industry,@country,@marketCap,now())
+            ON CONFLICT (ticker)
+            DO UPDATE
+            SET sector=@sector, industry=@industry, country=@country, lastmarketcap=@marketCap, lastupdated=now() RETURNING *"
 
         cnnString
             |> Sql.connect
@@ -129,9 +136,10 @@ module Storage =
                     "@name", Sql.string name;
                     "@sector", Sql.string sector;
                     "@industry", Sql.string industry;
-                    "@country", Sql.string country
+                    "@country", Sql.string country;
+                    "@marketCap", Sql.decimal marketCap
                 ]
-            |> Sql.executeRow stockMapper
+            |> Sql.executeRow stockMapper        
 
     let deleteStock (stock:Stock) =
         cnnString
@@ -209,7 +217,7 @@ module Storage =
         ]
         |> Sql.executeNonQuery
 
-    let saveScreenerResult screener date (stock:Stock) result =
+    let saveScreenerResult screener date (stock:Stock) (result:ScreenerResult) =
 
         let sql = @"INSERT INTO screenerresults
             (screenerid,date,stockId,marketcap,price,change,volume)
@@ -230,12 +238,6 @@ module Storage =
         ]
         |> Sql.executeNonQuery
 
-    let getOrSaveStock (ticker:StockTicker.T) name sector industry country =
-        let stockOrNone = getStockByTicker ticker
-        match stockOrNone with
-            | Some stock -> stock
-            | None -> saveStock ticker name sector industry country
-
     let getOrSaveScreener screener =
         let screenerOption = getScreenerByName screener.name
         match screenerOption with
@@ -249,8 +251,8 @@ module Storage =
         deleteScreenerResults screener date |> ignore
 
         results
-        |> Seq.map (fun result ->
-            let stock = getOrSaveStock result.ticker result.company result.sector result.industry result.country
+        |> Seq.map (fun (result:ScreenerResult) ->
+            let stock = saveStock result.ticker result.company result.sector result.industry result.country result.marketCap
             (screener,stock,result)
         )
         |> Seq.iter (fun (screener,stock,result) ->

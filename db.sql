@@ -144,3 +144,6 @@ create table industrycycles (
     currentvalue numeric not null,
     UNIQUE(industry, days)
 );
+
+ALTER TABLE stocks ADD COLUMN lastupdated timestamp;
+ALTER TABLE stocks ADD COLUMN lastmarketcap numeric;
