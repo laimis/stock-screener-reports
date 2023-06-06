@@ -72,6 +72,70 @@ module Earnings =
             h2 [] [title |> str]
             table
         ]
+
+    let createEarningsTable
+        (stocks:Map<string,Stock>)
+        tickersWithEarnings
+        (screenerResultMappings:list<Map<string,ScreenerResultReportItem>>) =
+        let rows =
+            tickersWithEarnings
+            |> List.map (fun (ticker, (date:System.DateTime)) ->
+
+                let iconFunc screenerId =
+                    match screenerId with
+                    | Constants.NewHighsScreenerId -> generateNewHighIcon
+                    | Constants.TopGainerScreenerId -> generateTopGainerIcon
+                    | Constants.TopLoserScreenerId -> generateTopLoserIcon
+                    | Constants.NewLowsScreenerId -> generateNewLowIcon
+                    | _ -> failwith "No icon defined for screener id"
+
+                let generateDivWithDateAndIcon (screenerResultOption:ScreenerResultReportItem option) =
+                    match screenerResultOption with
+                    | Some s ->
+                        div [] [
+                            true |> (s.screenerid |> iconFunc)
+                            s.date |> Utils.convertToDateString |> str
+                        ]
+                    | None -> 
+                        i [] []
+
+                let screenerCells =
+                    screenerResultMappings
+                    |> List.map (fun map -> 
+                        let cellContent = ticker |> map.TryFind |> generateDivWithDateAndIcon
+                        cellContent |> toTdWithNode
+                    )
+
+                let stock = stocks |> Map.tryFind ticker
+                let industry = 
+                    match stock with
+                    | Some s -> s.industry
+                    | None -> ""
+
+                let marketCap = 
+                    match stock with
+                    | Some s -> s.marketCap
+                    | None -> None
+
+                let cells = 
+                    [
+                        ticker |> generateTickerLink |> toTdWithNode
+                        date.ToString("yyyy-MM-dd") |> toTd
+                        industry |> Links.industryLink |> generateHref industry |> toTdWithNode
+                        marketCap |> marketCapOptionFormatted |> toTd
+                    ]
+                    @
+                    screenerCells
+                    @
+                    [
+                        ticker |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
+                    ]
+
+                tr [] cells
+            )
+ 
+        let headerRow = ["Ticker"; "Date"; "Industry"; "MCap"; "New High"; "Top Gainer"; "Top Loser"; "New Low"; "Trading View"]
+        rows |> fullWidthTable headerRow
             
 
     let handlerInternal startDate endDate  =
@@ -106,61 +170,6 @@ module Earnings =
         let industryGroupingsByScreener =
             screenerResultMappings
             |> List.map (fun map -> map |> createIndustryGrouping tickersWithEarnings)
-
-        let rows =
-            tickersWithEarnings
-            |> List.map (fun (ticker, date) ->
-
-                let iconFunc screenerId =
-                    match screenerId with
-                    | Constants.NewHighsScreenerId -> generateNewHighIcon
-                    | Constants.TopGainerScreenerId -> generateTopGainerIcon
-                    | Constants.TopLoserScreenerId -> generateTopLoserIcon
-                    | Constants.NewLowsScreenerId -> generateNewLowIcon
-                    | _ -> failwith "No icon defined for screener id"
-
-                let generateDivWithDateAndIcon (screenerResultOption:ScreenerResultReportItem option) =
-                    match screenerResultOption with
-                    | Some s ->
-                        div [] [
-                            true |> (s.screenerid |> iconFunc)
-                            s.date |> Utils.convertToDateString |> str
-                        ]
-                    | None -> 
-                        i [] []
-
-                let screenerCells =
-                    screenerResultMappings
-                    |> List.map (fun map -> 
-                        let cellContent = ticker |> map.TryFind |> generateDivWithDateAndIcon
-                        cellContent |> toTdWithNode
-                    )
-
-                let stock = stocks |> Map.tryFind ticker
-                let industry = 
-                    match stock with
-                    | Some s -> s.industry
-                    | None -> ""
-
-                let cells = 
-                    [
-                        ticker |> generateTickerLink |> toTdWithNode
-                        date.ToString("yyyy-MM-dd") |> toTd
-                        industry |> Links.industryLink |> generateHref industry |> toTdWithNode
-                    ]
-                    @
-                    screenerCells
-                    @
-                    [
-                        ticker |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
-                    ]
-
-                tr [] cells
-            )
-
-        let earningsTable = 
-            let headerRow = ["Ticker"; "Date"; "Industry"; "New High"; "Top Gainer"; "Top Loser"; "New Low"; "Trading View"]
-            rows |> fullWidthTable headerRow
         
         let screenerLabels = [
             "New Highs"
@@ -187,7 +196,9 @@ module Earnings =
                 tickersWithEarnings |> createFilteredSection l map
             )
 
-        [header; breakdownDiv] @ sections @ [earningsTable] |> mainLayout $"Earnings"
+        let earningsTable = createEarningsTable stocks tickersWithEarnings screenerResultMappings
+
+        [header; breakdownDiv] @ [earningsTable] @ sections |> mainLayout $"Earnings"
 
     let handlerCurrentWeek() =
         let startDate = Utils.getCurrentMonday()
