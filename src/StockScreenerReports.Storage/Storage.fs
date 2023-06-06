@@ -101,6 +101,18 @@ module Storage =
             |> Sql.execute stockMapper
             |> singleOrThrow "Expected single result for stock"
 
+    let updateStockTicker (oldTicker:StockTicker.T) (newTicker:StockTicker.T) =
+        let sql = @"UPDATE stocks SET ticker = @newTicker WHERE ticker = @oldTicker"
+
+        cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters [
+                "@oldTicker", oldTicker |> StockTicker.value |> Sql.string;
+                "@newTicker", newTicker |> StockTicker.value |> Sql.string
+            ]
+            |> Sql.executeNonQuery
+
     let getStocksBySector (sector:string) =
         let sql = $"{stockSelect} WHERE sector = @sector"
 

@@ -27,6 +27,7 @@ let webApp =
                 route "/trends" >=> Trends.handler
 
                 route "/stocks/search" >=> StockSearch.redirect
+                route "/stocks" >=> warbler (fun _ -> StockManagement.handler())
                 routef "/stocks/%s" StockDashboard.handler
 
                 routef "/sectors/%s" SectorDashboard.handler
@@ -51,6 +52,8 @@ let webApp =
                 routef "/screeners/%i/export" ScreenerManagement.exportHandler
 
                 route "/reports/adhoc/export" >=> warbler (fun _ -> AdhocReport.exportHandler())
+
+                route "/stocks/adjustticker" >=> StockManagement.adjustTicker  
             ]
         setStatusCode 404 >=> text "Not Found" ]
 

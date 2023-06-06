@@ -29,6 +29,7 @@
     <Compile Include="Handlers\ScreenerDashboard.fs" />
     <Compile Include="Handlers\ScreenerManagement.fs" />
     <Compile Include="Handlers\SectorDashboard.fs" />
+    <Compile Include="Handlers\StockManagement.fs" />
     <Compile Include="Handlers\StockDashboard.fs" />
     <Compile Include="Handlers\StockSearch.fs" />
     <Compile Include="Program.fs" />
