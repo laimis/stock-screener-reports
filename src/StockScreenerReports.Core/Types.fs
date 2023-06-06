@@ -110,6 +110,16 @@ type ReportsConfig =
         holidays
 
     static member isTradingDay (dateTime:System.DateTime) =
+        // ensure that we have holidays configured for future dates, otherwise we might
+        // be running with outdated configuration
+        let today = System.DateTime.Now
+        let futureDatesConfigured =
+            ReportsConfig.getTradingHolidays()
+            |> List.exists (fun date -> date > today)
+        match futureDatesConfigured with
+            | false -> failwith "Trading holidays not configured for future dates. Add them in ReportsConfig.fs"
+            | _ -> ()
+
         let dayOfWeek = dateTime.DayOfWeek
         let isWeekend = dayOfWeek = System.DayOfWeek.Saturday || dayOfWeek = System.DayOfWeek.Sunday
         let isHoliday = ReportsConfig.getTradingHolidays() |> List.contains dateTime
