@@ -150,8 +150,6 @@ match runCyclesMigration() with
 | true ->
     let knownIndustries = Storage.getIndustries()
 
-    
-
     knownIndustries
     |> Seq.iter (fun industry -> 
         
