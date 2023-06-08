@@ -27,6 +27,8 @@ module Links =
     let screenerLink screenerId =
         $"/screeners/{screenerId}"
 
+    let searchLink = "/search"
+
     let screenerResultsLink screenerId date =
          $"/screeners/{screenerId}/results/{date}"
 

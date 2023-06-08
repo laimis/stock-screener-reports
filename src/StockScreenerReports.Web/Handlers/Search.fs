@@ -4,7 +4,7 @@ open Giraffe
 open StockScreenerReports.Storage
 open StockScreenerReports.Core
 
-module StockSearch =
+module Search =
     open StockScreenerReports.Web.Shared
     open StockScreenerReports.Web.Shared.Views
     open Giraffe.ViewEngine

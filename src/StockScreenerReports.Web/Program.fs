@@ -26,7 +26,7 @@ let webApp =
                 routef "/screeners/%i/results/%s" ScreenerResults.handler
                 route "/trends" >=> Trends.handler
 
-                route "/stocks/search" >=> StockSearch.redirect
+                route "/search" >=> Search.redirect
                 route "/stocks" >=> warbler (fun _ -> StockManagement.handler())
                 routef "/stocks/%s" StockDashboard.handler
 

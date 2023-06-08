@@ -212,7 +212,7 @@ module Views =
             div [ _class "columns"] [
                 div [ _class "column" ] [
                     form [
-                        _action "/stocks/search"
+                        _action Links.searchLink
                         _method "GET"
                     ] [
                         input [
