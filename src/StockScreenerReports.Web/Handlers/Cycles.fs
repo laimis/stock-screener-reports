@@ -59,6 +59,20 @@ module Cycles =
         let rows =
             cycles
             |> List.map (fun (industry, cycle) ->
+                let direction =
+                    match cycle.currentPointValue - cycle.startPointValue with
+                    | x when x <= 0m -> Down
+                    | _ -> Up
+
+                let age = int cycle.age.TotalDays
+
+                let change = cycle.currentPointValue - cycle.startPointValue
+
+                let score = 
+                    (MarketCycleScoring.calculateScoreComponents direction age change)
+                    |> MarketCycleScoring.componentScoreAdding
+                    |> decimal
+
                 [
                     Link(industry,industry |> Links.industryLink)
                     Date(cycle.startPointDate)
@@ -68,6 +82,7 @@ module Cycles =
                     Number(cycle.currentPointValue)
                     String(cycle.age.TotalDays |> int |> string)
                     String(cycle.highPointAge.TotalDays |> int |> string)
+                    Number(score)
                 ]
             )
             |> List.map (fun data ->
@@ -94,6 +109,7 @@ module Cycles =
             "Current Value"
             "Age"
             "High Age"
+            "Score"
         ]
 
         rows |> fullWidthTableWithSortableHeaderCells header

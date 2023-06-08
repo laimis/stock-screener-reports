@@ -6,27 +6,42 @@ open StockScreenerReports.Core
 
 module StockSearch =
     open StockScreenerReports.Web.Shared
+    open StockScreenerReports.Web.Shared.Views
+    open Giraffe.ViewEngine
     
-    
+    let messageView message =
+        let view =
+            div [] [ message |> str ]
+
+        [view] |> mainLayout "Search"
+
     let redirect : HttpHandler =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
-            let redirectUrl =
-                match ctx.TryGetQueryStringValue "ticker" with
-                | None -> "notfound" |> Links.stockLink
-                | Some headerValue -> 
-                    let toSearch = headerValue.ToUpper()
-                    let stock = toSearch |> StockTicker.create |> Storage.getStockByTicker
 
+            match ctx.TryGetQueryStringValue "ticker" with
+            | None -> (messageView "Search parameter not provided") next ctx
+            | Some headerValue -> 
+                    
+                let stock =
+                    headerValue
+                    |> StockTicker.create
+                    |> Storage.getStockByTicker
+
+                let redirectOpt =
                     match stock with
                     | None -> 
-                        let industry = Storage.getIndustries() |> List.tryFind (fun x -> x.Equals(toSearch, System.StringComparison.InvariantCultureIgnoreCase))
+                        let industry =
+                            Storage.getIndustries()
+                            |> List.tryFind (fun x -> x.Contains(headerValue, System.StringComparison.InvariantCultureIgnoreCase))
+
                         match industry with
-                        | None -> "notfound" |> Links.industryLink
-                        | Some industry -> industry |> Links.industryLink
+                        | None -> None
+                        | Some industry -> industry |> Links.industryLink |> Some 
 
                     | Some stock ->
-                        stock.ticker |> StockTicker.value |> Links.stockLink
-                    
+                        stock.ticker |> StockTicker.value |> Links.stockLink |> Some
 
-
-            (redirectTo false redirectUrl) next ctx
+                match redirectOpt with
+                | None -> (messageView $"Unable to find stock or industry matching {headerValue}") next ctx
+                | Some redirectUrl ->                            
+                    (redirectTo false redirectUrl) next ctx

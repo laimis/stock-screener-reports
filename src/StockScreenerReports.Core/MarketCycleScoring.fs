@@ -7,7 +7,7 @@ module MarketCycleScoring =
     
     type ScoreComponents = { direction:int; age:int; change:int }
 
-    let private calculateScoreComponents direction age change =
+    let calculateScoreComponents direction age change =
         let directionComponent = 
             match direction with
             | Down -> -1
