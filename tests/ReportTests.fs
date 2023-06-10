@@ -358,8 +358,9 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``get industry trend works`` () =
-        let range = ReportsConfig.dateRangeAsStrings
-        let trend = Reports.getIndustryTrend 20 (snd range) StorageTests.testStockIndustry
+        let dateToUseOpt = ReportsConfig.dateRangeAsStrings |> snd |> Reports.getIndustryTrendsLastKnownDateAsOf
+        let dateToUse = dateToUseOpt |> Option.get |> Utils.convertToDateString
+        let trend = Reports.getIndustryTrend 20 dateToUse StorageTests.testStockIndustry
         Assert.True(trend.IsSome)
 
     [<Fact>]

@@ -794,8 +794,6 @@ module Reports =
             WHERE 
                 date = date(@date)
                 AND days = @days"
-        
-        // try catch in f#
 
         try
             cnnString
@@ -810,16 +808,6 @@ module Reports =
             | ex -> 
                 System.Console.WriteLine("Error: " + date + " " + days.ToString())
                 reraise()
-
-
-        // cnnString
-        // |> Sql.connect
-        // |> Sql.query sql
-        // |> Sql.parameters [
-        //     "@days", Sql.int days;
-        //     "@date", Sql.string date;
-        // ]
-        // |> Sql.executeRow (fun reader -> (reader.int "up", reader.int "down"))
 
     let getIndustryTrend days date industry =
         let sql = @"

@@ -284,3 +284,21 @@ type StorageTests(output:ITestOutputHelper) =
         let stocks = tickers |> Storage.getStockByTickers
 
         Assert.Equal(3, stocks.Length)
+
+    [<Fact>]
+    let ``find stocks with no match query works`` () =
+
+        let stocks = Storage.findStocksByTicker "nomatches"
+
+        Assert.Empty(stocks)
+
+    [<Fact>]
+    let ``find stocks with match query works`` () =
+
+        let stocks = Storage.findStocksByTicker "AM"
+
+        Assert.NotEmpty(stocks)
+
+        let indexOfAMD = List.findIndex (fun x -> x.ticker |> StockTicker.value = "AMD") stocks
+
+        Assert.True(indexOfAMD >= 0)

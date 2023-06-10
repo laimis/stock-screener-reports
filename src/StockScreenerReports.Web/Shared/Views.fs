@@ -219,7 +219,7 @@ module Views =
                             _class "input"
                             _type "text"
                             _placeholder "Search for stock"
-                            _name "ticker"
+                            _name "query"
                         ]
                     ]
                 ]

@@ -101,6 +101,15 @@ module Storage =
             |> Sql.execute stockMapper
             |> singleOrThrow "Expected single result for stock"
 
+    let findStocksByTicker (ticker:string) =
+        let sql = $"{stockSelect} WHERE LOWER(ticker) LIKE LOWER(@ticker)"
+
+        cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters ["@ticker", $"%%{ticker}%%" |> Sql.string]
+            |> Sql.execute stockMapper
+
     let updateStockTicker (oldTicker:StockTicker.T) (newTicker:StockTicker.T) =
         let sql = @"UPDATE stocks SET ticker = @newTicker WHERE ticker = @oldTicker"
 
