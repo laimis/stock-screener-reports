@@ -19,7 +19,7 @@ module Cycles =
 
         let startPointDateSelector = fun (_, x) -> x.startPoint.date
         let minStart = cycles |> List.minBy startPointDateSelector |> startPointDateSelector
-        let maxStart = System.DateTime.Now.Date
+        let maxStart = ReportsConfig.now().Date
 
         let dateCounts = 
             ReportsConfig.listOfBusinessDates (minStart, maxStart)

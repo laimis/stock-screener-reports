@@ -35,7 +35,7 @@ namespace StockScreenerReports.Core
             DateTime.ParseExact(dateString, "yyyy-MM-dd", null)
 
         let getRunDate() =
-            DateTime.Now |> convertToDateString
+            ReportsConfig.now() |> convertToDateString
 
         let getCurrentMonday() =
             let refDate = DateTimeOffset.UtcNow

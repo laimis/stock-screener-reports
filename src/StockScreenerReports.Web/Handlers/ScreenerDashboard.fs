@@ -6,14 +6,13 @@ module ScreenerDashboard =
     open Giraffe.ViewEngine
     open StockScreenerReports.Storage
     open StockScreenerReports.Web.Shared
-    open System
     
 
     let private generateBreakdowsElementsForDays screenerId (days:int) =
         let fetchBreakdownData dataSource =
-            let startDate = DateTime.Now.AddDays(-days)
-            let endDate = DateTime.Now
-
+            let endDate = ReportsConfig.now()
+            let startDate = endDate.AddDays(-days)
+            
             dataSource screenerId startDate endDate
 
         let sectorsData = fetchBreakdownData Reports.topSectorsOverDays

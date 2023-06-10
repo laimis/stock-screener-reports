@@ -195,7 +195,7 @@ type IndustrySMABreakdown =
         {
             industry = industry;
             breakdown = {
-                date = System.DateTime.Now;
+                date = ReportsConfig.now();
                 days = 0;
                 above = 0;
                 below = 0;

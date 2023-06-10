@@ -18,8 +18,8 @@ type ReportTests(output:ITestOutputHelper) =
     let getTestIndustries = ["Agricultural Inputs";"Biotechnology";"Semiconductors"]
     let getTestCountry = "USA"
 
-    let getTestStartDate() = DateTime.Now.AddDays(-7)
-    let getTestEndDate() = DateTime.Now
+    let getTestStartDate() = ReportsConfig.now().AddDays(-7)
+    let getTestEndDate() = ReportsConfig.now()
 
     let topGroupingTest resultGenerator containsMember =
 
@@ -145,7 +145,7 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``Date range country grouping works``() =
-        "USA" |> topGroupingTest (fun x -> Reports.topCountriesOverDays x.id (DateTime.Now.AddDays(-7)) DateTime.Now)
+        "USA" |> topGroupingTest (fun x -> Reports.topCountriesOverDays x.id (ReportsConfig.now().AddDays(-7)) (ReportsConfig.now()))
 
     [<Fact>]
     let ``getting screener results for ticker works``() =
