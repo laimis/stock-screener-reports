@@ -49,7 +49,7 @@ module ScreenerDashboard =
 
     let generateLayoutForScreener (screener:StockScreenerReports.Core.Screener) =
 
-        let dateRange = ReportsConfig.dateRangeAsStrings
+        let dateRange = ReportsConfig.dateRangeAsStrings()
 
         let header = 
             div [_class "content"] [

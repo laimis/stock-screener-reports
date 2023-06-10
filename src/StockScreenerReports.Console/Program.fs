@@ -20,7 +20,7 @@ let readConfig() =
         System.IO.File.ReadAllText(configPath)
     )
 
-let isTradingDay = DateTime.Now |> ReportsConfig.isTradingDay
+let isTradingDay = ReportsConfig.now() |> ReportsConfig.isTradingDay
 
 let containsArgument toFind =
     let args = Environment.GetCommandLineArgs()
@@ -127,7 +127,7 @@ match runSMAUpdates() with
         industrySmaPairs
         |> Seq.map (fun (industry, days) -> 
             
-            let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry days ReportsConfig.dateRangeAsStrings
+            let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry days (ReportsConfig.dateRangeAsStrings())
             let trendAndCycle = breakdowns |> TrendsCalculator.calculateTrendAndCycleForIndustry
             let trend = trendAndCycle.trend
             let lastBreakdown = breakdowns |> List.last
@@ -153,7 +153,7 @@ match runCyclesMigration() with
     knownIndustries
     |> Seq.iter (fun industry -> 
         
-        let range = ReportsConfig.dateRangeAsStrings
+        let range = ReportsConfig.dateRangeAsStrings()
         let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry 20 range
         let trendWithCycle = breakdowns |> TrendsCalculator.calculateTrendAndCycleForIndustry
         let cycle = trendWithCycle.cycle
@@ -174,7 +174,7 @@ match runTestReports() with
 
     let smaBreakdowns = 
         industry
-        |> Reports.getIndustrySMABreakdownsForIndustry 20 ReportsConfig.dateRangeAsStrings
+        |> Reports.getIndustrySMABreakdownsForIndustry 20 (ReportsConfig.dateRangeAsStrings())
 
     smaBreakdowns
     |> List.iter (fun x -> Console.Write($"({x.breakdown.above}, {x.breakdown.above + x.breakdown.below});"))

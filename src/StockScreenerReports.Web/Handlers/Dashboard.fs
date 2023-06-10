@@ -208,7 +208,7 @@ module Dashboard =
         let breakdowns =
             Constants.SMAS
             |> List.map (fun sma ->
-                let smaBreakdown = sma |> getDailySMABreakdown (ReportsConfig.dateRangeAsStrings)
+                let smaBreakdown = sma |> getDailySMABreakdown (ReportsConfig.dateRangeAsStrings())
                 (sma, smaBreakdown)
             )
 

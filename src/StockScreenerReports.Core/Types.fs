@@ -63,13 +63,15 @@ type ReportsConfig =
 
     static member days = 91
 
-    static member dateRange = (
-        System.DateTime.Now.AddDays(-1.0 * 91.0),
-        System.DateTime.Now
+    static member now() = System.DateTime.Now
+
+    static member dateRange() = (
+        ReportsConfig.now().AddDays(-1.0 * 91.0),
+        ReportsConfig.now()
     )
 
-    static member dateRangeAsStrings = 
-        let range = ReportsConfig.dateRange
+    static member dateRangeAsStrings() = 
+        let range = ReportsConfig.dateRange()
         let startDate = (range |> fst).ToString("yyyy-MM-dd")
         let endDate = (range |> snd).ToString("yyyy-MM-dd")
         (startDate,endDate)
@@ -112,10 +114,9 @@ type ReportsConfig =
     static member isTradingDay (dateTime:System.DateTime) =
         // ensure that we have holidays configured for future dates, otherwise we might
         // be running with outdated configuration
-        let today = System.DateTime.Now
         let futureDatesConfigured =
             ReportsConfig.getTradingHolidays()
-            |> List.exists (fun date -> date > today)
+            |> List.exists (fun date -> date > dateTime)
         match futureDatesConfigured with
             | false -> failwith "Trading holidays not configured for future dates. Add them in ReportsConfig.fs"
             | _ -> ()

@@ -247,7 +247,7 @@ module Trends =
             |> Map.ofSeq
 
         let highsMinusLowsChart =
-            ReportsConfig.dateRange
+            ReportsConfig.dateRange()
             |> ReportsConfig.listOfBusinessDates
             |> Seq.map(fun (date) ->
                 let high = 

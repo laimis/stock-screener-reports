@@ -91,7 +91,7 @@ type ReportTests(output:ITestOutputHelper) =
 
         let screener = Reports.getLatestScreeners().Head
 
-        let dayRange = ReportsConfig.dateRangeAsStrings
+        let dayRange = ReportsConfig.dateRangeAsStrings()
         
         let results = screener.screenerid |> Reports.getScreenerResultsForDays dayRange
 
@@ -101,7 +101,7 @@ type ReportTests(output:ITestOutputHelper) =
     let ``Particular screener daily counts work``() =
 
         let screener = getTestScreener
-        let dateRange = ReportsConfig.dateRangeAsStrings
+        let dateRange = ReportsConfig.dateRangeAsStrings()
 
         let results = screener.Value.id |> Reports.getDailyCountsForScreener dateRange
 
@@ -114,7 +114,7 @@ type ReportTests(output:ITestOutputHelper) =
     let ``Particular screener daily volume works``() =
 
         let screener = getTestScreener
-        let dateRange = ReportsConfig.dateRangeAsStrings
+        let dateRange = ReportsConfig.dateRangeAsStrings()
 
         let results = screener.Value.id |> Reports.getDailyAverageVolumeForScreener dateRange   
 
@@ -157,7 +157,7 @@ type ReportTests(output:ITestOutputHelper) =
     let ``getting daily counts for screeners filtered by sector works``() =
         let screener = Constants.TopGainerScreenerId
 
-        let dayRange = ReportsConfig.dateRangeAsStrings
+        let dayRange = ReportsConfig.dateRangeAsStrings()
 
         let screenerResult = screener |> Reports.getScreenerResultsForDays dayRange
 
@@ -171,7 +171,7 @@ type ReportTests(output:ITestOutputHelper) =
     let ``getting daily counts for screeners filtered by industry works``() =
         let screener = getTestScreener
 
-        let dateRange = ReportsConfig.dateRangeAsStrings
+        let dateRange = ReportsConfig.dateRangeAsStrings()
 
         // try several industries, we should fine at least one that has results
         let exists =
@@ -185,7 +185,7 @@ type ReportTests(output:ITestOutputHelper) =
     let ``getting daily counts for screeners filtered by country works``() =
         let screener = getTestScreener
         let industry = getTestCountry
-        let dateRange = ReportsConfig.dateRangeAsStrings
+        let dateRange = ReportsConfig.dateRangeAsStrings()
 
         let results = Reports.getDailyCountsForScreenerAndCountry screener.Value.id industry dateRange
         
@@ -257,7 +257,7 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``get industry trends for industry`` () =
-        let dateRange = ReportsConfig.dateRangeAsStrings
+        let dateRange = ReportsConfig.dateRangeAsStrings()
         let trends =
             StorageTests.testStockIndustry
             |> Reports.getIndustrySMABreakdownsForIndustry 20 dateRange
@@ -288,7 +288,7 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``get daily SMA breakdowns works`` () =
-        let results = Reports.getDailySMABreakdown (ReportsConfig.dateRangeAsStrings) 20
+        let results = Reports.getDailySMABreakdown (ReportsConfig.dateRangeAsStrings()) 20
         Assert.NotEmpty(results)
 
         // check order
@@ -348,7 +348,7 @@ type ReportTests(output:ITestOutputHelper) =
     let ``calculate industry trends works`` () =
         let smaBreakdowns =
             StorageTests.testStockIndustry
-            |> Reports.getIndustrySMABreakdownsForIndustry 20 ReportsConfig.dateRangeAsStrings
+            |> Reports.getIndustrySMABreakdownsForIndustry 20 (ReportsConfig.dateRangeAsStrings())
         let trend = TrendsCalculator.calculateForIndustry smaBreakdowns
 
         Assert.True(trend.streak > 0)
@@ -358,7 +358,7 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``get industry trend works`` () =
-        let dateToUseOpt = ReportsConfig.dateRangeAsStrings |> snd |> Reports.getIndustryTrendsLastKnownDateAsOf
+        let dateToUseOpt = ReportsConfig.dateRangeAsStrings() |> snd |> Reports.getIndustryTrendsLastKnownDateAsOf
         let dateToUse = dateToUseOpt |> Option.get |> Utils.convertToDateString
         let trend = Reports.getIndustryTrend 20 dateToUse StorageTests.testStockIndustry
         Assert.True(trend.IsSome)

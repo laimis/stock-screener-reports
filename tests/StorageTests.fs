@@ -260,7 +260,7 @@ type StorageTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``market cycle for industry works`` () =
 
-        let range = ReportsConfig.dateRangeAsStrings
+        let range = ReportsConfig.dateRangeAsStrings()
 
         let trendAndCycle =
             testStockIndustry

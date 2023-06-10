@@ -11,8 +11,8 @@ module CountryDashboard =
     let handler countryName =
         let screeners = Storage.getScreeners()
 
-        let dateRange = ReportsConfig.dateRange
-        let dateRangeAsStrings = ReportsConfig.dateRangeAsStrings
+        let dateRange = ReportsConfig.dateRange()
+        let dateRangeAsStrings = ReportsConfig.dateRangeAsStrings()
 
         let list = dateRange |> ReportsConfig.listOfBusinessDates
 

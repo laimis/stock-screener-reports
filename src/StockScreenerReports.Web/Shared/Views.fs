@@ -341,7 +341,7 @@ module Views =
         let endDateParam = ctx.TryGetQueryStringValue "endDate"
         let dateAdjustmentParam = ctx.TryGetQueryStringValue "dateAdjustment"
 
-        let dateRange = ReportsConfig.dateRangeAsStrings
+        let dateRange = ReportsConfig.dateRangeAsStrings()
 
         let startDate = 
             match startDateParam with

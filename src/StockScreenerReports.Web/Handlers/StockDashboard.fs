@@ -45,7 +45,7 @@ module StockDashboard =
             ]
 
         let days = ReportsConfig.days
-        let dateRange = ReportsConfig.dateRange
+        let dateRange = ReportsConfig.dateRange()
 
         let businessDays = ReportsConfig.listOfBusinessDates dateRange
 
