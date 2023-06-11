@@ -423,7 +423,7 @@ module Storage =
         ]
         |> Sql.executeNonQuery
 
-    let saveJobStatus (jobName:JobName) (timestamp : System.DateTimeOffset) (status:JobStatus) message =
+    let saveJobStatus (jobName:JobName) (timestamp : System.DateTime) (status:JobStatus) message =
         let sql = @"
             INSERT INTO jobs
             (name,timestamp,status,message)
@@ -457,7 +457,7 @@ module Storage =
         |> Sql.execute (fun reader -> 
             (
                 (reader.string "message"),
-                (reader.datetimeOffset "timestamp")
+                (reader.dateTime "timestamp")
             )
         )
         |> singleOrThrow "More than one job status for the same job"

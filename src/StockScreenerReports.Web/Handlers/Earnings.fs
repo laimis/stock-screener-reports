@@ -145,8 +145,8 @@ module Earnings =
         ]
 
         let dateRange = (
-            startDate |> Utils.convertToDateStringForOffset,
-            endDate |> Utils.convertToDateStringForOffset
+            startDate |> Utils.convertToDateString,
+            endDate |> Utils.convertToDateString
         )
 
         let tickersWithEarnings = getEarningsTickers dateRange
@@ -158,8 +158,8 @@ module Earnings =
             |> Map.ofList
 
         let dateRange = (
-            startDate |> Utils.convertToDateStringForOffset,
-            endDate |> Utils.convertToDateStringForOffset
+            startDate |> Utils.convertToDateString,
+            endDate |> Utils.convertToDateString
         )
 
         let screenerResultMappings =
@@ -206,7 +206,7 @@ module Earnings =
         handlerInternal startDate endDate
 
     let handlerLast7Days() =
-        let startDate = System.DateTimeOffset.UtcNow.AddDays(-7)
-        let endDate = System.DateTimeOffset.UtcNow.AddDays(1)
+        let startDate = ReportsConfig.now().AddDays(-7)
+        let endDate = ReportsConfig.now().AddDays(1)
 
         handlerInternal startDate endDate

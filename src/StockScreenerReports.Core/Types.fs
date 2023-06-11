@@ -47,6 +47,10 @@ module Constants =
         | SMA200 -> ColorBlue
         | _ -> ColorBlack
 
+module TimeFunctions =
+    
+    let mutable nowFunc = fun() -> System.DateTime.Now
+
 
 type ScreenerInput = {
     name:string;
@@ -60,10 +64,10 @@ type ReportsConfig =
         outputPath:string;
         dbConnectionString:string;
     }
-
     static member days = 91
-
-    static member now() = System.DateTime.Now
+    
+    static member now() = TimeFunctions.nowFunc()
+    static member nowAlwaysSystem() = System.DateTime.Now
 
     static member dateRange() = (
         ReportsConfig.now().AddDays(-1.0 * 91.0),

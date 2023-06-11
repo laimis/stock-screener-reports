@@ -18,7 +18,7 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
                 breakdown = {
                     above = above;
                     below = total - above;
-                    date = DateTime.UtcNow.AddDays(-list.Length).AddDays(index);
+                    date = ReportsConfig.now().AddDays(-list.Length).AddDays(index);
                     days = Constants.SMA20;
                 }
             }

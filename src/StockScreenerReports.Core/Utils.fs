@@ -38,7 +38,7 @@ namespace StockScreenerReports.Core
             ReportsConfig.now() |> convertToDateString
 
         let getCurrentMonday() =
-            let refDate = DateTimeOffset.UtcNow
+            let refDate = ReportsConfig.now()
             match refDate.DayOfWeek with
             | DayOfWeek.Monday -> refDate
             | DayOfWeek.Tuesday -> refDate.AddDays(-1)

@@ -2,9 +2,10 @@ namespace StockScreenerReports.Web.Shared
 
 module Utils =
     open Charts
+    open StockScreenerReports.Core
 
     let businessDatesWithZeroPairs days =
-        [for i in -days .. 0 -> (System.DateTime.UtcNow.Date.AddDays(i),0) ]
+        [for i in -days .. 0 -> (ReportsConfig.now().Date.AddDays(i),0) ]
         |> List.where (fun (date,_) ->
             date.DayOfWeek = System.DayOfWeek.Saturday |> not && date.DayOfWeek = System.DayOfWeek.Sunday |> not
         )
@@ -24,7 +25,7 @@ module Utils =
     let genericJobStatusGet jobName =
             match (StockScreenerReports.Storage.Storage.getLatestJobStatus jobName) with
                 | Some (message, timestamp) -> 
-                    let age = System.DateTimeOffset.UtcNow.Subtract(timestamp)
+                    let age = ReportsConfig.nowAlwaysSystem().Subtract(timestamp)
                     let friendlyAgeString =
                         match age with
                         | age when age.TotalDays > 1.0 -> $"{(int)age.TotalDays} days ago"

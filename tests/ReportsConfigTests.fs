@@ -22,3 +22,18 @@ type ReportsConfigTests(output:ITestOutputHelper) =
     let ``Trading days are weekdays`` dateStr =
         let date = System.DateTime.Parse(dateStr)
         Assert.True(date |> ReportsConfig.isTradingDay)
+
+    [<Fact>]
+    let ``now() is the same as DateTime.Now by default``() =
+        let now = System.DateTime.Now
+        let configNow = ReportsConfig.now()
+        Assert.Equal(now.Date, configNow.Date)
+
+    [<Fact>]
+    let ``now() can be overridden``() =
+        let prevFunc = TimeFunctions.nowFunc
+        TimeFunctions.nowFunc <- fun() -> System.DateTime.Now.AddDays(-1)
+        let now = System.DateTime.Now
+        let configNow = ReportsConfig.now()
+        TimeFunctions.nowFunc <- prevFunc // restore func for other tests
+        Assert.NotEqual(now.Date, configNow.Date)

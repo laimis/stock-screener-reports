@@ -20,14 +20,24 @@ let readConfig() =
         System.IO.File.ReadAllText(configPath)
     )
 
-let isTradingDay = ReportsConfig.now() |> ReportsConfig.isTradingDay
-
 let containsArgument toFind =
     let args = Environment.GetCommandLineArgs()
     let m = args |> Array.toList |> List.tryFind (fun arg -> arg = toFind)
     match m with
     | None -> false
     | Some _ -> true
+
+let overrideDate = containsArgument "--override-date"
+if overrideDate then
+    let date = DateTime.Now.AddDays(-1)
+    TimeFunctions.nowFunc <- fun() -> date
+
+let now = ReportsConfig.now()
+
+Console.WriteLine("Run date: " + now.ToString())
+
+
+let isTradingDay = ReportsConfig.now() |> ReportsConfig.isTradingDay
 
 let runSMAUpdates() =
     isTradingDay && containsArgument "--industry-sma-breakdowns"
@@ -89,7 +99,7 @@ match runScreeners() with
     
     let message = $"Ran {screenerResults.Length} screeners, and found {earnings.Length} earnings dates"
 
-    Storage.saveJobStatus ScreenerJob (DateTimeOffset.UtcNow) Success message |> ignore
+    Storage.saveJobStatus ScreenerJob (ReportsConfig.nowAlwaysSystem()) Success message |> ignore
 
 | false -> ()
 
@@ -139,7 +149,7 @@ match runSMAUpdates() with
     
     Storage.saveJobStatus
         IndustryTrendsJob
-        (DateTimeOffset.UtcNow)
+        (ReportsConfig.nowAlwaysSystem())
         Success
         $"Updated sma breakdowns for {industriesUpdated} industries and calculated {trendsUpdated} trends"
     |> ignore

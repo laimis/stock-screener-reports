@@ -212,7 +212,7 @@ type StorageTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``save job works`` () =
         let message = "generated test results and it was great"
-        let timestamp = System.DateTimeOffset.UtcNow
+        let timestamp = ReportsConfig.now()
 
         let count = Storage.saveJobStatus TestJob timestamp Success message
         Assert.Equal(1, count)
@@ -220,10 +220,10 @@ type StorageTests(output:ITestOutputHelper) =
         let (latestMessage,latestTimestamp) = 
             match (Storage.getLatestJobStatus TestJob) with
             | Some (message,timestamp) -> (message,timestamp)
-            | None -> ("",System.DateTimeOffset.MinValue)
+            | None -> ("",System.DateTime.MinValue)
 
         Assert.Equal(message, latestMessage)
-        Assert.Equal(timestamp.DateTime, latestTimestamp.DateTime, (System.TimeSpan.FromMilliseconds(1)))
+        Assert.Equal(timestamp, latestTimestamp, (System.TimeSpan.FromMilliseconds(1)))
 
     [<Fact>]
     let ``daily sma breakdown works`` () =
@@ -239,7 +239,7 @@ type StorageTests(output:ITestOutputHelper) =
 
         // move it to the past so that it does not show up
         // in real app
-        let date = System.DateTime.UtcNow.AddDays(-100)
+        let date = ReportsConfig.now().AddDays(-100)
 
         let trend = {streak=7;direction=Up;change=121m;value=100m;}
 
