@@ -21,8 +21,16 @@ module Search =
         | StockMatch of Name<Stock>
         | IndustryMatch of string
 
-    let render query results =
-         
+    let private getLink m =
+            match m with
+                | StockMatch stock -> Links.stockLink (stock.value.ticker |> StockTicker.value)
+                | IndustryMatch industry -> Links.industryLink industry
+
+    let redirectFirstResult result =
+        let link = result |> getLink
+        redirectTo false link
+
+    let renderMultipleResults query results =
         let matchToRow m =
             let cells =
                 match m with
@@ -31,14 +39,14 @@ module Search =
 
                         [
                             td [] ["Stock" |> str]
-                            td [] [Links.stockLink (stock.value.ticker |> StockTicker.value) |> generateHref stock.name]
+                            td [] [m |> getLink |> generateHref stock.name]
                             td [] [matchedStock.company |> str]
                             td [] [matchedStock.industry |> Links.industryLink |> generateHref matchedStock.industry]
                             td [] [matchedStock.country |> Links.countryLink |> generateHref matchedStock.country]
                         ]
                     | IndustryMatch industry -> [
                             td [] ["Industry" |> str]
-                            td [] [Links.industryLink industry |> generateHref industry]
+                            td [] [m |> getLink |> generateHref industry]
                             td [_colspan "3"] ["" |> str]
                         ]
 
@@ -55,6 +63,17 @@ module Search =
             table
         ]
 
+    let render query results =
+
+        match results with
+        | [] -> 
+            messageView $"No results found for {query}"
+        | [x] -> 
+            redirectFirstResult x
+        | _ ->
+            let view = renderMultipleResults query results
+            [view] |> mainLayout "Search Results"
+
     let handler : HttpHandler =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
 
@@ -69,6 +88,6 @@ module Search =
 
                 let results = stocks @ industries
 
-                let view = results |> render queryParameter
+                let nextFunc = results |> render queryParameter
 
-                ([view] |> mainLayout "Search Results") next ctx
+                nextFunc next ctx
