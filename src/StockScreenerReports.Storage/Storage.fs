@@ -435,7 +435,7 @@ module Storage =
         |> Sql.query sql
         |> Sql.parameters [
             "@name", jobName |> toJobNameString |> Sql.string;
-            "@timestamp", Sql.timestamptz timestamp;
+            "@timestamp", Sql.timestamptz (timestamp.ToUniversalTime());
             "@status", status |> toJobStatusString |> Sql.string;
             "@message", Sql.string message;
         ]

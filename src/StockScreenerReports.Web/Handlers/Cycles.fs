@@ -58,6 +58,7 @@ module Cycles =
         
         let rows =
             cycles
+            |> List.sortByDescending (fun (_, cycle) -> cycle.startPointDate)
             |> List.map (fun (industry, cycle) ->
                 let direction =
                     match cycle.currentPointValue - cycle.startPointValue with
@@ -80,6 +81,7 @@ module Cycles =
                     Date(cycle.highPointDate)
                     Number(cycle.highPointValue)
                     Number(cycle.currentPointValue)
+                    Number(change)
                     String(cycle.age.TotalDays |> int |> string)
                     String(cycle.highPointAge.TotalDays |> int |> string)
                     Number(score)
@@ -107,6 +109,7 @@ module Cycles =
             "High"
             "High Value"
             "Current Value"
+            "Change"
             "Age"
             "High Age"
             "Score"
