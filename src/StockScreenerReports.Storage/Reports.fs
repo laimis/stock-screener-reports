@@ -406,7 +406,7 @@ module Reports =
     let getDailyCountsForScreenerAndCountry id country =
         getDailyCountsForScreenerAndStockFilter id "country" country
 
-    let getScreenerResultsForTickerDayRange (ticker:StockScreenerReports.Core.StockTicker.T) days =
+    let getScreenerResultsForTickerDayRange (ticker:StockScreenerReports.Core.StockTicker.T) dateRange =
             
         let sql = @$"
             SELECT 
@@ -418,7 +418,7 @@ module Reports =
             JOIN screeners ON screeners.id = screenerresults.screenerid
             WHERE 
                 stocks.ticker = @ticker
-                AND screenerresults.date >= current_date - @days
+                AND screenerresults.date BETWEEN date(@startDate) AND date(@endDate)
             ORDER BY screenerresults.date DESC"
 
         cnnString
@@ -426,7 +426,8 @@ module Reports =
             |> Sql.query sql
             |> Sql.parameters [
                 "@ticker", ticker |> StockScreenerReports.Core.StockTicker.value |> Sql.string
-                "@days", Sql.int days
+                "@startDate", Sql.string (dateRange |> fst)
+                "@endDate", Sql.string (dateRange |> snd)
             ]
             |> Sql.execute mapScreenerResultReportItem
 

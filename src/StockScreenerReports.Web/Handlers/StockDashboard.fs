@@ -11,7 +11,7 @@ module StockDashboard =
     open StockScreenerReports.Web.Shared
 
 
-    let private renderStockInternal (stock:Stock) =
+    let private renderStockInternal (stock:Stock) tickerScreenerResults =
 
         let header = div [_class "content"] [
            h1 [] [
@@ -44,15 +44,13 @@ module StockDashboard =
                 screenerResult.volume |> volumeFormatted |> str |> toTdWithNode
             ]
 
-        let days = ReportsConfig.days
         let dateRange = ReportsConfig.dateRange()
 
         let businessDays = ReportsConfig.listOfBusinessDates dateRange
 
         // group recent screenerresults by date
         let recentScreenerResultsByScreener = 
-            days
-            |> getScreenerResultsForTickerDayRange stock.ticker
+            tickerScreenerResults
             |> List.groupBy (fun screenerResult -> (screenerResult.screenerid, screenerResult.screenername))
             |> Map.ofList
             
@@ -106,11 +104,18 @@ module StockDashboard =
         ]
 
     let handler ticker =
-        let stockTicker = StockTicker.create ticker
-        let stock = Storage.getStockByTicker stockTicker
+        let stock =
+            ticker
+            |> StockTicker.create
+            |> Storage.getStockByTicker
+
         match stock with
         | Some stock ->
-            let view = renderStockInternal stock
+            
+            let view = 
+                (ReportsConfig.dateRangeAsStrings())
+                |> getScreenerResultsForTickerDayRange stock.ticker
+                |> renderStockInternal stock
             let pageTitle = (stock.ticker |> StockTicker.value) + " - " + stock.company
             view |> mainLayout pageTitle
         | None -> 
