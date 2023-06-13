@@ -2,6 +2,7 @@
 open StockScreenerReports.Core
 open StockScreenerReports.FinvizClient
 open StockScreenerReports.Storage
+open StockScreenerReports.Web.Shared.Utils
 
 let updateStatus (message:string) =
     Console.WriteLine(message)
@@ -57,14 +58,6 @@ let fetchScreenerResults input =
     let results = FinvizClient.getResults input.url
     (input,results)
 
-let saveToDb (screenerResults:list<Screener * 'a>) =
-
-    System.Console.WriteLine("Saving to db " + screenerResults.Length.ToString() + " screener results")
-    let date = Utils.getRunDate()
-    screenerResults
-    |> List.iter (fun x -> Storage.saveScreenerResults date x)
-    screenerResults
-
 let config = readConfig()
 
 updateStatus "Config read"
@@ -83,77 +76,15 @@ updateStatus ("Trading day: " + isTradingDay.ToString())
 
 match runScreeners() with
 | true ->
-    
-    let screenerResults =
-        Storage.getScreeners()
-        |> List.map fetchScreenerResults
-        |> saveToDb
-
-    let earnings = FinvizClient.getEarnings()
-
-    earnings
-        |> List.iter (fun x ->
-            let (ticker,earningsTime) = x
-            Storage.saveEarningsDate ticker (Utils.getRunDate()) earningsTime |> ignore
-        )
-    
-    let message = $"Ran {screenerResults.Length} screeners, and found {earnings.Length} earnings dates"
-
-    Storage.saveJobStatus ScreenerJob (ReportsConfig.nowAlwaysSystem()) Success message |> ignore
-
+    let logger = new DummyLogger()
+    StockScreenerReports.Web.Services.screenerRun (logger)
+    StockScreenerReports.Web.Services.earningsRun (logger)
 | false -> ()
 
 
 match runSMAUpdates() with
 | true ->     
-    let date = Utils.getRunDate()
-    
-    // pull above and below 20 and 200 for each industry, and store the results
-    let knownIndustries = Storage.getIndustries()
-    let smas = Constants.SMAS
-
-    let industrySmaPairs = knownIndustries |> Seq.map (fun industry -> smas |> List.map (fun sma -> (industry, sma))) |> Seq.concat
-
-    let industriesUpdated =
-        industrySmaPairs
-        |> Seq.map (fun (industry,sma) ->
-            Console.WriteLine($"Processing industry {industry} {sma} day sma breakdown")
-            (industry,sma))
-        |> Seq.map (fun (industry, sma) ->   
-            let (above,below) = industry |> FinvizClient.getResultCountForIndustryAboveAndBelowSMA sma
-            (industry, sma, above, below)
-        )
-        |> Seq.map (fun r ->
-            Storage.saveIndustrySMABreakdowns date r |> ignore
-        )
-        |> Seq.length
-
-    // updating breakdowns
-    smas |> List.iter (fun days -> Storage.updateSMABreakdowns date days |> ignore)
-
-    Console.WriteLine($"Calculating trends")
-
-    let trendsUpdated =
-        industrySmaPairs
-        |> Seq.map (fun (industry, days) -> 
-            
-            let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry days (ReportsConfig.dateRangeAsStrings())
-            let trendAndCycle = breakdowns |> TrendsCalculator.calculateTrendAndCycleForIndustry
-            let trend = trendAndCycle.trend
-            let lastBreakdown = breakdowns |> List.last
-            Console.WriteLine($"Saving industry {industry} trend: {trend.direction} {trend.streak} days with change of {trend.change}")
-            Storage.updateIndustryTrend lastBreakdown trend |> ignore
-            let cycle = trendAndCycle.cycle
-            Storage.saveIndustryCycle days cycle industry
-        ) |> Seq.sum
-    
-    Storage.saveJobStatus
-        IndustryTrendsJob
-        (ReportsConfig.nowAlwaysSystem())
-        Success
-        $"Updated sma breakdowns for {industriesUpdated} industries and calculated {trendsUpdated} trends"
-    |> ignore
-
+    StockScreenerReports.Web.Services.trendsRun (new DummyLogger())
 | false -> ()
 
 match runCyclesMigration() with

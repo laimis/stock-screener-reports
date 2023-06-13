@@ -312,6 +312,7 @@ type JobName =
     | ScreenerJob
     | IndustryTrendsJob
     | TestJob
+    | EarningsJob
 
 type EarningsTime =
     | BeforeMarket

@@ -75,24 +75,6 @@ module ScreenerManagement =
                 return! redirectTo false Links.screeners next ctx
             }
 
-    let runScreeners () =
-        let fetchScreenerResults (input:StockScreenerReports.Core.Screener) =
-            let results = StockScreenerReports.FinvizClient.FinvizClient.getResults input.url
-            (input,results)
-
-        let saveToDb (screenerResults:list<StockScreenerReports.Core.Screener * 'a>) =
-            let date = StockScreenerReports.Core.Utils.getRunDate()
-            screenerResults
-            |> List.iter (fun x -> Storage.saveScreenerResults date x)
-            screenerResults
-
-        Storage.getScreeners()
-        |> List.map fetchScreenerResults
-        |> saveToDb
-        |> ignore
-
-        redirectTo false "/"
-
     let managementHandler() = 
         
         let screeners = Storage.getScreeners()
@@ -181,19 +163,33 @@ module ScreenerManagement =
 
         let content =
             div [ _class "container" ] [
-                div [ _class "content" ] [
+                section [ _class "content" ] [
                     h1 [] [ str "Screener Management" ]
+                    screenerTable
                 ]
-                screenerTable
-                div [ _class "content" ] [
+                section [ _class "content" ] [
                     h2 [] [ str "Add New" ]
+                    newScreenerForm
                 ]
-                newScreenerForm
-                div [ _class "content" ] [
+                section [ _class "content" ] [
                     h2 [] [ str "Run Screeners" ]
                     a [
                         _class "button is-primary"
-                        _href Links.screenersRun
+                        _href Links.jobsScreeners
+                    ] [ str "Kick off" ]
+                ]
+                section [ _class "content" ] [
+                    h2 [] [ str "Run Earnings" ]
+                    a [
+                        _class "button is-primary"
+                        _href Links.jobsEarnings
+                    ] [ str "Kick off" ]
+                ]
+                section [ _class "content" ] [
+                    h2 [] [ str "Run Trends" ]
+                    a [
+                        _class "button is-primary"
+                        _href Links.jobsTrends
                     ] [ str "Kick off" ]
                 ]
             ]

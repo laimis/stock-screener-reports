@@ -9,7 +9,7 @@ module Dashboard =
     open StockScreenerReports.Storage
 
     let private generateRefreshButton() =
-        let link = Links.screenersRun
+        let link = Links.jobsScreeners
         let title = "Refresh"
         div [_class "column is-one-quarter"] [
             a [

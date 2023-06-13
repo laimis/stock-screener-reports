@@ -3,6 +3,7 @@ namespace StockScreenerReports.Web.Shared
 module Utils =
     open Charts
     open StockScreenerReports.Core
+    open Microsoft.Extensions.Logging
 
     let businessDatesWithZeroPairs days =
         [for i in -days .. 0 -> (ReportsConfig.now().Date.AddDays(i),0) ]
@@ -35,3 +36,23 @@ module Utils =
                     $"{message} @ {timestamp}, {friendlyAgeString}"
                 | None ->
                     $"No results found for {jobName} found"
+
+
+    type DummyLogger() =
+        interface ILogger with
+            member this.BeginScope(state: 'TState): System.IDisposable = 
+                failwith "Not Implemented"
+            member this.IsEnabled(logLevel: LogLevel): bool = 
+                true
+            member this.Log(logLevel: LogLevel, eventId: EventId, state: 'TState, ``exception``: exn, formatter: System.Func<'TState,exn,string>): unit = 
+                let message = formatter.Invoke(state, ``exception``)
+
+                match logLevel with
+                | LogLevel.Trace -> printfn $"Trace: {message}"
+                | LogLevel.Debug -> printfn $"Debug: {message}"
+                | LogLevel.Information -> printfn $"Information: {message}"
+                | LogLevel.Warning -> printfn $"Warning: {message}"
+                | LogLevel.Error -> printfn $"Error: {message}"
+                | LogLevel.Critical -> printfn $"Critical: {message}"
+                | LogLevel.None -> printfn $"None: {message}"
+                | _ -> printfn $"Unknown: {message}"

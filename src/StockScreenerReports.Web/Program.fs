@@ -20,8 +20,7 @@ let webApp =
                 route "/" >=> warbler (fun _ -> Dashboard.handler())
                 
                 route "/screeners" >=> warbler (fun _ -> ScreenerManagement.managementHandler())
-                route "/screeners/run" >=> warbler (fun _ -> ScreenerManagement.runScreeners())
-
+                
                 routef "/screeners/%i" ScreenerDashboard.handler
                 routef "/screeners/%i/results/%s" ScreenerResults.handler
                 route "/trends" >=> Trends.handler
@@ -45,6 +44,12 @@ let webApp =
                 route "/earnings/lastweek" >=> warbler (fun _ -> Earnings.handlerLast7Days())
 
                 route "/health" >=> HealthCheck.healthCheckHandler
+
+                // jobs
+                route Links.jobsScreeners >=> warbler (fun _ -> Jobs.screeners())
+                route Links.jobsEarnings >=> warbler (fun _ -> Jobs.earnings())
+                route Links.jobsTrends >=> warbler (fun _ -> Jobs.trends())
+
             ]
         POST >=>
             choose [

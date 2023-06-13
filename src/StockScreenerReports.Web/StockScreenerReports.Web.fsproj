@@ -12,6 +12,7 @@
     <PackageReference Include="Ply" Version="0.3.1" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Services.fs" />
     <Compile Include="Shared\Links.fs" />
     <Compile Include="Shared\Charts.fs" />
     <Compile Include="Shared\Utils.fs" />
@@ -32,6 +33,7 @@
     <Compile Include="Handlers\StockManagement.fs" />
     <Compile Include="Handlers\StockDashboard.fs" />
     <Compile Include="Handlers\Search.fs" />
+    <Compile Include="Handlers\Jobs.fs" />
     <Compile Include="Handlers\HealthCheck.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

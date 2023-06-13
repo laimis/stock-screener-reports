@@ -46,7 +46,6 @@ module Links =
     
     let screeners = "/screeners"
     let screenersNew = "/screeners/new"
-    let screenersRun = "/screeners/run"
     let screenersDelete id = $"/screeners/{id}/delete"
     let screenersExport id = $"/screeners/{id}/export"
     let adhocReportExport = "/reports/adhoc/export"
@@ -56,6 +55,10 @@ module Links =
     let countries = "/countries"
     let earnings = "/earnings"
     let cycles = "/cycles"
+
+    let jobsScreeners = "/jobs/screeners"
+    let jobsEarnings = "/jobs/earnings"
+    let jobsTrends = "/jobs/trends"
 
     let industryFinvizLink (industryName:string) =
         let value =

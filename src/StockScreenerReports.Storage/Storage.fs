@@ -60,6 +60,7 @@ module Storage =
             | ScreenerJob _ -> "screenerjob"
             | IndustryTrendsJob _ -> "industrytrendsjob"
             | TestJob _ -> "testjob"
+            | EarningsJob _ -> "earningsjob"
 
     let private toTrendDirectionString (trendDirection:TrendDirection) =
         match trendDirection with

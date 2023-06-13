@@ -13,6 +13,7 @@
     <ProjectReference Include="..\StockScreenerReports.Core\StockScreenerReports.Core.fsproj" />
     <ProjectReference Include="..\StockScreenerReports.FinvizClient\StockScreenerReports.FinvizClient.fsproj" />
     <ProjectReference Include="..\StockScreenerReports.Storage\StockScreenerReports.Storage.fsproj" />
+    <ProjectReference Include="..\StockScreenerReports.Web\StockScreenerReports.Web.fsproj" />
   </ItemGroup>
 
 </Project>
