@@ -43,6 +43,8 @@ let webApp =
 
                 route "/earnings" >=> warbler (fun _ -> Earnings.handlerCurrentWeek())
                 route "/earnings/lastweek" >=> warbler (fun _ -> Earnings.handlerLast7Days())
+
+                route "/health" >=> HealthCheck.healthCheckHandler
             ]
         POST >=>
             choose [

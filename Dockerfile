@@ -19,6 +19,6 @@ RUN apk add --no-cache -U \
 WORKDIR /app
 COPY --from=build-env /app/out /app
 
-# HEALTHCHECK CMD curl -f http://localhost/health || exit 1
+HEALTHCHECK CMD curl -f http://localhost/health || exit 1
 
 ENTRYPOINT ["dotnet", "StockScreenerReports.Web.App.dll"]
