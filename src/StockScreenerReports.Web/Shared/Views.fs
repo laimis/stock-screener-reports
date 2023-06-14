@@ -278,7 +278,7 @@ module Views =
 
                 link [
                     _rel "stylesheet"
-                    "/node_modules/@fortawesome/fontawesome-free/css./all.min.css" |> _href
+                    "/all.min.css" |> _href
                 ]
 
                 script [ Links.chartJsLink |> _src ] []

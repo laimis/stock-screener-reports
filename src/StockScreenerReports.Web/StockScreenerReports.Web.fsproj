@@ -43,9 +43,6 @@
     <Content Include="WebRoot\**\*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="WebRoot\node_modules\@fontawesome\fontawesome-free\css\all.min.css">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StockScreenerReports.Storage\StockScreenerReports.Storage.fsproj" />
