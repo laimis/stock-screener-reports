@@ -217,13 +217,10 @@ type StorageTests(output:ITestOutputHelper) =
         let count = Storage.saveJobStatus TestJob timestamp Success message
         Assert.Equal(1, count)
 
-        let (latestMessage,latestTimestamp) = 
-            match (Storage.getLatestJobStatus TestJob) with
-            | Some (message,timestamp) -> (message,timestamp)
-            | None -> ("",System.DateTime.MinValue)
+        let testJob = Storage.getJobs() |> List.filter (fun j -> j.name = TestJob) |> List.head
 
-        Assert.Equal(message, latestMessage)
-        Assert.Equal(timestamp, latestTimestamp, (System.TimeSpan.FromMilliseconds(1)))
+        Assert.Equal(message, testJob.message)
+        Assert.Equal(timestamp, testJob.timestamp, (System.TimeSpan.FromMilliseconds(1)))
 
     [<Fact>]
     let ``daily sma breakdown works`` () =

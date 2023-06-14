@@ -306,8 +306,6 @@ module Trends =
 
         let trends = generateSMATrendRows dateRange
 
-        let jobStatusRow = IndustryTrendsJob |> Utils.genericJobStatusGet |> generateJobStatusDiv
-
         [
             [filters]
             trends
@@ -315,7 +313,6 @@ module Trends =
             numberOfHitsPartial
             [highsMinusLowsChart]
             volumePartial
-            [jobStatusRow]
         ] |> List.concat
 
     let handler : HttpHandler =

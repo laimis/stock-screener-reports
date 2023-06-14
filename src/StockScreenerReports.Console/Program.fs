@@ -52,12 +52,6 @@ let runTestReports() =
 let runCyclesMigration() =
     containsArgument "--cycles-migration"
 
-let fetchScreenerResults input =
-    Console.WriteLine("Processing " + input.name)
-    Console.WriteLine("fetching results...")
-    let results = FinvizClient.getResults input.url
-    (input,results)
-
 let config = readConfig()
 
 updateStatus "Config read"

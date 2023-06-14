@@ -151,14 +151,11 @@ module IndustriesDashboard =
 
             let industriesTable = generateIndustrySMATable()
 
-            let jobStatusRow = IndustryTrendsJob |> Utils.genericJobStatusGet |> generateJobStatusDiv
-
             let view = [
                 section [_class "content"] [
                     h1 [] [str "Industry SMA Breakdowns"]
                     industriesTable
                 ]
-                jobStatusRow
             ]
             
             (view |> mainLayout $"Industries") next ctx

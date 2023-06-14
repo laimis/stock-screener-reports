@@ -314,6 +314,13 @@ type JobName =
     | TestJob
     | EarningsJob
 
+type Job = {
+    name: JobName;
+    status: JobStatus;
+    message: string;
+    timestamp: System.DateTime;
+}
+
 type EarningsTime =
     | BeforeMarket
     | AfterMarket

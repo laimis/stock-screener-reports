@@ -62,15 +62,37 @@ module Storage =
             | TestJob _ -> "testjob"
             | EarningsJob _ -> "earningsjob"
 
-    let private toTrendDirectionString (trendDirection:TrendDirection) =
-        match trendDirection with
-            | Up _ -> "up"
-            | Down _ -> "down"
-
+    let private toJobName jobName =
+        match jobName with
+            | "screenerjob" -> ScreenerJob
+            | "industrytrendsjob" -> IndustryTrendsJob
+            | "testjob" -> TestJob
+            | "earningsjob" -> EarningsJob
+            | _ -> raise (new System.Exception($"Unknown job name: {jobName}"))
     let private toJobStatusString status =
         match status with
             | Success _ -> "success"
             | Failure _ -> "failure"
+
+    let private toJobStatus status =
+        match status with
+            | "success" -> Success
+            | "failure" -> Failure
+            | _ -> raise (new System.Exception($"Unknown job status: {status}"))
+
+    let jobMapper (reader:RowReader) : Job =
+
+        {
+            name = reader.string "name" |> toJobName;
+            status = reader.string "status" |> toJobStatus;
+            timestamp = reader.dateTime "timestamp";
+            message = reader.string "message";
+        }
+
+    let private toTrendDirectionString (trendDirection:TrendDirection) =
+        match trendDirection with
+            | Up _ -> "up"
+            | Down _ -> "down"
 
     let private toEarningTimeString earningsTime =
         match earningsTime with
@@ -260,7 +282,7 @@ module Storage =
         ]
         |> Sql.executeNonQuery
 
-    let getOrSaveScreener screener =
+    let getOrSaveScreener (screener:Screener) =
         let screenerOption = getScreenerByName screener.name
         match screenerOption with
             | Some screener -> screener
@@ -442,23 +464,29 @@ module Storage =
         ]
         |> Sql.executeNonQuery
 
-    let getLatestJobStatus (jobName:JobName) =
+    let getJobs() =
         let sql = @"
-            SELECT * FROM jobs
-            WHERE name = @name
-            ORDER BY timestamp DESC
-            LIMIT 1"
+            WITH ranked_logs AS (
+  SELECT
+    name,
+    status,
+    message,
+    timestamp,
+    ROW_NUMBER() OVER (PARTITION BY name ORDER BY timestamp DESC) AS row_number
+  FROM
+    jobs
+)
+SELECT
+    name,
+    status,
+    message,
+    timestamp
+FROM
+  ranked_logs
+WHERE
+  row_number = 1;"
         
         cnnString
         |> Sql.connect
         |> Sql.query sql
-        |> Sql.parameters [
-            "@name", jobName |> toJobNameString |> Sql.string ;
-        ]
-        |> Sql.execute (fun reader -> 
-            (
-                (reader.string "message"),
-                (reader.dateTime "timestamp")
-            )
-        )
-        |> singleOrThrow "More than one job status for the same job"
+        |> Sql.execute jobMapper

@@ -245,7 +245,7 @@ module Views =
                         (_class "button is-small is-primary is-pulled-right mx-1")
 
                     generateHrefWithAttr
-                        "Screeners"
+                        "Configuration"
                         Links.screeners
                         (_class "button is-small is-primary is-pulled-right mx-1")
                 ]

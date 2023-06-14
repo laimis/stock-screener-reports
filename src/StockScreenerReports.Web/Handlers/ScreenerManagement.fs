@@ -75,10 +75,7 @@ module ScreenerManagement =
                 return! redirectTo false Links.screeners next ctx
             }
 
-    let managementHandler() = 
-        
-        let screeners = Storage.getScreeners()
-
+    let createScreenersTable (screeners:list<StockScreenerReports.Core.Screener>) =
         let screenerRows =
             screeners
             |> List.map ( fun screener ->
@@ -128,12 +125,11 @@ module ScreenerManagement =
                 "" |> toHeaderCell
             ]
                 
-        let screenerTable = 
-            screenerRows
-            |> fullWidthTableWithCustomHeader tableHeader
+        screenerRows
+        |> fullWidthTableWithCustomHeader tableHeader
 
-        let newScreenerForm =
-            form [
+    let createNewScreenerForm =
+        form [
                 _method "POST"
                 _action Links.screenersNew
             ] [
@@ -161,6 +157,42 @@ module ScreenerManagement =
                 ]
             ]
 
+    let createJobsTable (jobs:list<StockScreenerReports.Core.Job>) =
+        let getLink (job:StockScreenerReports.Core.Job) =
+            match job.name with
+            | StockScreenerReports.Core.JobName.EarningsJob -> Links.jobsEarnings
+            | StockScreenerReports.Core.JobName.ScreenerJob -> Links.jobsScreeners
+            | StockScreenerReports.Core.JobName.IndustryTrendsJob -> Links.jobsTrends
+            | _ -> job.name.ToString()
+
+        let jobRows =
+            jobs
+            |> List.map ( fun job ->
+                tr [] [
+                    job.name.ToString() |> toTd
+                    job.message.ToString() |> toTd
+                    job.status.ToString() |> toTd
+                    job.timestamp.ToString() |> toTd
+                    job |> getLink |> generateHref "Run" |> toTdWithNode
+                ]
+            )
+
+        let header = ["Name"; "Message"; "Status"; "Timestamp"; ""]
+                
+        jobRows
+        |> fullWidthTable header
+
+    let managementHandler() = 
+        
+        let screeners = Storage.getScreeners()
+        let jobs = Storage.getJobs()
+
+        let screenerTable = createScreenersTable screeners
+
+        let newScreenerForm = createNewScreenerForm
+
+        let jobsTable = createJobsTable jobs
+
         let content =
             div [ _class "container" ] [
                 section [ _class "content" ] [
@@ -168,29 +200,12 @@ module ScreenerManagement =
                     screenerTable
                 ]
                 section [ _class "content" ] [
-                    h2 [] [ str "Add New" ]
+                    h2 [] [ str "New Screener" ]
                     newScreenerForm
                 ]
-                section [ _class "content" ] [
-                    h2 [] [ str "Run Screeners" ]
-                    a [
-                        _class "button is-primary"
-                        _href Links.jobsScreeners
-                    ] [ str "Kick off" ]
-                ]
-                section [ _class "content" ] [
-                    h2 [] [ str "Run Earnings" ]
-                    a [
-                        _class "button is-primary"
-                        _href Links.jobsEarnings
-                    ] [ str "Kick off" ]
-                ]
-                section [ _class "content" ] [
-                    h2 [] [ str "Run Trends" ]
-                    a [
-                        _class "button is-primary"
-                        _href Links.jobsTrends
-                    ] [ str "Kick off" ]
+                section [ _class "content"] [
+                    h2 [] [ str "Jobs" ]
+                    jobsTable
                 ]
             ]
 

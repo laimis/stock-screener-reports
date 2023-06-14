@@ -37,9 +37,6 @@ module Dashboard =
             ]
         ]
 
-    let private generateJobStatusRow() =
-        ScreenerJob |> Utils.genericJobStatusGet |> Views.generateJobStatusDiv
-
     let generateTrendsTable title nameCounts =
         let rows =
             nameCounts
@@ -232,9 +229,7 @@ module Dashboard =
             |> Storage.getIndustryCycles
             |> Cycles.generateIndustryCycleStartChart
 
-        let jobStatusRow = generateJobStatusRow()
-
-        [screenerRows] @ smaTrendRows @ smaBreakdownRows @ [marketCycleSection] @ industryTrendRows @ sectorTrendRows @ [ jobStatusRow ]
+        [screenerRows] @ smaTrendRows @ smaBreakdownRows @ [marketCycleSection] @ industryTrendRows @ sectorTrendRows
 
     let handler()  = 
         

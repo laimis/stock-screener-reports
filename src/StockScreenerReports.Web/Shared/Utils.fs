@@ -23,21 +23,6 @@ module Utils =
             { d with data = windowed}
         )
 
-    let genericJobStatusGet jobName =
-            match (StockScreenerReports.Storage.Storage.getLatestJobStatus jobName) with
-                | Some (message, timestamp) -> 
-                    let age = ReportsConfig.nowAlwaysSystem().Subtract(timestamp)
-                    let friendlyAgeString =
-                        match age with
-                        | age when age.TotalDays > 1.0 -> $"{(int)age.TotalDays} days ago"
-                        | age when age.TotalHours > 1.0 -> $"{(int)age.TotalHours} hours ago"
-                        | age when age.TotalMinutes > 1.0 -> $"{(int)age.TotalMinutes} minutes ago"
-                        | _ -> "just now"
-                    $"{message} @ {timestamp}, {friendlyAgeString}"
-                | None ->
-                    $"No results found for {jobName} found"
-
-
     type DummyLogger() =
         interface ILogger with
             member this.BeginScope(state: 'TState): System.IDisposable = 
