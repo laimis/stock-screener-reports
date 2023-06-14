@@ -10,6 +10,7 @@
     <PackageReference Include="Giraffe.ViewEngine" Version="1.4.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
     <PackageReference Include="Ply" Version="0.3.1" />
+    <PackageReference Include="TimeZoneConverter" Version="6.1.0" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Services.fs" />

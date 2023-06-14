@@ -68,12 +68,9 @@ type ReportsConfig =
     static member days = 91
     
     static member now() =
-        let now = TimeFunctions.nowFunc()
-        let easternTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time")
-        let easternTime = TimeZoneInfo.ConvertTimeFromUtc(now, easternTimeZone)
-        easternTime
+        TimeFunctions.nowFunc()
 
-    static member nowUtcNow() = System.DateTime.UtcNow
+    static member nowUtcNow() = DateTime.UtcNow
 
     static member dateRange() = (
         ReportsConfig.now().AddDays(-1.0 * 91.0),

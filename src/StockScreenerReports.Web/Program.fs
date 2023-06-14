@@ -105,6 +105,12 @@ let configureServices (services : IServiceCollection) =
     cnnString |> Storage.configureConnectionString
     cnnString |> Reports.configureConnectionString
 
+    // we also need to make sure the date is returned in easter timezone
+    let easternTimeZone = TimeZoneConverter.TZConvert.GetTimeZoneInfo("Eastern Standard Time")
+    StockScreenerReports.Core.TimeFunctions.nowFunc <- fun () ->
+        let now = DateTime.UtcNow
+        TimeZoneInfo.ConvertTimeFromUtc(now, easternTimeZone)
+
 let configureLogging (builder : ILoggingBuilder) =
     builder.AddConsole()
            .AddDebug() |> ignore
