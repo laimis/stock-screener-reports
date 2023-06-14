@@ -26,7 +26,7 @@ module Services =
 
         let message = $"Ran {results.Length} screeners successfully"
 
-        Storage.saveJobStatus ScreenerJob (ReportsConfig.nowAlwaysSystem()) Success message |> ignore
+        Storage.saveJobStatus ScreenerJob (ReportsConfig.nowUtcNow()) Success message |> ignore
 
     let earningsRun (logger:ILogger) =
         let earnings = FinvizClient.getEarnings()
@@ -41,10 +41,12 @@ module Services =
                 Storage.saveEarningsDate ticker (Utils.getRunDate()) earningsTime |> ignore
             )
 
-        Storage.saveJobStatus EarningsJob (ReportsConfig.nowAlwaysSystem()) Success "Ran earnings successfully" |> ignore
+        Storage.saveJobStatus EarningsJob (ReportsConfig.nowUtcNow()) Success "Ran earnings successfully" |> ignore
 
     let trendsRun (logger:ILogger) =
         let date = Utils.getRunDate()
+
+        logger.LogInformation($"Running trends for {date}")
     
         // pull above and below 20 and 200 for each industry, and store the results
         let knownIndustries = Storage.getIndustries()
@@ -86,8 +88,8 @@ module Services =
             ) |> Seq.sum
 
         Storage.saveJobStatus
-            IndustryTrendsJob
-            (ReportsConfig.nowAlwaysSystem())
+            TrendsJob
+            (ReportsConfig.nowUtcNow())
             Success
             $"Updated sma breakdowns for {industriesUpdated} industries and calculated {trendsUpdated} trends"
         |> ignore

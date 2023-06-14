@@ -1,4 +1,5 @@
 namespace StockScreenerReports.Core
+open System
 
 module StockTicker =
 
@@ -49,7 +50,7 @@ module Constants =
 
 module TimeFunctions =
     
-    let mutable nowFunc = fun() -> System.DateTime.Now
+    let mutable nowFunc = fun() -> System.DateTime.UtcNow
 
 
 type ScreenerInput = {
@@ -66,8 +67,13 @@ type ReportsConfig =
     }
     static member days = 91
     
-    static member now() = TimeFunctions.nowFunc()
-    static member nowAlwaysSystem() = System.DateTime.Now
+    static member now() =
+        let now = TimeFunctions.nowFunc()
+        let easternTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time")
+        let easternTime = TimeZoneInfo.ConvertTimeFromUtc(now, easternTimeZone)
+        easternTime
+
+    static member nowUtcNow() = System.DateTime.UtcNow
 
     static member dateRange() = (
         ReportsConfig.now().AddDays(-1.0 * 91.0),
@@ -310,7 +316,7 @@ type JobStatus =
 
 type JobName =
     | ScreenerJob
-    | IndustryTrendsJob
+    | TrendsJob
     | TestJob
     | EarningsJob
 

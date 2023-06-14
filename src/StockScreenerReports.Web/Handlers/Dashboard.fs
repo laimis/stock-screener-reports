@@ -229,7 +229,12 @@ module Dashboard =
             |> Storage.getIndustryCycles
             |> Cycles.generateIndustryCycleStartChart
 
-        [screenerRows] @ smaTrendRows @ smaBreakdownRows @ [marketCycleSection] @ industryTrendRows @ sectorTrendRows
+        let time = ReportsConfig.now()
+        let timeRow = div [_class "columns"] [
+            str $"Last updated: {time}"
+        ]
+
+        [screenerRows] @ smaTrendRows @ smaBreakdownRows @ [marketCycleSection] @ industryTrendRows @ sectorTrendRows @ [timeRow]
 
     let handler()  = 
         

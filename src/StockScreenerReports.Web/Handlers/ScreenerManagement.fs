@@ -162,7 +162,7 @@ module ScreenerManagement =
             match job.name with
             | StockScreenerReports.Core.JobName.EarningsJob -> Links.jobsEarnings
             | StockScreenerReports.Core.JobName.ScreenerJob -> Links.jobsScreeners
-            | StockScreenerReports.Core.JobName.IndustryTrendsJob -> Links.jobsTrends
+            | StockScreenerReports.Core.JobName.TrendsJob -> Links.jobsTrends
             | _ -> job.name.ToString()
 
         let jobRows =

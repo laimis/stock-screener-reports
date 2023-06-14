@@ -58,14 +58,14 @@ module Storage =
     let private toJobNameString jobName =
         match jobName with
             | ScreenerJob _ -> "screenerjob"
-            | IndustryTrendsJob _ -> "industrytrendsjob"
+            | TrendsJob _ -> "industrytrendsjob"
             | TestJob _ -> "testjob"
             | EarningsJob _ -> "earningsjob"
 
     let private toJobName jobName =
         match jobName with
             | "screenerjob" -> ScreenerJob
-            | "industrytrendsjob" -> IndustryTrendsJob
+            | "industrytrendsjob" -> TrendsJob
             | "testjob" -> TestJob
             | "earningsjob" -> EarningsJob
             | _ -> raise (new System.Exception($"Unknown job name: {jobName}"))
