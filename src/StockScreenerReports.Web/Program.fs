@@ -61,6 +61,8 @@ let webApp =
                 route "/reports/adhoc/export" >=> warbler (fun _ -> AdhocReport.exportHandler())
 
                 route "/stocks/adjustticker" >=> StockManagement.adjustTicker
+
+                route "/screeners/migratedate" >=> ScreenerManagement.migrateDateHandler
             ]
         setStatusCode 404 >=> text "Not Found" ]
 

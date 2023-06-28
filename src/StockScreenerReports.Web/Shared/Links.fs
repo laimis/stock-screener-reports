@@ -43,6 +43,8 @@ module Links =
 
     let countryLink countryName =
         $"/countries/{countryName}"
+
+    let migrateDateLink = "/screeners/migratedate"
     
     let screeners = "/screeners"
     let screenersNew = "/screeners/new"

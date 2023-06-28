@@ -464,6 +464,9 @@ module Storage =
         ]
         |> Sql.executeNonQuery
 
+    let migrateDates fromDate toDate =
+        System.Console.WriteLine("Migrating dates from {0} to {1}", fromDate, toDate)
+        
     let getJobs() =
         let sql = @"
             WITH ranked_logs AS (
