@@ -465,7 +465,21 @@ module Storage =
         |> Sql.executeNonQuery
 
     let migrateDates fromDate toDate =
-        System.Console.WriteLine("Migrating dates from {0} to {1}", fromDate, toDate)
+        
+        let sql = @"
+            update dailysmabreakdowns set date = date(@toDate) where date = date(@fromDate);
+            update industrysmabreakdowns set date = date(@toDate) where date = date(@fromDate);
+            update industrytrends set date = date(@toDate) where date = date(@fromDate);
+            update screenerresults set date = date(@toDate) where date = date(@fromDate);"
+        
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@fromDate", Sql.string fromDate;
+            "@toDate", Sql.string toDate;
+        ]
+        |> Sql.executeNonQuery
 
     let deleteDate date =
         let sql = @"

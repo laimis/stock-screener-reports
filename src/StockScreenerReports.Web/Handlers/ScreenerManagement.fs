@@ -92,8 +92,8 @@ module ScreenerManagement =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
             task {
                 let! input = ctx.BindFormAsync<MigrateDateInput>()
-                let fromdate = System.DateTime.Parse(input.fromdate)
-                let todate = System.DateTime.Parse(input.todate)
+                let fromdate = input.fromdate
+                let todate = input.todate
                 Storage.migrateDates fromdate todate |> ignore
                 return! redirectTo false Links.screeners next ctx
             }
