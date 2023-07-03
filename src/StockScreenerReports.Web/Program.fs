@@ -62,7 +62,8 @@ let webApp =
 
                 route "/stocks/adjustticker" >=> StockManagement.adjustTicker
 
-                route "/screeners/migratedate" >=> ScreenerManagement.migrateDateHandler
+                route Links.migrateDateLink >=> ScreenerManagement.migrateDateHandler
+                route Links.deleteDateLink >=> ScreenerManagement.deleteDateHandler
             ]
         setStatusCode 404 >=> text "Not Found" ]
 

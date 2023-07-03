@@ -466,7 +466,22 @@ module Storage =
 
     let migrateDates fromDate toDate =
         System.Console.WriteLine("Migrating dates from {0} to {1}", fromDate, toDate)
-        
+
+    let deleteDate date =
+        let sql = @"
+            delete from dailysmabreakdowns where date = date(@date);
+            delete from industrysmabreakdowns where date = date(@date);
+            delete from industrytrends where date = date(@date);
+            delete from screenerresults where date = date(@date);"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@date", Sql.string date;
+        ]
+        |> Sql.executeNonQuery
+
     let getJobs() =
         let sql = @"
             WITH ranked_logs AS (

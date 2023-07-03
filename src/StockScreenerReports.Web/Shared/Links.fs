@@ -46,6 +46,7 @@ module Links =
 
     let migrateDateLink = "/screeners/migratedate"
     
+    let deleteDateLink = "/screeners/deletedate"
     let screeners = "/screeners"
     let screenersNew = "/screeners/new"
     let screenersDelete id = $"/screeners/{id}/delete"
