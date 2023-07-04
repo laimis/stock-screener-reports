@@ -116,7 +116,7 @@ module Services =
 
         override __.ExecuteAsync(cancellationToken) =
             task {
-                while true do
+                // while true do
                     try
                         let runFunc() =
                             logger.LogInformation("---- background service")
@@ -125,7 +125,8 @@ module Services =
                     with
                     | ex -> logger.LogError(ex, "Error running background service")
                     
-                    let sleepTime = 60 * 60 * 1000
+                    let sleepTime = 1000 // 60 * 60 * 1000
                     logger.LogInformation($"Sleeping for {sleepTime} milliseconds")
-                    return! System.Threading.Tasks.Task.Delay(sleepTime)
+                    let! _ = System.Threading.Tasks.Task.Delay(sleepTime)
+                    logger.LogInformation("Finished sleeping")
             }
