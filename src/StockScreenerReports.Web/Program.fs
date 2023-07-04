@@ -9,63 +9,8 @@ open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.DependencyInjection
 open Giraffe
-open StockScreenerReports.Web.Handlers
 open StockScreenerReports.Storage
-open StockScreenerReports.Web.Shared
 
-let webApp =
-    choose [
-        GET >=>
-            choose [
-                route "/" >=> warbler (fun _ -> Dashboard.handler())
-                
-                route "/screeners" >=> warbler (fun _ -> ScreenerManagement.managementHandler())
-                
-                routef "/screeners/%i" ScreenerDashboard.handler
-                routef "/screeners/%i/results/%s" ScreenerResults.handler
-                route "/trends" >=> Trends.handler
-
-                route "/search" >=> Search.handler
-                route "/stocks" >=> warbler (fun _ -> StockManagement.handler())
-                routef "/stocks/%s" StockDashboard.handler
-
-                routef "/sectors/%s" SectorDashboard.handler
-                routef "/industries/%s/export" IndustryDashboard.exportHandler
-                routef "/industries/%s" IndustryDashboard.handler
-                route "/industries" >=> warbler (fun _ -> IndustriesDashboard.handler)
-                route "/cycles" >=> warbler (fun _ -> Cycles.handler)
-
-                route "/countries" >=> warbler (fun _ -> Countries.handler())
-                routef "/countries/%s" CountryDashboard.handler
-
-                route "/reports/adhoc" >=> warbler (fun _ -> AdhocReport.handler())
-
-                route "/earnings" >=> warbler (fun _ -> Earnings.handlerCurrentWeek())
-                route "/earnings/lastweek" >=> warbler (fun _ -> Earnings.handlerLast7Days())
-
-                route "/health" >=> HealthCheck.healthCheckHandler
-
-                // jobs
-                route Links.jobsScreeners >=> warbler (fun _ -> Jobs.screeners())
-                route Links.jobsEarnings >=> warbler (fun _ -> Jobs.earnings())
-                route Links.jobsTrends >=> warbler (fun _ -> Jobs.trends())
-
-            ]
-        POST >=>
-            choose [
-                route Links.screenersNew >=> ScreenerManagement.createHandler
-                routef "/screeners/%i/delete" ScreenerManagement.deleteHandler
-                
-                routef "/screeners/%i/export" ScreenerManagement.exportHandler
-
-                route "/reports/adhoc/export" >=> warbler (fun _ -> AdhocReport.exportHandler())
-
-                route "/stocks/adjustticker" >=> StockManagement.adjustTicker
-
-                route Links.migrateDateLink >=> ScreenerManagement.migrateDateHandler
-                route Links.deleteDateLink >=> ScreenerManagement.deleteDateHandler
-            ]
-        setStatusCode 404 >=> text "Not Found" ]
 
 // ---------------------------------
 // Error handler
@@ -98,7 +43,7 @@ let configureApp (app : IApplicationBuilder) =
             .UseHttpsRedirection())
         .UseCors(configureCors)
         .UseStaticFiles()
-        .UseGiraffe(webApp)
+        .UseGiraffe(Router.routes)
 
 let configureServices (services : IServiceCollection) =
     services.AddCors()    |> ignore
@@ -113,6 +58,8 @@ let configureServices (services : IServiceCollection) =
     StockScreenerReports.Core.TimeFunctions.nowFunc <- fun () ->
         let now = DateTime.UtcNow
         TimeZoneInfo.ConvertTimeFromUtc(now, easternTimeZone)
+
+    services.AddHostedService<Services.BackgroundService>() |> ignore
 
 let configureLogging (builder : ILoggingBuilder) =
     builder.AddConsole()

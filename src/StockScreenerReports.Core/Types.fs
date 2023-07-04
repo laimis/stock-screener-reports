@@ -50,7 +50,7 @@ module Constants =
 
 module TimeFunctions =
     
-    let mutable nowFunc = fun() -> System.DateTime.UtcNow
+    let mutable nowFunc = fun() -> DateTime.UtcNow
 
 
 type ScreenerInput = {
@@ -98,27 +98,27 @@ type ReportsConfig =
     static member getTradingHolidays () =
         let holidays = 
             [
-                System.DateTime(2023, 1, 2)
-                System.DateTime(2023, 1, 16)
-                System.DateTime(2023, 2, 20)
-                System.DateTime(2023, 4, 7)
-                System.DateTime(2023, 5, 29)
-                System.DateTime(2023, 6, 19)
-                System.DateTime(2023, 7, 4)
-                System.DateTime(2023, 9, 4)
-                System.DateTime(2023, 12, 25)
-                System.DateTime(2024, 1, 1)
-                System.DateTime(2024, 1, 15)
-                System.DateTime(2024, 2, 19)
-                System.DateTime(2024, 3, 29)
-                System.DateTime(2024, 5, 27)
-                System.DateTime(2024, 6, 19)
-                System.DateTime(2024, 7, 4)
-                System.DateTime(2024, 9, 2)
+                DateTime(2023, 1, 2)
+                DateTime(2023, 1, 16)
+                DateTime(2023, 2, 20)
+                DateTime(2023, 4, 7)
+                DateTime(2023, 5, 29)
+                DateTime(2023, 6, 19)
+                DateTime(2023, 7, 4)
+                DateTime(2023, 9, 4)
+                DateTime(2023, 12, 25)
+                DateTime(2024, 1, 1)
+                DateTime(2024, 1, 15)
+                DateTime(2024, 2, 19)
+                DateTime(2024, 3, 29)
+                DateTime(2024, 5, 27)
+                DateTime(2024, 6, 19)
+                DateTime(2024, 7, 4)
+                DateTime(2024, 9, 2)
             ]
         holidays
 
-    static member isTradingDay (dateTime:System.DateTime) =
+    static member isTradingDay (dateTime:DateTime) =
         // ensure that we have holidays configured for future dates, otherwise we might
         // be running with outdated configuration
         let futureDatesConfigured =
@@ -129,19 +129,19 @@ type ReportsConfig =
             | _ -> ()
 
         let dayOfWeek = dateTime.DayOfWeek
-        let isWeekend = dayOfWeek = System.DayOfWeek.Saturday || dayOfWeek = System.DayOfWeek.Sunday
+        let isWeekend = dayOfWeek = DayOfWeek.Saturday || dayOfWeek = DayOfWeek.Sunday
         let isHoliday = ReportsConfig.getTradingHolidays() |> List.contains dateTime
         not (isWeekend || isHoliday)
 
-    static member listOfBusinessDates (startDate:System.DateTime,endDate:System.DateTime) = 
+    static member listOfBusinessDates (startDate:DateTime,endDate:DateTime) = 
             let holidays = ReportsConfig.getTradingHolidays()
 
             Seq.initInfinite float
             |> Seq.map (fun i -> startDate.AddDays(i))
             |> Seq.takeWhile (fun date -> date <= endDate)
             |> Seq.where( fun (date) ->
-                date.DayOfWeek = System.DayOfWeek.Saturday |> not &&
-                date.DayOfWeek = System.DayOfWeek.Sunday |> not &&
+                date.DayOfWeek = DayOfWeek.Saturday |> not &&
+                date.DayOfWeek = DayOfWeek.Sunday |> not &&
                 holidays |> List.contains date.Date |> not
             )
 
@@ -165,7 +165,7 @@ type Stock = {
     industry: string;
     country: string;
     marketCap: decimal option;
-    lastUpdate: System.DateTime option
+    lastUpdate: DateTime option
 }
 
 type Screener = {
@@ -176,7 +176,7 @@ type Screener = {
 
 type SMABreakdown =
     {
-        date: System.DateTime;
+        date: DateTime;
         days: int;
         above: int;
         below: int;
@@ -190,7 +190,7 @@ type SMABreakdown =
             | _ -> (decimal this.above ) * 100.0m / (decimal this.total)
 
     member this.percentAboveRounded =
-        System.Math.Round(this.percentAbove, 0)
+        Math.Round(this.percentAbove, 0)
 
 type IndustrySMABreakdown = 
     {
@@ -228,13 +228,13 @@ type Trend =
             | _ -> (decimal this.change ) / (decimal this.streak)
 
     member this.streakRateFormatted =
-        System.String.Format("{0:N2}%", this.streakRate)
+        String.Format("{0:N2}%", this.streakRate)
 
     member this.changeFormatted =
-        System.String.Format("{0:N0}", this.change)
+        String.Format("{0:N0}", this.change)
 
     member this.streakFormatted =
-        System.String.Format("{0:N0}", this.streak)
+        String.Format("{0:N0}", this.streak)
         
 type IndustryTrend =
     {
@@ -243,18 +243,18 @@ type IndustryTrend =
         above: int;
         below: int;
         days: int;
-        date: System.DateTime;
+        date: DateTime;
     }
 
     member this.abovePercentageFormatted() =
-        System.String.Format(
+        String.Format(
             "{0:N2}%",
             ((decimal this.above) / (decimal (this.below + this.above)) * 100m)
         )
 
 type CyclePoint =
     {
-        date: System.DateTime;
+        date: DateTime;
         value: decimal;
     }
 
@@ -278,17 +278,17 @@ type MarketCycle =
         this.currentPoint.date - this.startPoint.date
 
     member this.ageDays =
-        System.Math.Floor((this.currentPoint.date - this.startPoint.date).TotalDays)
+        Math.Floor((this.currentPoint.date - this.startPoint.date).TotalDays)
 
     member this.ageFormatted =
-        System.String.Format("{0:N0} days", this.age.TotalDays)
+        String.Format("{0:N0} days", this.age.TotalDays)
 
     member this.highPointAge =
         this.currentPoint.date - this.highPoint.date
     member this.highPointAgeFormatted =
-        System.String.Format("{0:N0} days", this.highPointAge.TotalDays)
+        String.Format("{0:N0} days", this.highPointAge.TotalDays)
     member this.highPointValue = this.highPoint.value
-    member this.highPointValueFormatted = System.String.Format("{0:N0}%", this.highPointValue)
+    member this.highPointValueFormatted = String.Format("{0:N0}%", this.highPointValue)
     member this.highPointDate = this.highPoint.date
     member this.highPointDateFormatted = this.highPoint.date.ToString("d")
 
@@ -321,7 +321,7 @@ type Job = {
     name: JobName;
     status: JobStatus;
     message: string;
-    timestamp: System.DateTime;
+    timestamp: DateTime;
 }
 
 type EarningsTime =

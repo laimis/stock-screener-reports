@@ -7,7 +7,7 @@ module Services =
     open StockScreenerReports.FinvizClient
 
     let runIfTradingDay func =
-        let isTradingDay = ReportsConfig.now() |> ReportsConfig.isTradingDay
+        let isTradingDay = ReportsConfig.now().Date |> ReportsConfig.isTradingDay
         match isTradingDay with
         | true -> func()
         | false -> ()
@@ -109,3 +109,23 @@ module Services =
             |> ignore
 
         runIfTradingDay funcToRun
+
+    // background service class
+    type BackgroundService(logger:ILogger<BackgroundService>) =
+        inherit Microsoft.Extensions.Hosting.BackgroundService()
+
+        override __.ExecuteAsync(cancellationToken) =
+            task {
+                while true do
+                    try
+                        let runFunc() =
+                            logger.LogInformation("---- background service")
+
+                        runIfTradingDay runFunc
+                    with
+                    | ex -> logger.LogError(ex, "Error running background service")
+                    
+                    let sleepTime = 60 * 60 * 1000
+                    logger.LogInformation($"Sleeping for {sleepTime} milliseconds")
+                    return! System.Threading.Tasks.Task.Delay(sleepTime)
+            }
