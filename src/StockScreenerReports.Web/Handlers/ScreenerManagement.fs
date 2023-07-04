@@ -8,6 +8,7 @@ module ScreenerManagement =
     open StockScreenerReports.Storage
     open StockScreenerReports.Web.Shared
     open StockScreenerReports.Web.Shared.Views
+    open StockScreenerReports.Core
 
     [<CLIMutable>]
     type ScreenerInput =
@@ -94,7 +95,9 @@ module ScreenerManagement =
                 let! input = ctx.BindFormAsync<MigrateDateInput>()
                 let fromdate = input.fromdate
                 let todate = input.todate
+                
                 Storage.migrateDates fromdate todate |> ignore
+                
                 return! redirectTo false Links.screeners next ctx
             }
 
