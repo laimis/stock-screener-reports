@@ -118,6 +118,9 @@ type ReportsConfig =
             ]
         holidays
 
+    static member isHoliday (dateTime:DateTime) =
+        ReportsConfig.getTradingHolidays() |> List.contains dateTime
+
     static member isTradingDay (dateTime:DateTime) =
         // ensure that we have holidays configured for future dates, otherwise we might
         // be running with outdated configuration
@@ -130,7 +133,7 @@ type ReportsConfig =
 
         let dayOfWeek = dateTime.DayOfWeek
         let isWeekend = dayOfWeek = DayOfWeek.Saturday || dayOfWeek = DayOfWeek.Sunday
-        let isHoliday = ReportsConfig.getTradingHolidays() |> List.contains dateTime
+        let isHoliday = dateTime |> ReportsConfig.isHoliday
         not (isWeekend || isHoliday)
 
     static member listOfBusinessDates (startDate:DateTime,endDate:DateTime) = 

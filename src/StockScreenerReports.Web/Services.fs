@@ -5,6 +5,8 @@ module Services =
     open Microsoft.Extensions.Logging
     open StockScreenerReports.Core
     open StockScreenerReports.FinvizClient
+    open System
+    open System.Collections.Generic
 
     let runIfTradingDay func =
         let isTradingDay = ReportsConfig.now().Date |> ReportsConfig.isTradingDay
@@ -114,18 +116,36 @@ module Services =
     type BackgroundService(logger:ILogger<BackgroundService>) =
         inherit Microsoft.Extensions.Hosting.BackgroundService()
 
+        let runTracker = new HashSet<string>()
+
         override __.ExecuteAsync(cancellationToken) =
             task {
-                // while true do
+                while cancellationToken.IsCancellationRequested |> not do
                     try
-                        let runFunc() =
-                            logger.LogInformation("---- background service")
-
-                        runIfTradingDay runFunc
+                        
+                        logger.LogInformation("---- background service")
+                        let now = ReportsConfig.now()
+                        let time = now.TimeOfDay
+                        let marketClose = new TimeSpan(16,0,0)
+                        let marketCloseDelayed = marketClose.Add(TimeSpan.FromMinutes(30))
+                        if time < marketCloseDelayed then
+                            logger.LogInformation("Not past market close time")
+                        else
+                            logger.LogInformation("Past market close, checking if already ran today")
+                            let runDate = Utils.getRunDate()
+                            if runTracker.Contains(runDate) then
+                                logger.LogInformation("Already ran today")
+                            else
+                                logger.LogInformation("Running")
+                                runTracker.Add(runDate) |> ignore
+                                screenerRun logger
+                                earningsRun logger
+                                trendsRun logger
+                                logger.LogInformation("Finished running")
                     with
                     | ex -> logger.LogError(ex, "Error running background service")
                     
-                    let sleepTime = 1000 // 60 * 60 * 1000
+                    let sleepTime = 60 * 60 * 1000
                     logger.LogInformation($"Sleeping for {sleepTime} milliseconds")
                     let! _ = System.Threading.Tasks.Task.Delay(sleepTime)
                     logger.LogInformation("Finished sleeping")
