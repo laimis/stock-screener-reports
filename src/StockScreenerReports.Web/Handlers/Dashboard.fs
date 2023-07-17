@@ -10,7 +10,13 @@ module Dashboard =
 
     let private alertSection missedJobs =
         match missedJobs with
-        | [] -> div [] []
+        | [] -> div [_class "container"] [
+                div [_class "notification is-success"] [
+                    p [] [
+                        str "All jobs have run successfully"
+                    ]
+                ]
+            ]
         | _ ->
             div [ _class "container" ] [
                 div [_class "notification is-danger mb-5"] 
