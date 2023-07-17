@@ -42,26 +42,22 @@ module Trends =
 
         (screener,data)
 
-    let private generateSMATrendRows dateRange =
+    let internal generateSMADirectionColumns smaBreakdowPairs =
+        smaBreakdowPairs
+        |> List.map(fun (sma, breakdowns) ->
+            let trendWithCycle = TrendsCalculator.calculate breakdowns
+            let trendHtml = $"<b>SMA {sma}:</b> {trendWithCycle.trend |> trendToHtml}"
+            let cycleHtml = $"Market cycle: {trendWithCycle.cycle |> marketCycleToHtml}"
 
-        let smaBreakdowPairs =
-            Constants.SMAS
-            |> List.map(fun sma -> 
-                (sma, sma |> getDailySMABreakdown dateRange)
-            )
+            div [_class "column"] [
+                div [] [trendHtml |> rawText]
+                div [] [cycleHtml |> rawText]
+            ]   
+        )
 
-        let smaDirectionColumns =
-            smaBreakdowPairs
-            |> List.map(fun (sma, breakdowns) ->
-                let trendWithCycle = TrendsCalculator.calculate breakdowns
-                let trendHtml = $"<b>SMA {sma}:</b> {trendWithCycle.trend |> trendToHtml}"
-                let cycleHtml = $"Market cycle: {trendWithCycle.cycle |> marketCycleToHtml}"
+    let private generateSMATrendRows smaBreakdowPairs =
 
-                div [_class "column"] [
-                    div [] [trendHtml |> rawText]
-                    div [] [cycleHtml |> rawText]
-                ]   
-            )
+        let smaDirectionColumns = smaBreakdowPairs |> generateSMADirectionColumns
 
         let datasets:list<Charts.DataSet<decimal>> =
             smaBreakdowPairs
@@ -304,7 +300,12 @@ module Trends =
                 ]
             ]::volumeCharts        
 
-        let trends = generateSMATrendRows dateRange
+        let trends =
+            Constants.SMAS
+            |> List.map(fun sma -> 
+                (sma, sma |> getDailySMABreakdown dateRange)
+            )
+            |> generateSMATrendRows
 
         [
             [filters]
