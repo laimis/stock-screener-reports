@@ -464,6 +464,38 @@ module Storage =
         ]
         |> Sql.executeNonQuery
 
+    let migrateDates fromDate toDate =
+        
+        let sql = @"
+            update dailysmabreakdowns set date = date(@toDate) where date = date(@fromDate);
+            update industrysmabreakdowns set date = date(@toDate) where date = date(@fromDate);
+            update industrytrends set date = date(@toDate) where date = date(@fromDate);
+            update screenerresults set date = date(@toDate) where date = date(@fromDate);"
+        
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@fromDate", Sql.string fromDate;
+            "@toDate", Sql.string toDate;
+        ]
+        |> Sql.executeNonQuery
+
+    let deleteDate date =
+        let sql = @"
+            delete from dailysmabreakdowns where date = date(@date);
+            delete from industrysmabreakdowns where date = date(@date);
+            delete from industrytrends where date = date(@date);
+            delete from screenerresults where date = date(@date);"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@date", Sql.string date;
+        ]
+        |> Sql.executeNonQuery
+
     let getJobs() =
         let sql = @"
             WITH ranked_logs AS (

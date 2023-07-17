@@ -8,12 +8,26 @@ module ScreenerManagement =
     open StockScreenerReports.Storage
     open StockScreenerReports.Web.Shared
     open StockScreenerReports.Web.Shared.Views
+    open StockScreenerReports.Core
 
     [<CLIMutable>]
     type ScreenerInput =
         {
             name: string
             url: string
+        }
+    
+    [<CLIMutable>]
+    type MigrateDateInput = 
+        {
+            fromdate: string
+            todate: string
+        }
+
+    [<CLIMutable>]
+    type DeleteDateInput = 
+        {
+            date: string
         }
 
     type ScreenerExportType =   CsvProvider<
@@ -72,6 +86,26 @@ module ScreenerManagement =
             task {
                 let! input = ctx.BindFormAsync<ScreenerInput>()
                 Storage.saveScreener input.name input.url |> ignore
+                return! redirectTo false Links.screeners next ctx
+            }
+
+    let migrateDateHandler : HttpHandler =
+        fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
+            task {
+                let! input = ctx.BindFormAsync<MigrateDateInput>()
+                let fromdate = input.fromdate
+                let todate = input.todate
+                
+                Storage.migrateDates fromdate todate |> ignore
+                
+                return! redirectTo false Links.screeners next ctx
+            }
+
+    let deleteDateHandler : HttpHandler =
+        fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
+            task {
+                let! input = ctx.BindFormAsync<DeleteDateInput>()
+                input.date |> Storage.deleteDate |> ignore
                 return! redirectTo false Links.screeners next ctx
             }
 
@@ -157,6 +191,55 @@ module ScreenerManagement =
                 ]
             ]
 
+    let createDeleteForm =
+        form [
+                _method "POST"
+                _action Links.deleteDateLink
+            ] [
+                div [ _class "field" ] [
+                    label [ _for "date" ] [ str "Date" ]
+                    input [
+                        _type "date"
+                        _name "date"
+                        _class "input"
+                    ]
+                ]
+                // submit button
+                input [
+                    _type "submit"
+                    _class "button is-danger"
+                    _value "Delete Date"
+                ]
+            ]
+    let createMigrateForm =
+        form [
+                _method "POST"
+                _action Links.migrateDateLink
+            ] [
+                div [ _class "field" ] [
+                    label [ _for "fromdate" ] [ str "From Date" ]
+                    input [
+                        _type "date"
+                        _name "fromdate"
+                        _class "input"
+                    ]
+                ]
+                div [ _class "field" ] [
+                    label [ _for "todate" ] [ str "To Date" ]
+                    input [
+                        _type "date"
+                        _name "todate"
+                        _class "input"
+                    ]
+                ]
+                // submit button
+                input [
+                    _type "submit"
+                    _class "button is-primary"
+                    _value "Migrate"
+                ]
+            ]
+
     let createJobsTable (jobs:list<StockScreenerReports.Core.Job>) =
         let getLink (job:StockScreenerReports.Core.Job) =
             match job.name with
@@ -191,6 +274,10 @@ module ScreenerManagement =
 
         let newScreenerForm = createNewScreenerForm
 
+        let migrateForm = createMigrateForm
+
+        let deleteDateForm = createDeleteForm
+
         let jobsTable = createJobsTable jobs
 
         let content =
@@ -202,6 +289,14 @@ module ScreenerManagement =
                 section [ _class "content" ] [
                     h2 [] [ str "New Screener" ]
                     newScreenerForm
+                ]
+                section [ _class "content" ] [
+                    h2 [] [ str "Migrate" ]
+                    migrateForm
+                ]
+                section [ _class "content" ] [
+                    h2 [] [ str "Delete Date" ]
+                    deleteDateForm
                 ]
                 section [ _class "content"] [
                     h2 [] [ str "Jobs" ]

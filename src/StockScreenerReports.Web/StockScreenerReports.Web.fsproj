@@ -36,6 +36,7 @@
     <Compile Include="Handlers\Search.fs" />
     <Compile Include="Handlers\Jobs.fs" />
     <Compile Include="Handlers\HealthCheck.fs" />
+    <Compile Include="Router.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>

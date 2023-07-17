@@ -12,6 +12,9 @@ module Cycles =
 
     let internal generateIndustryCycleStartChart (cycles:IndustryWithCycle list) =
 
+        match cycles with
+        | [] -> section [] [str "No cycles found"]
+        | _ ->
         let cyclesGroupedByDate =
             cycles
             |> List.groupBy (fun (_, x) -> x.startPointDateFormatted)
@@ -77,12 +80,12 @@ module Cycles =
                 [
                     Link(industry,industry |> Links.industryLink)
                     Date(cycle.startPointDate)
+                    String(cycle.age.TotalDays |> int |> string)
                     Number(cycle.startPointValue)
-                    Date(cycle.highPointDate)
-                    Number(cycle.highPointValue)
                     Number(cycle.currentPointValue)
                     Number(change)
-                    String(cycle.age.TotalDays |> int |> string)
+                    Date(cycle.highPointDate)
+                    Number(cycle.highPointValue)
                     String(cycle.highPointAge.TotalDays |> int |> string)
                     Number(score)
                 ]
@@ -105,12 +108,12 @@ module Cycles =
         let header = [
             "Industry"
             "Start"
+            "Age"
             "Start Value"
-            "High"
-            "High Value"
             "Current Value"
             "Change"
-            "Age"
+            "High"
+            "High Value"
             "High Age"
             "Score"
         ]

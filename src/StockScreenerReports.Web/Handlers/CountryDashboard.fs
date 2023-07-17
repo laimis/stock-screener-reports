@@ -53,7 +53,7 @@ module CountryDashboard =
         let tableHeader = [
             "Date"; "Screener"; "Ticker"; "Market Cap"; "Price"; "Change"; "Volume"; "Trading View"
         ]
-        let screenerResultsTable = resultRows |> fullWidthTable tableHeader
+        let screenerResultsTable = resultRows |> fullWidthTableWithSortableHeaderCells tableHeader
 
         let header = 
             div [_class "content"] [
