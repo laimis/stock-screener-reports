@@ -8,6 +8,19 @@ module Dashboard =
     open StockScreenerReports.Core
     open StockScreenerReports.Storage
 
+    let private alertSection missedJobs =
+        match missedJobs with
+        | [] -> div [] []
+        | _ ->
+            div [ _class "container" ] [
+                div [_class "notification is-danger mb-5"] 
+                    (missedJobs |> List.map (fun (job:Job) ->
+                        p [] [
+                            str $"Job {job.name} has not run since {job.timestamp}"
+                        ]
+                    ))
+            ]
+
     let private generateRefreshButton() =
         let link = Links.jobsScreeners
         let title = "Refresh"
@@ -229,12 +242,20 @@ module Dashboard =
             |> Storage.getIndustryCycles
             |> Cycles.generateIndustryCycleStartChart
 
+        // get latest job runs
+        let missedJobs =
+            Storage.getJobs()
+            |> List.filter (fun job -> job.name = EarningsJob || job.name = ScreenerJob || job.name = TrendsJob)
+            |> List.filter (fun job -> job.timestamp < System.DateTime.Now.AddDays(-1.0))
+
+        let warningSection = alertSection missedJobs
+
         let time = ReportsConfig.now()
         let timeRow = div [_class "columns"] [
             str $"Last updated: {time}"
         ]
 
-        [screenerRows] @ smaTrendRows @ smaBreakdownRows @ [marketCycleSection] @ industryTrendRows @ sectorTrendRows @ [timeRow]
+        [warningSection] @ [screenerRows] @ smaTrendRows @ smaBreakdownRows @ [marketCycleSection] @ industryTrendRows @ sectorTrendRows @ [timeRow]
 
     let handler()  = 
         
