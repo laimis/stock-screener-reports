@@ -118,48 +118,52 @@ module Services =
 
         let runTracker = new HashSet<string>()
 
-        let sleepLogic short =
-            let sleepTime =
-                match short with
-                | true -> 60 * 1000
-                | false -> 60 * 60 * 1000
+        let doSleepInternal (sleepTime:int) =
             logger.LogInformation($"Sleeping for {sleepTime} milliseconds")
             System.Threading.Tasks.Task.Delay(sleepTime)
+            
+        let doSleep() =
+            60 * 60 * 1000 |> doSleepInternal
+
+        let shortSleep() =
+            10 * 1000 |> doSleepInternal
 
         override __.ExecuteAsync(cancellationToken) =
             task {
                 while cancellationToken.IsCancellationRequested |> not do
-                    try
+                    
                         
-                        logger.LogInformation("---- background service")
-                        let now = ReportsConfig.now()
-                        let time = now.TimeOfDay
-                        let marketClose = new TimeSpan(16,0,0)
-                        let marketCloseDelayed = marketClose.Add(TimeSpan.FromMinutes(30))
-                        if runTracker.Count = 0 then
-                            logger.LogInformation("Run tracker is empty, warming up")
-                            runTracker.Add("warmup") |> ignore
-                        else if time < marketCloseDelayed then
-                            logger.LogInformation("Not past market close time")
+                logger.LogInformation("---- background service")
+                let now = ReportsConfig.now()
+                let time = now.TimeOfDay
+                let marketClose = new TimeSpan(16,0,0)
+                let marketCloseDelayed = marketClose.Add(TimeSpan.FromMinutes(30))
+                if runTracker.Count = 0 then
+                    logger.LogInformation("Run tracker is empty, warming up")
+                    runTracker.Add("warmup") |> ignore
+                    let! _ = shortSleep()
+                    logger.LogInformation("Short sleep finished")
+                else if time < marketCloseDelayed then
+                    logger.LogInformation("Not past market close time")
+                    let! _ = doSleep()
+                    logger.LogInformation("Finished sleeping")
+                else
+                    try
+                        logger.LogInformation("Past market close, checking if already ran today")
+                        let runDate = Utils.getRunDate()
+                        if runTracker.Contains(runDate) then
+                            logger.LogInformation("Already ran today")
                         else
-                            logger.LogInformation("Past market close, checking if already ran today")
-                            let runDate = Utils.getRunDate()
-                            if runTracker.Contains(runDate) then
-                                logger.LogInformation("Already ran today")
-                            else
-                                logger.LogInformation("Running")
-                                runTracker.Add(runDate) |> ignore
-                                screenerRun logger
-                                earningsRun logger
-                                trendsRun logger
-                                logger.LogInformation("Finished running")
+                            logger.LogInformation("Running")
+                            runTracker.Add(runDate) |> ignore
+                            screenerRun logger
+                            earningsRun logger
+                            trendsRun logger
+                            logger.LogInformation("Finished running")
                     with
                     | ex -> logger.LogError(ex, "Error running background service")
 
-                    // if run tracker is empty, we just started, so sleep for a short time
-                    let isShortSleep = runTracker.Count = 0
-
-                    let! _ = sleepLogic isShortSleep
+                    let! _ = doSleep()
 
                     logger.LogInformation("Finished sleeping")
             }
