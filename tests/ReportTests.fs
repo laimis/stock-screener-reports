@@ -127,25 +127,28 @@ type ReportTests(output:ITestOutputHelper) =
     let ``Date range sector grouping works``() =
         let start = new DateTime(2022, 6, 1)
         let ending = new DateTime(2022, 6, 30)
+        let range = ReportsConfig.formatDateRangeToStrings (start, ending)
 
         "Energy" |> topGroupingTest (
             fun x -> 
-                Reports.topSectorsOverDays x.id start ending
+                Reports.topSectorsOverDays x.id range
             )
 
     [<Fact>]
     let ``Date range industry grouping works``() =
         let start = new DateTime(2022, 6, 1)
         let ending = new DateTime(2022, 6, 30)
+        let range = ReportsConfig.formatDateRangeToStrings (start, ending)
 
         "Biotechnology" |> topGroupingTest (
             fun x -> 
-                Reports.topIndustriesOverDays x.id start ending
+                Reports.topIndustriesOverDays x.id range
             )
 
     [<Fact>]
     let ``Date range country grouping works``() =
-        "USA" |> topGroupingTest (fun x -> Reports.topCountriesOverDays x.id (ReportsConfig.now().AddDays(-7)) (ReportsConfig.now()))
+        let range = ReportsConfig.dateRangeWithDays(7) |> ReportsConfig.formatDateRangeToStrings
+        "USA" |> topGroupingTest (fun x -> Reports.topCountriesOverDays x.id range)
 
     [<Fact>]
     let ``getting screener results for ticker works``() =

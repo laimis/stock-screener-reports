@@ -8,12 +8,9 @@ module ScreenerDashboard =
     open StockScreenerReports.Web.Shared
     
 
-    let private generateBreakdowsElementsForDays screenerId (days:int) =
+    let private generateBreakdowsElementsForDays screenerId dateRange days =
         let fetchBreakdownData dataSource =
-            let endDate = ReportsConfig.now()
-            let startDate = endDate.AddDays(-days)
-            
-            dataSource screenerId startDate endDate
+            dataSource screenerId dateRange
 
         let sectorsData = fetchBreakdownData Reports.topSectorsOverDays
         let industriesData = fetchBreakdownData Reports.topIndustriesOverDays
@@ -69,7 +66,15 @@ module ScreenerDashboard =
 
         let breakdownElements = 
             [7; 14; 30]
-            |> List.map (fun days -> days |> generateBreakdowsElementsForDays screener.id)
+            |> List.map (fun days ->
+                
+                let range = 
+                    days
+                    |> ReportsConfig.dateRangeWithDays
+                    |> ReportsConfig.formatDateRangeToStrings
+                
+                days |> generateBreakdowsElementsForDays screener.id range
+            )
             |> List.concat
 
         let results =

@@ -121,13 +121,12 @@ module Reports =
 
         results
 
-    let private topGroupingOverDays screenerId fromDate toDate grouping =
+    let private topGroupingOverDays screenerId dateRange grouping =
         let sql = @$"SELECT {grouping},count(*) as count FROM stocks
             JOIN screenerresults ON stocks.id = screenerresults.stockid
             WHERE 
                 screenerresults.screenerid = @screenerId
-                AND screenerresults.date >= @fromDate
-                AND screenerresults.date <= @toDate
+                AND screenerresults.date BETWEEN DATE(@fromDate) AND DATE(@toDate)
             GROUP BY {grouping}
             ORDER BY count DESC"
 
@@ -136,8 +135,8 @@ module Reports =
             |> Sql.connect
             |> Sql.query sql
             |> Sql.parameters [
-                "@fromDate", Sql.timestamp fromDate;
-                "@toDate", Sql.timestamp toDate;
+                "@fromDate", dateRange |> fst |> Sql.string;
+                "@toDate", dateRange |> snd |> Sql.string;
                 "@screenerId", Sql.int screenerId
             ]
             |> Sql.execute (fun reader ->
@@ -155,14 +154,14 @@ module Reports =
     let topCountries screenerId date =
         "country" |> topGrouping screenerId date
 
-    let topSectorsOverDays scrennerId startDate endDate =
-        "sector" |> topGroupingOverDays scrennerId startDate endDate
+    let topSectorsOverDays scrennerId dateRange =
+        "sector" |> topGroupingOverDays scrennerId dateRange
 
-    let topIndustriesOverDays scrennerId startDate endDate =
-        "industry" |> topGroupingOverDays scrennerId startDate endDate
+    let topIndustriesOverDays scrennerId dateRange =
+        "industry" |> topGroupingOverDays scrennerId dateRange
 
-    let topCountriesOverDays scrennerId startDate endDate =
-        "country" |> topGroupingOverDays scrennerId startDate endDate
+    let topCountriesOverDays scrennerId dateRange =
+        "country" |> topGroupingOverDays scrennerId dateRange
 
     let getLatestScreeners() =
         let sql = @$"SELECT screenerid,name,url,date,count(*) as count FROM screenerresults

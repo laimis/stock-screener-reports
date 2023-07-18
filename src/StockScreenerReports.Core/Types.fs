@@ -72,16 +72,21 @@ type ReportsConfig =
 
     static member nowUtcNow() = DateTime.UtcNow
 
-    static member dateRange() = (
-        ReportsConfig.now().AddDays(-1.0 * 91.0),
+    static member dateRangeWithDays days = (
+        ReportsConfig.now().AddDays(-1.0 * float days),
         ReportsConfig.now()
     )
 
-    static member dateRangeAsStrings() = 
-        let range = ReportsConfig.dateRange()
-        let startDate = (range |> fst).ToString("yyyy-MM-dd")
-        let endDate = (range |> snd).ToString("yyyy-MM-dd")
+    static member dateRange() = ReportsConfig.days |> ReportsConfig.dateRangeWithDays
+
+    static member formatDateRangeToStrings (dateRange:DateTime*DateTime) =
+        let startDate = (dateRange |> fst).ToString("yyyy-MM-dd")
+        let endDate = (dateRange |> snd).ToString("yyyy-MM-dd")
         (startDate,endDate)
+
+    static member dateRangeAsStrings() = 
+        ReportsConfig.dateRange() |> ReportsConfig.formatDateRangeToStrings
+    
     static member industryTrendDayRange = 14
     static member sectorTrendDayRange = 14
 
