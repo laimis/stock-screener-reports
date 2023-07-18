@@ -118,6 +118,14 @@ module Services =
 
         let runTracker = new HashSet<string>()
 
+        let sleepLogic short =
+            let sleepTime =
+                match short with
+                | true -> 60 * 1000
+                | false -> 60 * 60 * 1000
+            logger.LogInformation($"Sleeping for {sleepTime} milliseconds")
+            System.Threading.Tasks.Task.Delay(sleepTime)
+
         override __.ExecuteAsync(cancellationToken) =
             task {
                 while cancellationToken.IsCancellationRequested |> not do
@@ -128,7 +136,10 @@ module Services =
                         let time = now.TimeOfDay
                         let marketClose = new TimeSpan(16,0,0)
                         let marketCloseDelayed = marketClose.Add(TimeSpan.FromMinutes(30))
-                        if time < marketCloseDelayed then
+                        if runTracker.Count = 0 then
+                            logger.LogInformation("Run tracker is empty, warming up")
+                            runTracker.Add("warmup") |> ignore
+                        else if time < marketCloseDelayed then
                             logger.LogInformation("Not past market close time")
                         else
                             logger.LogInformation("Past market close, checking if already ran today")
@@ -144,9 +155,11 @@ module Services =
                                 logger.LogInformation("Finished running")
                     with
                     | ex -> logger.LogError(ex, "Error running background service")
-                    
-                    let sleepTime = 60 * 60 * 1000
-                    logger.LogInformation($"Sleeping for {sleepTime} milliseconds")
-                    let! _ = System.Threading.Tasks.Task.Delay(sleepTime)
+
+                    // if run tracker is empty, we just started, so sleep for a short time
+                    let isShortSleep = runTracker.Count = 0
+
+                    let! _ = sleepLogic isShortSleep
+
                     logger.LogInformation("Finished sleeping")
             }
