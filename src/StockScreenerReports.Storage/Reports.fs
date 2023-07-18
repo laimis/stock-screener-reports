@@ -430,7 +430,7 @@ module Reports =
             ]
             |> Sql.execute mapScreenerResultReportItem
 
-    let getScreenerResultsForTicker (ticker:StockScreenerReports.Core.StockTicker.T) limit =
+    let getScreenerResultsForTicker limit (ticker:StockScreenerReports.Core.StockTicker.T) =
             
         let sql = @$"
             SELECT 

@@ -10,10 +10,8 @@ module StockDashboard =
     open StockScreenerReports.Web.Shared.Links
     open StockScreenerReports.Web.Shared
 
-
-    let private renderStockInternal (stock:Stock) tickerScreenerResults =
-
-        let header = div [_class "content"] [
+    let createHeader (stock:Stock) =
+        div [_class "content"] [
            h1 [] [
                $"{(stock.ticker |> StockTicker.value)} - {stock.company}" |> str
                a [ 
@@ -31,6 +29,7 @@ module StockDashboard =
             ]
         ]
 
+    let createScreenerResultsSection results =
         let screenerResultToRow screenerResult =
             let dateStr = screenerResult.date |> Utils.convertToDateString
             let screenerLink = dateStr |> screenerResultsLink screenerResult.screenerid
@@ -44,6 +43,23 @@ module StockDashboard =
                 screenerResult.volume |> volumeFormatted |> str |> toTdWithNode
             ]
 
+        let allScreenerResultsRows = results |> List.map screenerResultToRow
+
+        let tableHeader = [
+            "Date"
+            "Screener"
+            "Market Cap"
+            "Price"
+            "Change"
+            "Volume"
+        ]
+
+        [
+            section [_class "content"] [h2 [] [str "All Screener Results"]]
+            allScreenerResultsRows |> fullWidthTableWithSortableHeaderCells tableHeader
+        ]
+
+    let createScreenerHitChart tickerScreenerResults =
         let dateRange = ReportsConfig.dateRange()
 
         let businessDays = ReportsConfig.listOfBusinessDates dateRange
@@ -65,10 +81,10 @@ module StockDashboard =
                     |> Seq.map (fun date ->
                         let resultsByDate =
                             results
-                            |> List.groupBy (fun screenerResult -> screenerResult.date)
+                            |> List.groupBy (fun screenerResult -> screenerResult.date |> Utils.convertToDateString )
                             |> Map.ofList
 
-                        let m = resultsByDate |> Map.tryFind date
+                        let m = resultsByDate |> Map.tryFind (date |> Utils.convertToDateString)
 
                         match m with
                         | Some list -> list.Length
@@ -83,25 +99,24 @@ module StockDashboard =
                 }
             )
 
-        let chart = Charts.generateChartElements "Screener hits" Charts.Bar (Some 1) Charts.smallChart labels datasets
-
-        // another table that's just all the screener hits without day limit in case we need to see older ones
-        let allScreenerResults = getScreenerResultsForTicker stock.ticker 100
-        let allScreenerResultsRows = allScreenerResults |> List.map screenerResultToRow
-
-        let tableHeader = [
-            "Date"
-            "Screener"
-            "Market Cap"
-            "Price"
-            "Change"
-            "Volume"
+        [
+            section [_class "content"] [
+                h2 [] [str "Screener Hits"]
+                div [] (Charts.generateChartElements "Screener hits" Charts.Bar (Some 1) Charts.smallChart labels datasets)
+            ]
         ]
+        
 
-        header::chart @ [
-            div [] [h2 [] [str "All Screener Results"]]
-            allScreenerResultsRows |> fullWidthTableWithSortableHeaderCells tableHeader
-        ]
+
+    let private renderStockInternal (stock:Stock) dateRangeScreenerHits lastNScreenerHits =
+
+        let header = stock |> createHeader
+
+        let screenerHitChart = dateRangeScreenerHits |> createScreenerHitChart 
+
+        let screenerResultsSection = lastNScreenerHits |> createScreenerResultsSection
+
+        header::screenerHitChart @ screenerResultsSection
 
     let handler ticker =
         let stock =
@@ -112,10 +127,11 @@ module StockDashboard =
         match stock with
         | Some stock ->
             
-            let view = 
-                (ReportsConfig.dateRangeAsStrings())
-                |> getScreenerResultsForTickerDayRange stock.ticker
-                |> renderStockInternal stock
+            let dateRangeScreenerHits = (ReportsConfig.dateRangeAsStrings()) |> getScreenerResultsForTickerDayRange stock.ticker
+            let lastNScreenerHits = stock.ticker |> getScreenerResultsForTicker 100
+                
+            let view = renderStockInternal stock dateRangeScreenerHits lastNScreenerHits 
+
             let pageTitle = (stock.ticker |> StockTicker.value) + " - " + stock.company
             view |> mainLayout pageTitle
         | None -> 

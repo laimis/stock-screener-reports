@@ -124,6 +124,18 @@ type ReportTests(output:ITestOutputHelper) =
         Assert.True(firstCount > 0)
 
     [<Fact>]
+    let ``Screener results for stock and date range works`` () =
+
+        let start = new DateTime(2023, 1, 1)
+        let ending = new DateTime(2023, 2, 26)
+
+        let range = (start, ending) |> ReportsConfig.formatDateRangeToStrings 
+        let ticker = "ACLS" |> StockTicker.create
+        let results = range |> Reports.getScreenerResultsForTickerDayRange ticker
+
+        Assert.NotEmpty(results)
+
+    [<Fact>]
     let ``Date range sector grouping works``() =
         let start = new DateTime(2022, 6, 1)
         let ending = new DateTime(2022, 6, 30)
@@ -152,8 +164,7 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``getting screener results for ticker works``() =
-        let ticker = StockScreenerReports.Core.StockTicker.create "cutr"
-        let results = Reports.getScreenerResultsForTicker ticker 100
+        let results = "cutr" |> StockTicker.create |> Reports.getScreenerResultsForTicker 100 
         Assert.NotEmpty(results)
 
     [<Fact>]
