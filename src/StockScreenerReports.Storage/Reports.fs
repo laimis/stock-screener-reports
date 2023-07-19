@@ -231,6 +231,21 @@ module Reports =
         |> Sql.query sql
         |> Sql.execute (fun reader -> (reader.string "ticker", reader.dateTime "date"))
 
+    let getEearningCountByDate dateRange =
+        let sql = @$"SELECT date,count(*) as count FROM earnings
+            WHERE date BETWEEN date(@start) AND date(@end)
+            GROUP BY date
+            ORDER BY date ASC"
+        
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@start",  dateRange |> fst |> Sql.string;
+            "@end", dateRange |> snd |> Sql.string
+        ]
+        |> Sql.execute (fun reader -> (reader.dateTime "date", reader.int "count"))
+
     let getEarningsTickers dateRange =
         let sql = @$"SELECT ticker,date FROM earnings
             WHERE date >= date(@start) AND date <= date(@end)

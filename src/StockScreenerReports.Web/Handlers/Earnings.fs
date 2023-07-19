@@ -13,6 +13,24 @@ module Earnings =
         stocks
         |> List.map (fun s -> s.ticker, s)
         |> Map.ofList
+
+    let private createEarningsByDateChart dateCountList =
+
+        let data = dateCountList |> List.map (fun (_,count) -> count)
+        let labels = dateCountList |> List.map (fun (date,_) -> date |> Utils.convertToDateString)
+
+        let dataset:Charts.DataSet<int> = {
+                    data = data
+                    title = "Earnings By Date"
+                    color = ReportsConfig.getBackgroundColorDefault
+                }
+
+        [
+            section [_class "content"] [
+                h2 [] [str "Earnings By Date"]
+                div [] (Charts.generateChartElements "Earnings By Date" Charts.Bar None Charts.smallChart labels [dataset])
+            ]
+        ]
     
     let private createIndustryGrouping stockDatePairs (membershipMap:Map<string,ScreenerResultReportItem>) =
         stockDatePairs
@@ -135,7 +153,7 @@ module Earnings =
             )
  
         let headerRow = ["Ticker"; "Date"; "Industry"; "MCap"; "New High"; "Top Gainer"; "Top Loser"; "New Low"; "Trading View"]
-        rows |> fullWidthTable headerRow
+        rows |> fullWidthTableWithSortableHeaderCells headerRow
             
 
     let handlerInternal startDate endDate  =
@@ -170,6 +188,10 @@ module Earnings =
         let industryGroupingsByScreener =
             screenerResultMappings
             |> List.map (fun map -> map |> createIndustryGrouping tickersWithEarnings)
+
+        let earningsByDate = dateRange |> getEearningCountByDate
+
+        let earningChart = earningsByDate |> createEarningsByDateChart
         
         let screenerLabels = [
             "New Highs"
@@ -198,7 +220,7 @@ module Earnings =
 
         let earningsTable = createEarningsTable stocks tickersWithEarnings screenerResultMappings
 
-        [header; breakdownDiv] @ [earningsTable] @ sections |> mainLayout $"Earnings"
+        [header; breakdownDiv] @ [earningsTable] @ sections @ earningChart |> mainLayout $"Earnings"
 
     let handlerCurrentWeek() =
         let startDate = Utils.getCurrentMonday()

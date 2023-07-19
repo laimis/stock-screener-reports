@@ -387,3 +387,14 @@ type ReportTests(output:ITestOutputHelper) =
         let dateRange = ("2023-02-01", "2023-02-14")
         let results = dateRange |> Reports.getEarningsTickers
         Assert.NotEmpty(results)
+
+    [<Fact>]
+    let ``get earnings by date breakdown works`` () =
+        let dateRange = ("2023-03-01", "2023-05-30")
+
+        let breakdown = dateRange |> Reports.getEearningCountByDate
+
+        let breakdownsWithEarnings = breakdown |> Seq.filter (fun (d,c) -> c > 0)
+
+        Assert.NotEmpty(breakdown)
+        Assert.NotEmpty(breakdownsWithEarnings)
