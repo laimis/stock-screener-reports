@@ -19,9 +19,8 @@ module ScreenerResults =
         let rowAttributes = [_height "50px"]
 
         tr rowAttributes [
-            result.date |> Utils.convertToDateString |> str |> toTdWithNode
-            [earningsIcon; fireIcon] |> toTdWithNodes
             result.ticker |> generateTickerLink |> toTdWithNode
+            [earningsIcon; fireIcon] |> toTdWithNodes
             result.name |> toTd 
             result.sector |> Links.sectorLink |> generateHref result.sector |> toTdWithNode
             result.industry |> Links.industryLink |> generateHref result.industry |> toTdWithNode
@@ -48,9 +47,8 @@ module ScreenerResults =
 
     let generateScreenerResultTable tickersWithEarnings topGainers results =
         let headers = [
-            "Date"
-            "" 
             "Ticker"
+            "" 
             "Company"
             "Sector"
             "Industry"
@@ -70,9 +68,14 @@ module ScreenerResults =
         (screener:StockScreenerReports.Core.Screener)
         (results:list<ScreenerResultReportItem>)
         (allTickersWithEarnings:list<string>)
-        (topGainers:list<string>) =
+        (topGainers:list<string>)
+        (previousHits:Set<string>) =
 
         let screenerTable = results |> generateScreenerResultTable allTickersWithEarnings topGainers
+
+        let freshResults = results |> List.filter (fun r -> not (previousHits |> Set.contains r.ticker))
+
+        let freshHitsTable = freshResults |> generateScreenerResultTable allTickersWithEarnings topGainers
 
         let tickersWithEarningsInResults = results |> List.map (fun r -> r.ticker) |> List.filter (fun t -> allTickersWithEarnings |> List.contains t)
 
@@ -100,6 +103,7 @@ module ScreenerResults =
                 ]
                 h5 [] [ 
                     $"{results.Length} results" |> str
+                    $" ({freshResults.Length} fresh hits)" |> str
                 ]
                 
                 div [_class "block"] [
@@ -135,7 +139,14 @@ module ScreenerResults =
                 ]
             ]
             div [_class "columns"] breakdownDivs
-            div [_class "block"] [screenerTable]
+            section [_class "content"] [
+                h2 [] [str "Fresh Hits"]
+                freshHitsTable
+            ]
+            section [_class "content"] [
+                h2 [] [str "All Results"]
+                screenerTable
+            ]
         ]
 
     let handler ((id:int),(date:string))  = 
@@ -144,12 +155,12 @@ module ScreenerResults =
         let byIdOption = StockScreenerReports.Storage.Storage.getScreenerById id
         match byIdOption with
         | Some screener -> 
-            let dateBefore = (Utils.subtractDaysToClosestBusinessDay (System.DateTime.Parse(date)) 1) |> Utils.convertToDateString
+            let dateBefore = (Utils.subtractDaysToClosestBusinessDay (System.DateTime.Parse(date)) 1)
 
             let earningsTickers =
                 date
                 |> getTickersWithEarnings
-                |> List.append (dateBefore |> getTickersWithEarnings)
+                |> List.append (dateBefore |> Utils.convertToDateString |> getTickersWithEarnings)
                 |> List.distinct
 
             let topGainers =
@@ -159,8 +170,16 @@ module ScreenerResults =
                     |> getScreenerResults Constants.TopGainerScreenerId
                     |> List.map (fun r -> r.ticker)
 
+            let previousHitsDateRange = (
+                dateBefore.AddDays(-30) |> Utils.convertToDateString,
+                dateBefore |> Utils.convertToDateString
+            )
+
+            let previousHits = id |> getTickersWithScreenerResultsForDateRange previousHitsDateRange |> Set.ofList
+
+
             let screenerResults = getScreenerResults screener.id date
-            let view      = view screener screenerResults earningsTickers topGainers
+            let view      = view screener screenerResults earningsTickers topGainers previousHits
             view |> mainLayout $"Screener: {screener.name}"
         | None ->
             notFound "Screener not found"

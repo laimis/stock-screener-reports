@@ -69,7 +69,7 @@ type ReportTests(output:ITestOutputHelper) =
             |> List.map (fun x -> x.id)
             |> Set.ofList
 
-        let screenerResults = Reports.getLatestScreeners()
+        let screenerResults = Reports.getLatestScreenerResults()
 
         let filteredList =
             screenerResults
@@ -80,7 +80,7 @@ type ReportTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``Particular screener results list works``() =
 
-        let screener = Reports.getLatestScreeners().Head
+        let screener = Reports.getLatestScreenerResults().Head
 
         let results = screener.date |> Utils.convertToDateString |> Reports.getScreenerResults screener.screenerid
 
@@ -89,7 +89,7 @@ type ReportTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``Particular screener result for multiple days works``() =
 
-        let screener = Reports.getLatestScreeners().Head
+        let screener = Reports.getLatestScreenerResults().Head
 
         let dayRange = ReportsConfig.dateRangeAsStrings()
         
@@ -398,3 +398,15 @@ type ReportTests(output:ITestOutputHelper) =
 
         Assert.NotEmpty(breakdown)
         Assert.NotEmpty(breakdownsWithEarnings)
+
+    [<Fact>]
+    let ``get tickers for screener and date range works`` () =
+
+        let dateRange = (
+            ReportsConfig.now().AddDays(-30) |> Utils.convertToDateString,
+            ReportsConfig.now() |> Utils.convertToDateString
+        )
+
+        let results = Constants.NewHighsScreenerId |> Reports.getTickersWithScreenerResultsForDateRange dateRange
+
+        Assert.NotEmpty(results)

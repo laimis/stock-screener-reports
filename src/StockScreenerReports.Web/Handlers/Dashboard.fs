@@ -177,14 +177,13 @@ module Dashboard =
 
     let private createView () =
         
-        let screeners = getLatestScreeners()
-        
+        let screenerResults = getLatestScreenerResults()
+    
         let screenerRows =
             div [_class "columns is-multiline"] 
-                ((screeners |> List.map generateScreenerResultSection) @ [
+                ((screenerResults |> List.map generateScreenerResultSection) @ [
                     generateRefreshButton()
                 ])
-
         
         // industry trends
         let industryTrendData =
@@ -246,7 +245,7 @@ module Dashboard =
         let missedJobs =
             Storage.getJobs()
             |> List.filter (fun job -> job.name = EarningsJob || job.name = ScreenerJob || job.name = TrendsJob)
-            |> List.filter (fun job -> job.timestamp < System.DateTime.Now.AddDays(-1.0))
+            |> List.filter (fun job -> job.timestamp < System.DateTime.Now.AddDays(-1.0) || job.status = Failure)
 
         let warningSection = alertSection missedJobs
 

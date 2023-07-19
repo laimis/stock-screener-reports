@@ -163,7 +163,7 @@ module Reports =
     let topCountriesOverDays scrennerId dateRange =
         "country" |> topGroupingOverDays scrennerId dateRange
 
-    let getLatestScreeners() =
+    let getLatestScreenerResults() =
         let sql = @$"SELECT screenerid,name,url,date,count(*) as count FROM screenerresults
             JOIN screeners ON screenerresults.screenerid = screeners.id
             WHERE date = (SELECT MAX(date) FROM screenerresults)
@@ -182,6 +182,23 @@ module Reports =
                     count = (reader.int "count")
                 }
             )
+
+    let getTickersWithScreenerResultsForDateRange dateRange screenerId =
+        let sql = @$"SELECT DISTINCT ticker FROM screenerresults
+            JOIN stocks ON stocks.id = screenerresults.stockid
+            WHERE date BETWEEN date(@startDate) AND date(@endDate)
+            AND screenerid = @screenerId
+            ORDER BY ticker"
+
+        cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters [
+                "@startDate", dateRange |> fst |> Sql.string;
+                "@endDate", dateRange |> snd |> Sql.string;
+                "@screenerId", screenerId |> Sql.int
+            ]
+            |> Sql.execute (fun reader -> reader.string "ticker")
 
     let getScreenerResultsForDays dateRange id =
 
