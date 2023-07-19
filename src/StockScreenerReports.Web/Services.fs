@@ -54,7 +54,7 @@ module Services =
                     Storage.saveEarningsDate ticker (Utils.getRunDate()) earningsTime |> ignore
                 )
 
-            Storage.saveJobStatus EarningsJob (ReportsConfig.nowUtcNow()) Success "Ran earnings successfully" |> ignore
+            Storage.saveJobStatus EarningsJob (ReportsConfig.nowUtcNow()) Success message |> ignore
 
         runIfTradingDay funcToRun
 
