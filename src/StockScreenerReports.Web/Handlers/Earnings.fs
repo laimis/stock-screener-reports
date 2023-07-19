@@ -175,11 +175,6 @@ module Earnings =
             |> List.map (fun s -> s.ticker |> StockTicker.value, s)
             |> Map.ofList
 
-        let dateRange = (
-            startDate |> Utils.convertToDateString,
-            endDate |> Utils.convertToDateString
-        )
-
         let screenerResultMappings =
             [Constants.NewHighsScreenerId; Constants.TopGainerScreenerId; Constants.TopLoserScreenerId; Constants.NewLowsScreenerId]
             |> List.map (fun id -> 
@@ -189,7 +184,12 @@ module Earnings =
             screenerResultMappings
             |> List.map (fun map -> map |> createIndustryGrouping tickersWithEarnings)
 
-        let earningsByDate = dateRange |> getEearningCountByDate
+        let historicalDateRange = (
+            ReportsConfig.now().AddDays(-30) |> Utils.convertToDateString,
+            ReportsConfig.now() |> Utils.convertToDateString
+        )
+        
+        let earningsByDate = historicalDateRange |> getEearningCountByDate
 
         let earningChart = earningsByDate |> createEarningsByDateChart
         
