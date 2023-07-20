@@ -15,7 +15,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:7.0-alpine
 RUN apk add --no-cache -U \
     curl \
     tzdata \
-    libicu
+    icu-libs
 
 WORKDIR /app
 COPY --from=build-env /app/out /app
