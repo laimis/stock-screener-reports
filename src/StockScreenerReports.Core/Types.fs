@@ -65,6 +65,7 @@ type ReportsConfig =
         outputPath:string;
         dbConnectionString:string;
     }
+
     static member days = 91
     
     static member now() =
@@ -152,6 +153,8 @@ type ReportsConfig =
                 date.DayOfWeek = DayOfWeek.Sunday |> not &&
                 holidays |> List.contains date.Date |> not
             )
+
+    static member userCulture = Globalization.CultureInfo.CreateSpecificCulture("en-US")
 
 type ScreenerResult = {
     ticker:StockTicker.T;
