@@ -20,7 +20,7 @@ module Views =
         | None -> ""
 
     let dollarFormatted (value:decimal) =
-        value.ToString("C")
+        value.ToString("C", ReportsConfig.userCulture)
 
     let percentFormatted (value:decimal) =
         $"{value} %%"

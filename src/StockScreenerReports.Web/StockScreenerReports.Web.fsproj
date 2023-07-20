@@ -3,6 +3,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <AssemblyName>StockScreenerReports.Web.App</AssemblyName>
     <EnableDefaultContentItems>false</EnableDefaultContentItems>
+    <InvariantGlobalization>false</InvariantGlobalization>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="FSharp.Data" Version="5.0.2" />

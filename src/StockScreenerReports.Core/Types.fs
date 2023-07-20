@@ -154,7 +154,8 @@ type ReportsConfig =
                 holidays |> List.contains date.Date |> not
             )
 
-    
+    static member userCulture = Globalization.CultureInfo.CreateSpecificCulture("en-US")
+
 type ScreenerResult = {
     ticker:StockTicker.T;
     company:string;
