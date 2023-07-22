@@ -94,7 +94,7 @@ module IndustryDashboard =
         match stocksWithEarnings with
         | [] -> h4 [] ["No earnings last two weeks" |> str]
         | _ -> section [] [
-            h4 [] [$"Earnings from {dateRange |> fst} to {dateRange |> snd}" |> str]
+            h4 [] [$"Earnings from {dateRange |> fst} to {dateRange |> snd}: {stocksWithEarnings.Length}" |> str]
             earningsTable
         ]
 
