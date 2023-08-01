@@ -53,7 +53,7 @@ namespace StockScreenerReports.Core
 
                     let lowPoint = 
                         match cycle.startPointValue with
-                        | x when x > breakdown.percentAbove -> currentPoint
+                        | x when x >= breakdown.percentAbove -> currentPoint
                         | x when x = 0m && currentPoint.value = 0m -> currentPoint
                         | _ -> cycle.startPoint
 
