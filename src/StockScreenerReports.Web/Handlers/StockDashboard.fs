@@ -11,6 +11,12 @@ module StockDashboard =
     open StockScreenerReports.Web.Shared
 
     let createHeader (stock:Stock) =
+
+        let lastUpdate = 
+            match stock.lastUpdate with
+            | Some date -> date |> Utils.convertToDateString
+            | None -> "N/A"
+
         div [_class "content"] [
            h1 [] [
                $"{(stock.ticker |> StockTicker.value)} - {stock.company}" |> str
@@ -26,6 +32,9 @@ module StockDashboard =
                generateHref stock.industry (industryLink stock.industry)
                str ", "
                str stock.country
+               div [_class "is-pulled-right"] [
+                   str $"Last updated: {lastUpdate}"
+               ]
             ]
         ]
 
