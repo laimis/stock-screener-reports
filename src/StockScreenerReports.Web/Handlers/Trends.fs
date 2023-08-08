@@ -213,6 +213,14 @@ module Trends =
 
     let generateElementsToRender dateRange =
         
+        // get latest job runs
+        let missedJobs =
+            Storage.getJobs()
+            |> List.filter (fun job -> job.name = TrendsJob)
+            |> List.filter (fun job -> job.timestamp < System.DateTime.Now.AddDays(-1.0) || job.status = Failure)
+
+        let warningSection = Views.jobAlertSection missedJobs
+
         let filters = generateFilterSection dateRange
 
         let trendingUpAndDownIndustries = generateIndustriesSection dateRange
@@ -308,6 +316,7 @@ module Trends =
             |> generateSMATrendRows
 
         [
+            [warningSection]
             [filters]
             trends
             [trendingUpAndDownIndustries]

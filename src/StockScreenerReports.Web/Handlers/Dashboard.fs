@@ -8,19 +8,6 @@ module Dashboard =
     open StockScreenerReports.Core
     open StockScreenerReports.Storage
 
-    let private alertSection missedJobs =
-        match missedJobs with
-        | [] -> div [] []
-        | _ ->
-            div [ _class "container" ] [
-                div [_class "notification is-danger mb-5"] 
-                    (missedJobs |> List.map (fun (job:Job) ->
-                        p [] [
-                            str $"Job {job.name} has not run since {job.timestamp}"
-                        ]
-                    ))
-            ]
-
     let private generateRefreshButton() =
         let link = Links.jobsScreeners
         let title = "Refresh"
@@ -247,7 +234,7 @@ module Dashboard =
             |> List.filter (fun job -> job.name = EarningsJob || job.name = ScreenerJob || job.name = TrendsJob)
             |> List.filter (fun job -> job.timestamp < System.DateTime.Now.AddDays(-1.0) || job.status = Failure)
 
-        let warningSection = alertSection missedJobs
+        let warningSection = Views.jobAlertSection missedJobs
 
         let time = ReportsConfig.now()
         let timeRow = div [_class "columns"] [

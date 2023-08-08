@@ -332,7 +332,7 @@ type Job = {
     name: JobName;
     status: JobStatus;
     message: string;
-    timestamp: DateTime;
+    timestamp: DateTime; 
 }
 
 type EarningsTime =

@@ -126,6 +126,14 @@ module Cycles =
             let cycles =
                 Constants.SMA20
                 |> Storage.getIndustryCycles
+
+            // get latest job runs 
+            let missedJobs =
+                Storage.getJobs()
+                |> List.filter (fun job -> job.name = TrendsJob)
+                |> List.filter (fun job -> job.timestamp < System.DateTime.Now.AddDays(-1.0) || job.status = Failure)
+
+            let warningSection = jobAlertSection missedJobs
             
             let industryCycleSection = 
                 cycles
@@ -136,6 +144,7 @@ module Cycles =
                 |> generateCyclesTable
 
             let view = [
+                warningSection
                 industryCycleSection
                 cycleTableSection
             ]
