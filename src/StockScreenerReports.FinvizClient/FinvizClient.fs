@@ -12,8 +12,9 @@ module FinvizClient =
         FinvizParsing.setOutputFunc f
 
     let private fetchScreenerHtml (url:string) =
-        // make sure that we sleep a bit before each request
+        // make ure that we sleep a bit before each request
         System.Threading.Thread.Sleep(SLEEP_BETWEEN_REQUESTS_MS)
+        url |> outputFunc 
         let web = HtmlAgilityPack.HtmlWeb()
         web.Load(url)
 
@@ -46,21 +47,7 @@ module FinvizClient =
         fetchPage 1 []
 
     let getResultCount url =
-        let doc = fetchScreenerHtml url
-        let nodes =
-            doc.DocumentNode.SelectNodes("//table[@id='screener-views-table']/tr")
-            |> Seq.toList
-
-        let totalText = nodes.Item(2).SelectNodes("//div[@id='screener-total']").Item(0).InnerText
-
-        let removeTotalMarker (input:string) =
-            input.Replace("Total","")
-
-        match totalText with
-            | x when x.Contains("#") ->  // the response could be Total: 4 #1
-                let total = x.Substring(x.IndexOf("/") + 1)
-                System.Int32.Parse(total |> removeTotalMarker)
-            | _ -> System.Int32.Parse(totalText |> removeTotalMarker)
+        url |> fetchScreenerHtml |> FinvizParsing.parseResultCount
 
     let getResultCountForIndustryAboveAndBelowSMA days industry =
         let cleaned = industry |> Utils.cleanIndustry
@@ -69,10 +56,10 @@ module FinvizClient =
             let url = $"https://finviz.com/screener.ashx?v=111&f=ind_{cleaned},{ta}"
             url |> getResultCount
         
-        let above20 = $"ta_sma{days}_pa" |> fetchCountWithTA
-        let below20 = $"ta_sma{days}_pb" |> fetchCountWithTA
+        let above = $"ta_sma{days}_pa" |> fetchCountWithTA
+        let below = $"ta_sma{days}_pb" |> fetchCountWithTA
 
-        (above20,below20)
+        (above,below)
 
     let getEarnings() =
         

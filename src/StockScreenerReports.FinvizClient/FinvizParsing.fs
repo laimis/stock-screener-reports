@@ -8,6 +8,29 @@ module FinvizParsing =
     let setOutputFunc (f:string -> unit) =
         outputFunc <- f
 
+    let parseResultCount (doc:HtmlAgilityPack.HtmlDocument) =
+        let nodes =
+            doc.DocumentNode.SelectNodes("//table[@id='screener-views-table']/tr")
+            |> Seq.toList
+
+        let nodesContainingTotal = nodes.Item(2).SelectNodes("//div[@id='screener-total']")
+
+        let totalText =
+            match nodesContainingTotal with  // seems like the div above is not always present, sometimes it has a table with rows indicating total
+            | null -> nodes.Item(2).SelectNodes("//td[@class='count-text']").Item(0).InnerText
+            | _ -> nodesContainingTotal.Item(0).InnerText
+
+        outputFunc totalText
+
+        let removeTotalMarker (input:string) =
+            input.Replace("Total","")
+
+        match totalText with
+            | x when x.Contains("#") ->  // the response could be Total: 4 #1
+                let total = x.Substring(x.IndexOf("/") + 1)
+                System.Int32.Parse(total |> removeTotalMarker)
+            | _ -> System.Int32.Parse(totalText |> removeTotalMarker)
+
     let parseScreenerHtml (doc:HtmlAgilityPack.HtmlDocument) =
 
         let skipAndTake skip take seq =
