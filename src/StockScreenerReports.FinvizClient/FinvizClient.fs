@@ -51,7 +51,7 @@ module FinvizClient =
             doc.DocumentNode.SelectNodes("//table[@id='screener-views-table']/tr")
             |> Seq.toList
 
-        let totalText = nodes.Item(2).SelectNodes("//td[@class='count-text']").Item(0).InnerText
+        let totalText = nodes.Item(2).SelectNodes("//div[@id='screener-total']").Item(0).InnerText
 
         let removeTotalMarker (input:string) =
             input.Replace("Total","")

@@ -6,6 +6,7 @@ open Xunit.Abstractions
 
 type ParsingTests(output:ITestOutputHelper) =
     do
+        output.WriteLine("Running FinvizClientTests")
         FinvizClient.setOutputFunc (fun str -> output.WriteLine(str))
 
     let screenerUrl = "https://finviz.com/screener.ashx?v=111&f=cap_mega,sh_price_50to100&ft=4" // megastocks with price between 50 and 100
