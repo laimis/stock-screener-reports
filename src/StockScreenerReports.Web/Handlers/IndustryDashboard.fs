@@ -377,7 +377,7 @@ module IndustryDashboard =
             let smaBreakdownsAndChartSections = industryName |> smaBreakdownsAndSMACharts dateRange 
 
             let contentSections =
-                [smaBreakdownsAndChartSections; screenerChart; earningsSection; screenerResultsTable; stocksSection]
+                [smaBreakdownsAndChartSections; screenerChart; earningsSection; stocksSection; screenerResultsTable]
                 |> List.append topLevel
 
             let view = div [_class "content"] contentSections
