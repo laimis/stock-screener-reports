@@ -110,7 +110,15 @@ module Services =
                 $"Updated sma breakdowns for {industriesUpdated} industries and calculated {trendsUpdated} trends"
             |> ignore
 
-        runIfTradingDay funcToRun
+        // f# try/catch
+
+        try
+            runIfTradingDay funcToRun
+        with
+        | ex -> 
+            let message = $"Error running trends: {ex.Message}"
+            logger.LogError(ex, message)
+            Storage.saveJobStatus TrendsJob (ReportsConfig.nowUtcNow()) Failure message |> ignore
 
     // background service class
     type BackgroundService(logger:ILogger<BackgroundService>) =

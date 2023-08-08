@@ -243,15 +243,20 @@ module ScreenerManagement =
     let createJobsTable (jobs:list<StockScreenerReports.Core.Job>) =
         let getLink (job:StockScreenerReports.Core.Job) =
             match job.name with
-            | StockScreenerReports.Core.JobName.EarningsJob -> Links.jobsEarnings
-            | StockScreenerReports.Core.JobName.ScreenerJob -> Links.jobsScreeners
-            | StockScreenerReports.Core.JobName.TrendsJob -> Links.jobsTrends
+            | EarningsJob -> Links.jobsEarnings
+            | ScreenerJob -> Links.jobsScreeners
+            | TrendsJob -> Links.jobsTrends
             | _ -> job.name.ToString()
 
         let jobRows =
             jobs
             |> List.map ( fun job ->
-                tr [] [
+                let classToSet = 
+                    match job.status with
+                    | Success -> ""
+                    | Failure -> "has-text-danger-dark"
+
+                tr [_class classToSet] [
                     job.name.ToString() |> toTd
                     job.message.ToString() |> toTd
                     job.status.ToString() |> toTd
