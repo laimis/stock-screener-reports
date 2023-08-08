@@ -436,7 +436,7 @@ module Views =
         ]
 
         stocks
-        |> List.sortBy (fun stock -> stock.ticker)
+        |> List.sortByDescending (fun stock -> stock.marketCap)
         |> List.map (fun stock ->
             tr [] [
                 stock.ticker    |> StockTicker.value |> generateTickerLink |> toTdWithNode
