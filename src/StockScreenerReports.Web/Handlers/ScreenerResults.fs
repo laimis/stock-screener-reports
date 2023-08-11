@@ -99,10 +99,10 @@ module ScreenerResults =
         [
             div [_class "content"] [
                 h1 [] [
-                    str ("Screener: " + screener.name)
+                    $"Screener: {screener.name}" |> str
                 ]
                 h5 [] [ 
-                    $"{results.Length} results" |> str
+                    $"{results.Length} results on {date}" |> str
                     $" ({freshResults.Length} fresh hits)" |> str
                 ]
                 
@@ -149,16 +149,26 @@ module ScreenerResults =
             ]
         ]
 
-    let handler ((id:int),(date:string))  = 
+    let handler ((id:int),(dateStr:string))  = 
         
         // get screeners, render them in HTML
         let byIdOption = StockScreenerReports.Storage.Storage.getScreenerById id
         match byIdOption with
         | Some screener -> 
-            let dateBefore = (Utils.subtractDaysToClosestBusinessDay (System.DateTime.Parse(date)) 1)
+            let date = 
+                match dateStr with
+                | "latest" -> 
+                    getLatestScreenerResults()
+                    |> List.filter (fun r -> r.screenerid = id)
+                    |> List.head
+                    |> (fun r -> r.date)
+                | _ -> System.DateTime.Parse(dateStr)
+                    
+            let dateBefore = (Utils.subtractDaysToClosestBusinessDay date 1)
 
             let earningsTickers =
                 date
+                |> Utils.convertToDateString
                 |> getTickersWithEarnings
                 |> List.append (dateBefore |> Utils.convertToDateString |> getTickersWithEarnings)
                 |> List.distinct
@@ -167,6 +177,7 @@ module ScreenerResults =
                 match id with
                 | Constants.TopGainerScreenerId -> []
                 | _ -> date
+                    |> Utils.convertToDateString
                     |> getScreenerResults Constants.TopGainerScreenerId
                     |> List.map (fun r -> r.ticker)
 
@@ -178,7 +189,7 @@ module ScreenerResults =
             let previousHits = id |> getTickersWithScreenerResultsForDateRange previousHitsDateRange |> Set.ofList
 
 
-            let screenerResults = getScreenerResults screener.id date
+            let screenerResults = date |> Utils.convertToDateString |> getScreenerResults screener.id
             let view      = view screener screenerResults earningsTickers topGainers previousHits
             view |> mainLayout $"Screener: {screener.name}"
         | None ->
