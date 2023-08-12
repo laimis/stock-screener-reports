@@ -57,8 +57,42 @@ module Cycles =
             | Date of System.DateTime
             | Number of decimal
             
-    let private generateCyclesTable (cycles:list<IndustryWithCycle>) =
+    let private generateCyclesSection maximumAge minimumValue (cycles:list<IndustryWithCycle>) =
         
+        let filterSection = form [] [
+            div [ _class "columns"] [
+                div [ _class "field column" ] [
+                    label [ _for "maximumAge" ] [ str "Maximum Age" ]
+                    input [
+                        _type "number"
+                        _name "maximumAge"
+                        _class "input"
+                        _value (
+                            match maximumAge with
+                            | System.Int32.MaxValue -> ""
+                            | _ -> maximumAge.ToString()
+                        )
+                    ]
+                ]
+                div [ _class "field column" ] [
+                    label [ _for "minimumValue" ] [ str "Minimum Value" ]
+                    input [
+                        _type "number"
+                        _name "minimumValue"
+                        _class "input"
+                        _value (minimumValue.ToString())
+                    ]
+                ]
+            ]
+            div [ ] [
+                input [
+                    _type "submit"
+                    _class "button is-primary is-small mb-2"
+                    _value "Apply Filters"
+                ]
+            ]
+        ]
+
         let rows =
             cycles
             |> List.sortByDescending (fun (_, cycle) -> cycle.startPointDate)
@@ -118,10 +152,43 @@ module Cycles =
             "Score"
         ]
 
-        rows |> fullWidthTableWithSortableHeaderCells header
+        let table = rows |> fullWidthTableWithSortableHeaderCells header
+ 
+        let title = 
+            match maximumAge with
+            | System.Int32.MaxValue -> "Industry Cycles"
+            | _ -> $"Industry Cycles (Maximum Age: {maximumAge} days, Minimum Value: {minimumValue}): {cycles.Length}"
+
+        [
+            filterSection
+            table
+        ] |> generateSection title
+
+    let getQueryParams (ctx:Microsoft.AspNetCore.Http.HttpContext) =
+        let maximumAge = 
+            ctx.Request.Query.["maximumAge"]
+            |> Seq.tryHead
+            |> Option.map (fun x -> 
+                match System.Int32.TryParse(x) with
+                | true, value -> value
+                | _ -> System.Int32.MaxValue)
+            |> Option.get
+
+        let minimumValue = 
+            ctx.Request.Query.["minimumValue"]
+            |> Seq.tryHead
+            |> Option.map (fun x ->
+                match System.Decimal.TryParse(x) with
+                | true, value -> value
+                | _ -> 0m)
+            |> Option.get
+
+        (maximumAge, minimumValue)
 
     let handler : HttpHandler  =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
+
+            let (maximumAge, minimumValue) = getQueryParams ctx
 
             let cycles =
                 Constants.SMA20
@@ -139,9 +206,13 @@ module Cycles =
                 cycles
                 |> generateIndustryCycleStartChart
 
-            let cycleTableSection =
+            let filteredCycles = 
                 cycles
-                |> generateCyclesTable
+                |> List.filter (fun (_, cycle) -> cycle.age.TotalDays <= maximumAge && cycle.startPointValue >= minimumValue)
+
+            let cycleTableSection =
+                filteredCycles
+                |> generateCyclesSection maximumAge minimumValue
 
             let view = [
                 warningSection

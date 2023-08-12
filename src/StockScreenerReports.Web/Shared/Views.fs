@@ -88,6 +88,9 @@ module Views =
             str title
         ]
     
+    let generateSection title nodes =
+        section [_class "content"] ((h4 [] [ str title ])::nodes)
+
     let generateHrefNewTab title link =
         generateHrefWithAttr title link (_target "_blank")
 
