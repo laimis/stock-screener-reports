@@ -164,7 +164,7 @@ module Cycles =
             "Start"
             "Age"
             "Start Value"
-            "Current Value"
+            "Value"
             "Change"
             "High"
             "High Value"
@@ -207,7 +207,7 @@ module Cycles =
             let (maximumAge, minimumValue, minimumChange) = getQueryParams ctx
             let cycleFilterFunc = fun (_, cycle:MarketCycle) -> 
                 cycle.age.TotalDays <= maximumAge &&
-                cycle.startPointValue >= minimumValue &&
+                cycle.currentPointValue >= minimumValue &&
                 cycle.currentPointValue - cycle.startPointValue >= minimumChange
 
             let cycles =
