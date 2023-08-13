@@ -205,6 +205,10 @@ module Cycles =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
 
             let (maximumAge, minimumValue, minimumChange) = getQueryParams ctx
+            let cycleFilterFunc = fun (_, cycle:MarketCycle) -> 
+                cycle.age.TotalDays <= maximumAge &&
+                cycle.startPointValue >= minimumValue &&
+                cycle.currentPointValue - cycle.startPointValue >= minimumChange
 
             let cycles =
                 Constants.SMA20
@@ -224,7 +228,7 @@ module Cycles =
 
             let filteredCycles = 
                 cycles
-                |> List.filter (fun (_, cycle) -> cycle.age.TotalDays <= maximumAge && cycle.startPointValue >= minimumValue)
+                |> List.filter cycleFilterFunc
 
             let cycleTableSection =
                 filteredCycles
