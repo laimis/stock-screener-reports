@@ -53,6 +53,7 @@ module Cycles =
             
     type private ColumnValue =
             | Link of string * string
+            | LinkNewTab of string * string
             | String of string
             | Date of System.DateTime
             | Number of decimal
@@ -112,7 +113,7 @@ module Cycles =
                     |> decimal
 
                 [
-                    Link(industry,industry |> Links.industryLink)
+                    LinkNewTab(industry,industry |> Links.industryLink)
                     Date(cycle.startPointDate)
                     String(cycle.age.TotalDays |> int |> string)
                     Number(cycle.startPointValue)
@@ -130,7 +131,8 @@ module Cycles =
                     |> List.map (fun cell ->
                         td [] [ 
                             match cell with
-                            | Link (text, link) -> generateHref text link
+                            | Link (title, link) -> generateHref title link
+                            | LinkNewTab (title, link) -> generateHrefNewTab title link
                             | String text -> str text
                             | Date date -> date.ToString("yyyy-MM-dd") |> str
                             | Number number -> number.ToString("N2") |> str
@@ -172,7 +174,7 @@ module Cycles =
                 match System.Int32.TryParse(x) with
                 | true, value -> value
                 | _ -> System.Int32.MaxValue)
-            |> Option.get
+            |> Option.defaultValue System.Int32.MaxValue
 
         let minimumValue = 
             ctx.Request.Query.["minimumValue"]
@@ -181,7 +183,7 @@ module Cycles =
                 match System.Decimal.TryParse(x) with
                 | true, value -> value
                 | _ -> 0m)
-            |> Option.get
+            |> Option.defaultValue 0m
 
         (maximumAge, minimumValue)
 
