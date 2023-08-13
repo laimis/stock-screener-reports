@@ -9,6 +9,13 @@ module Cycles =
     open Giraffe.ViewEngine
     open StockScreenerReports.Core
     
+    [<Literal>]
+    let private maximumAgeParam = "maximumAge"
+    [<Literal>]
+    let private minimumValueParam = "minimumValue"
+    [<Literal>]
+    let private minimumChangeParam = "minimumChange"
+
 
     let internal generateIndustryCycleStartChart (cycles:IndustryWithCycle list) =
 
@@ -58,15 +65,15 @@ module Cycles =
             | Date of System.DateTime
             | Number of decimal
             
-    let private generateCyclesSection maximumAge minimumValue (cycles:list<IndustryWithCycle>) =
+    let private generateCyclesSection maximumAge minimumValue minimumChange (cycles:list<IndustryWithCycle>) =
         
         let filterSection = form [] [
             div [ _class "columns"] [
                 div [ _class "field column" ] [
-                    label [ _for "maximumAge" ] [ str "Maximum Age" ]
+                    label [ _for maximumAgeParam ] [ str "Maximum Age" ]
                     input [
                         _type "number"
-                        _name "maximumAge"
+                        _name maximumAgeParam
                         _class "input"
                         _value (
                             match maximumAge with
@@ -76,12 +83,21 @@ module Cycles =
                     ]
                 ]
                 div [ _class "field column" ] [
-                    label [ _for "minimumValue" ] [ str "Minimum Value" ]
+                    label [ _for minimumValueParam ] [ str "Minimum Value" ]
                     input [
                         _type "number"
-                        _name "minimumValue"
+                        _name minimumValueParam
                         _class "input"
                         _value (minimumValue.ToString())
+                    ]
+                ]
+                div [ _class "field column" ] [
+                    label [ _for minimumChangeParam ] [ str "Minimum Change" ]
+                    input [
+                        _type "number"
+                        _name minimumChangeParam
+                        _class "input"
+                        _value (minimumChange.ToString())
                     ]
                 ]
             ]
@@ -91,6 +107,8 @@ module Cycles =
                     _class "button is-primary is-small mb-2"
                     _value "Apply Filters"
                 ]
+                span [] [ str " Quick Filters: " ]
+                a [ _href $"/cycles?{maximumAgeParam}=10&{minimumValueParam}=50" ] [ str "max 10 days, minimum 50" ]
             ]
         ]
 
@@ -159,7 +177,7 @@ module Cycles =
         let title = 
             match maximumAge with
             | System.Int32.MaxValue -> "Industry Cycles"
-            | _ -> $"Industry Cycles (Maximum Age: {maximumAge} days, Minimum Value: {minimumValue}): {cycles.Length}"
+            | _ -> $"Industry Cycles (Maximum Age: {maximumAge} days, Minimum Value: {minimumValue}): {cycles.Length}, Minimum Change: {minimumChange}"
 
         [
             filterSection
@@ -167,30 +185,26 @@ module Cycles =
         ] |> generateSection title
 
     let getQueryParams (ctx:Microsoft.AspNetCore.Http.HttpContext) =
-        let maximumAge = 
-            ctx.Request.Query.["maximumAge"]
+
+        let parseParam paramName parseFunc defaultValue =
+            ctx.Request.Query.[paramName]
             |> Seq.tryHead
             |> Option.map (fun x -> 
-                match System.Int32.TryParse(x) with
+                match parseFunc(x) with
                 | true, value -> value
-                | _ -> System.Int32.MaxValue)
-            |> Option.defaultValue System.Int32.MaxValue
+                | _ -> defaultValue)
+            |> Option.defaultValue defaultValue
 
-        let minimumValue = 
-            ctx.Request.Query.["minimumValue"]
-            |> Seq.tryHead
-            |> Option.map (fun x ->
-                match System.Decimal.TryParse(x) with
-                | true, value -> value
-                | _ -> 0m)
-            |> Option.defaultValue 0m
+        let maximumAge = parseParam maximumAgeParam System.Int32.TryParse System.Int32.MaxValue
+        let minimumValue = parseParam minimumValueParam System.Decimal.TryParse 0m
+        let minimumChange = parseParam minimumChangeParam System.Decimal.TryParse 0m
 
-        (maximumAge, minimumValue)
+        (maximumAge, minimumValue, minimumChange)
 
     let handler : HttpHandler  =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
 
-            let (maximumAge, minimumValue) = getQueryParams ctx
+            let (maximumAge, minimumValue, minimumChange) = getQueryParams ctx
 
             let cycles =
                 Constants.SMA20
@@ -214,7 +228,7 @@ module Cycles =
 
             let cycleTableSection =
                 filteredCycles
-                |> generateCyclesSection maximumAge minimumValue
+                |> generateCyclesSection maximumAge minimumValue minimumChange
 
             let view = [
                 warningSection
