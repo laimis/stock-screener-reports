@@ -22,6 +22,12 @@ module Utils =
 
             { d with data = windowed}
         )
+    
+    let failedJobFilter (job:Job) =
+        match job.status with
+        | Failure -> true
+        | _ -> 
+            job.timestamp |> Utils.ageInBusinessDays > System.TimeSpan.FromDays(1.5)
 
     type DummyLogger() =
         interface ILogger with

@@ -232,7 +232,7 @@ module Dashboard =
         let missedJobs =
             Storage.getJobs()
             |> List.filter (fun job -> job.name = EarningsJob || job.name = ScreenerJob || job.name = TrendsJob)
-            |> List.filter (fun job -> job.timestamp < System.DateTime.Now.AddDays(-1.0) || job.status = Failure)
+            |> List.filter Utils.failedJobFilter
 
         let warningSection = Views.jobAlertSection missedJobs
 

@@ -453,14 +453,22 @@ module Views =
         |> fullWidthTableWithSortableHeaderCells stockTableHeaders
 
     let jobAlertSection missedJobs =
+        
+        let jobFailureContent job = 
+            match job.status with
+                | Success -> 
+                    p [] [
+                            str $"Job {job.name} has not run since {job.timestamp}"
+                    ]
+                | Failure -> 
+                    p [] [
+                        str $"Job {job.name} failed with message: {job.message}"
+                    ]
+
         match missedJobs with
         | [] -> div [] []
         | _ ->
             div [ _class "container" ] [
                 div [_class "notification is-danger mb-5"] 
-                    (missedJobs |> List.map (fun (job:Job) ->
-                        p [] [
-                            str $"Job {job.name} has not run since {job.timestamp}"
-                        ]
-                    ))
+                    (missedJobs |> List.map jobFailureContent)
             ]

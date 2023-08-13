@@ -218,7 +218,7 @@ module Cycles =
             let missedJobs =
                 Storage.getJobs()
                 |> List.filter (fun job -> job.name = TrendsJob)
-                |> List.filter (fun job -> job.timestamp < System.DateTime.Now.AddDays(-1.0) || job.status = Failure)
+                |> List.filter Utils.failedJobFilter
 
             let warningSection = jobAlertSection missedJobs
             
