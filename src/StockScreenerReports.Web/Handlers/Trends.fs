@@ -37,7 +37,7 @@ module Trends =
                 let found = mapped.TryFind date.Date
                 match found with
                 | Some c -> (date,c)
-                | None -> (date,0)
+                | None -> (date,0L)
             )
 
         (screener,data)

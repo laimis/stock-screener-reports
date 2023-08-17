@@ -344,7 +344,7 @@ module Reports =
                 "@endDate", Sql.string (dateRange |> snd)
             ]
             |> Sql.execute (fun reader ->
-                (reader.dateTime "date", reader.int "totalvolume")
+                (reader.dateTime "date", reader.int64 "totalvolume")
             )
 
     let getDailyAverageVolumeForScreener dateRange screenerId =
@@ -395,7 +395,7 @@ module Reports =
             |> Sql.execute (fun reader -> 
                 (
                     reader.dateTime "date",
-                    reader.int "count"
+                    reader.int64 "count"
                 )
             )
 
