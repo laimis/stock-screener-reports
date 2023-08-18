@@ -63,10 +63,7 @@ module StockDashboard =
             "Volume"
         ]
 
-        [
-            section [_class "content"] [h2 [] [str "All Screener Results"]]
-            allScreenerResultsRows |> fullWidthTableWithSortableHeaderCells tableHeader
-        ]
+        allScreenerResultsRows |> fullWidthTableWithSortableHeaderCells tableHeader |> toSection "All Screener Results"
 
     let createScreenerHitChart tickerScreenerResults =
         let dateRange = ReportsConfig.dateRange()
@@ -108,12 +105,8 @@ module StockDashboard =
                 }
             )
 
-        [
-            section [_class "content"] [
-                h2 [] [str "Screener Hits"]
-                div [] (Charts.generateChartElements "Screener hits" Charts.Bar (Some 1) Charts.smallChart labels datasets)
-            ]
-        ]
+        div [] (Charts.generateChartElements "Screener hits" Charts.Bar (Some 1) Charts.smallChart labels datasets)
+        |> toSection "Screener Hits"
         
 
 
@@ -125,7 +118,11 @@ module StockDashboard =
 
         let screenerResultsSection = lastNScreenerHits |> createScreenerResultsSection
 
-        header::screenerHitChart @ screenerResultsSection
+        [
+            header
+            screenerHitChart
+            screenerResultsSection
+        ]
 
     let handler ticker =
         let stock =

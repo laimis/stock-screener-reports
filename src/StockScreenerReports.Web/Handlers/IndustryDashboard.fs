@@ -92,11 +92,11 @@ module IndustryDashboard =
             |> fullWidthTableWithSortableHeaderCells earningsTableHeader
 
         match stocksWithEarnings with
-        | [] -> h4 [] ["No earnings last two weeks" |> str]
-        | _ -> section [] [
-            h4 [] [$"Earnings from {dateRange |> fst} to {dateRange |> snd}: {stocksWithEarnings.Length}" |> str]
-            earningsTable
-        ]
+        | [] -> 
+            div [] [] |> toSection "No earnings last two weeks"
+        | _ ->
+            let title = $"Earnings from {dateRange |> fst} to {dateRange |> snd}: {stocksWithEarnings.Length}"
+            earningsTable |> toSection title
 
     let private createSMABreakdownSection industryName =
         // load industry trends
@@ -113,14 +113,13 @@ module IndustryDashboard =
 
             let hasTextRight = match sma with | Constants.SMA200 -> "has-text-right" | _ -> ""
             div [_class $"column {hasTextRight}"] [rawText description]
-            
-        section [] [
-            h4 [] ["SMA Breakdown" |> str]
-            div [_class "columns"] (
+
+        let columns = div [_class "columns"] (
                 Constants.SMAS
                 |> List.map createBreakdownColumnDiv
             )
-        ]
+            
+        columns |> toSection "SMA Breakdown"
 
     let private createHeaderSection dateRange industryName  =
 
@@ -248,15 +247,9 @@ module IndustryDashboard =
         )
 
         div [] [
-            section [] [
-                h4 [] ["SMA Trend Charts" |> str]
-                trendDiv
-                div [] charts
-            ]
-            section [] [
-                h4 [] ["SMA Trend Windowed (3)" |> str]
-                div [] smoothedCharts
-            ]
+            trendDiv
+            div [] charts |> toSection "SMA Trend Charts"
+            div [] smoothedCharts |> toSection "SMA Trend Charts (Smoothed)"
         ]
 
     let handler industryName : HttpHandler =
@@ -298,10 +291,8 @@ module IndustryDashboard =
                 )
 
             let screenerChart = 
-                section [] [
-                    h4 [ _class "mt-4"] ["Screener Counts" |> str]
-                    div [] (generateChartElements "screener chart" Bar None smallChart labels datasets)
-                ]
+                div [] (generateChartElements "screener chart" Bar None smallChart labels datasets)
+                |> toSection "Screener Counts"
 
             let resultRows =
                 industryName

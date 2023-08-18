@@ -99,9 +99,6 @@ module Views =
         ] [
             str title
         ]
-    
-    let generateSection title nodes =
-        section [_class "content"] ((h4 [] [ str title ])::nodes)
 
     let generateHrefNewTab title link =
         generateHrefWithAttr title link (_target "_blank")
@@ -232,7 +229,7 @@ module Views =
     let private generateHeaderRow =
         let titleDiv = div [ _class "column" ] [
             h1 [_class "title"] [ 
-                generateHrefWithAttr "NG Finviz" Links.home (_class "has-text-primary")
+                generateHrefWithAttr "NG Screeners" Links.home (_class "has-text-primary")
             ]
         ]
 
@@ -324,7 +321,7 @@ module Views =
                     div [_class "container"] fullBodyContent
                 ]
             ]
-        ] |> Giraffe.Core.htmlView
+        ] |> htmlView
     
     let notFound message =
         let view = 
@@ -476,6 +473,15 @@ module Views =
             ]
         )
         |> fullWidthTableWithSortableHeaderCells stockTableHeaders
+
+    let toSection title content =
+        section [ _class "content" ] [
+            h4 [] [ str title ]
+            content
+        ]
+
+    let toSectionWithNoContent title =
+        div [] [] |> toSection title
 
     let jobAlertSection missedJobs =
         

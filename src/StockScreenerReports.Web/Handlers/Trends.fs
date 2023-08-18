@@ -194,11 +194,9 @@ module Trends =
                     )
 
                 let industryScoresSection =
-                    section [] [
-                        h4 [] [str "Industry Scores"]
-                        scoreRows
-                        |> fullWidthTableWithSortableHeaderCells [ "Industry"; "Cycle Add"; "Cycle Mult"; "Trend Add"; "Trend Mult" ]
-                    ]
+                    scoreRows
+                    |> fullWidthTableWithSortableHeaderCells [ "Industry"; "Cycle Add"; "Cycle Mult"; "Trend Add"; "Trend Mult" ]
+                    |> toSection "Industry Scores"
 
 
                 let content = 

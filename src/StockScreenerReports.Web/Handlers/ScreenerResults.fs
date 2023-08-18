@@ -139,14 +139,8 @@ module ScreenerResults =
                 ]
             ]
             div [_class "columns"] breakdownDivs
-            section [_class "content"] [
-                h2 [] [str "Fresh Hits"]
-                freshHitsTable
-            ]
-            section [_class "content"] [
-                h2 [] [str "All Results"]
-                screenerTable
-            ]
+            freshHitsTable |> toSection "Fresh Hits"
+            screenerTable |> toSection "All Results"
         ]
 
     let handler ((id:int),(dateStr:string))  = 

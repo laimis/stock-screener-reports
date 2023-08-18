@@ -287,26 +287,11 @@ module ScreenerManagement =
 
         let content =
             div [ _class "container" ] [
-                section [ _class "content" ] [
-                    h1 [] [ str "Screener Management" ]
-                    screenerTable
-                ]
-                section [ _class "content" ] [
-                    h2 [] [ str "New Screener" ]
-                    newScreenerForm
-                ]
-                section [ _class "content" ] [
-                    h2 [] [ str "Migrate" ]
-                    migrateForm
-                ]
-                section [ _class "content" ] [
-                    h2 [] [ str "Delete Date" ]
-                    deleteDateForm
-                ]
-                section [ _class "content"] [
-                    h2 [] [ str "Jobs" ]
-                    jobsTable
-                ]
+                screenerTable   |> toSection "Screener Management"
+                newScreenerForm |> toSection "New Screener"
+                migrateForm     |> toSection "Migrate"
+                deleteDateForm  |> toSection "Delete Date"
+                jobsTable       |> toSection "Jobs"
             ]
 
-        [content] |> Views.mainLayout "Screeners"
+        [content] |> mainLayout "Screeners"

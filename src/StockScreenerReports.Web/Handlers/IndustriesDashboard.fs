@@ -149,13 +149,6 @@ module IndustriesDashboard =
     let handler : HttpHandler  =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
 
-            let industriesTable = generateIndustrySMATable()
-
-            let view = [
-                section [_class "content"] [
-                    h1 [] [str "Industry SMA Breakdowns"]
-                    industriesTable
-                ]
-            ]
+            let view = generateIndustrySMATable() |> toSection "Industry SMA Breakdowns"
             
-            (view |> mainLayout $"Industries") next ctx
+            ([view] |> mainLayout $"Industries") next ctx

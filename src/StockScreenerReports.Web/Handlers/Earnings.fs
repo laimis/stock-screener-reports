@@ -25,12 +25,9 @@ module Earnings =
                     color = ReportsConfig.getBackgroundColorDefault
                 }
 
-        [
-            section [_class "content"] [
-                h2 [] [str "Earnings By Date"]
-                div [] (Charts.generateChartElements "Earnings By Date" Charts.Bar None Charts.smallChart labels [dataset])
-            ]
-        ]
+        let chart = div [] (Charts.generateChartElements "Earnings By Date" Charts.Bar None Charts.smallChart labels [dataset])
+
+        chart |> toSection "Earnings By Date"
     
     let private createIndustryGrouping stockDatePairs (membershipMap:Map<string,ScreenerResultReportItem>) =
         stockDatePairs
@@ -86,10 +83,7 @@ module Earnings =
             | [] -> p [] [str "No results"]
             | _ -> rows |> fullWidthTableWithSortableHeaderCells headerRow
 
-        div [ _class "content"] [
-            h2 [] [title |> str]
-            table
-        ]
+        table |> toSection title
 
     let createEarningsTable
         (stocks:Map<string,Stock>)
@@ -219,7 +213,7 @@ module Earnings =
 
         let earningsTable = createEarningsTable stocks tickersWithEarnings screenerResultMappings
 
-        [header; breakdownDiv] @ [earningsTable] @ sections @ earningChart |> mainLayout $"Earnings"
+        [header; breakdownDiv] @ [earningsTable] @ sections @ [earningChart] |> mainLayout $"Earnings"
 
     let handlerCurrentWeek() =
         let startDate = Utils.getCurrentMonday()

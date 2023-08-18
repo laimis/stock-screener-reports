@@ -66,12 +66,7 @@ module SectorDashboard =
         let stocks = sectorName |> Storage.getStocksBySector
         let stockTable = stocks |> generateStockTable
 
-        let stocksSection = section [_class "mt-5"] [
-            h4 [] [
-                $"Stocks in sector ({stocks.Length})" |> str
-            ]
-            stockTable
-        ]
+        let stocksSection = stockTable |> toSection $"Stocks in sector ({stocks.Length})"
 
         let contentSections =
             [

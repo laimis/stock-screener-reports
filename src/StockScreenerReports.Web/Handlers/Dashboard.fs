@@ -63,24 +63,23 @@ module Dashboard =
 
         rows |> Views.fullWidthTableWithCssClass "dashboard-industry-table" header
 
-    let private generateIndustryTrendsRow data =
+    let private generateIndustryTrendsSection data =
 
         let columns =
-            data
-            |> List.map (fun (title, industries) ->
-                div [ _class "column" ] [
-                    industries |> List.truncate 10 |> generateTrendsTable title
-                ]
-            )
+            div [_class "columns"] 
+                (
+                    data
+                    |> List.map (fun (title, industries) ->
+                        div [ _class "column" ] [
+                            industries |> List.truncate 10 |> generateTrendsTable title
+                        ]
+                    )
+                )
 
-        [
-            section [ _class "content" ] [
-                h4 [] [ str "Industry Trends" ]
-            ]
-            div [_class "columns"] columns
-        ]
+        columns |> Views.toSection "Industry Trends"
+        
 
-    let private generateSectorTrendsRow data =
+    let private generateSectorTrendsSection data =
 
         let columns = 
             
@@ -89,13 +88,8 @@ module Dashboard =
                     Views.toNameCountTableWithLinks title 5 Links.sectorLink data
                 ]
             )
-
-        [
-            section [ _class "content" ] [
-                h4 [] [ str "Sector Trends" ]
-            ]
-            div [_class "columns"] columns
-        ]
+        
+        div [_class "columns"] columns |> Views.toSection "Sector Trends"
 
     let private generateSMATrendRows smaTrendCyclePairs =
         let mapTrendToHtml (sma:int) (trend:Trend) =
@@ -104,13 +98,8 @@ module Dashboard =
         let mapMarketCycleToHtml (cycle:MarketCycle) =
             $"Market cycle: {cycle |> Views.marketCycleToHtml}"
 
-        [
-            section [ _class "content" ] [
-                h4 [] [ str "Market Trends" ]
-            ]
-            div [_class "columns"]
-                (
-                    smaTrendCyclePairs
+        let columns =
+            smaTrendCyclePairs
                     |> List.map (fun (sma, trendWithCycle) ->
                         let hasTextRight = match sma with | Constants.SMA200 -> "has-text-right" | _ -> ""
 
@@ -130,8 +119,8 @@ module Dashboard =
                             cycleDiv
                         ]
                     )
-                )
-        ]
+        
+        div [_class "columns"] columns |> Views.toSection "Market and SMA Trends"
 
     let private generateSMABreakdownRows breakdowns =
 
@@ -151,16 +140,10 @@ module Dashboard =
         let charts = datasets |> Charts.generateChartElements "SMA breakdown" Charts.ChartType.Line (Some 100) Charts.smallChart labels
         let smoothedCharts = smoothedDataSets |> Charts.generateChartElements "SMA breakdown (smoothed)" Charts.ChartType.Line (Some 100) Charts.smallChart labels
 
-        [
-            section [_class "content"] [
-                h4 [] [ str "SMA Breakdown" ]
-                div [_class "block"] charts
-            ]
-            section [ _class "content" ] [
-                h4 [] [ str "SMA Breakdown (smoothed)" ]
-                div [_class "block"] smoothedCharts
-            ]
-        ]
+        (
+            div [_class "block"] charts |> Views.toSection "SMA Breakdown",
+            div [_class "block"] smoothedCharts |> Views.toSection "SMA Breakdown (smoothed)"
+        )
 
     let private createView () =
         
@@ -186,7 +169,7 @@ module Dashboard =
                 (title, industries)
             )
 
-        let industryTrendRows = generateIndustryTrendsRow industryTrendData
+        let industryTrendRows = generateIndustryTrendsSection industryTrendData
         // end industry trends
 
         // sector trends
@@ -198,7 +181,7 @@ module Dashboard =
             |> List.map ( fun (screenerId, title) ->
                 (title, (getTopSectorsForScreener ReportsConfig.sectorTrendDayRange screenerId))
             )
-        let sectorTrendRows = generateSectorTrendsRow sectorTrendData
+        let sectorTrendRows = generateSectorTrendsSection sectorTrendData
         // end sector trends
 
         let breakdowns =
@@ -219,7 +202,7 @@ module Dashboard =
         // trend rows
         
         // SMA breakdown charts
-        let smaBreakdownRows = generateSMABreakdownRows breakdowns
+        let (smaBreakdownChartSection, smaBreakdownSmoothedChartSection) = generateSMABreakdownRows breakdowns
         // SMA breakdown charts
 
         // cycle starts
@@ -241,7 +224,17 @@ module Dashboard =
             str $"Last updated: {time}"
         ]
 
-        [warningSection] @ [screenerRows] @ smaTrendRows @ smaBreakdownRows @ [marketCycleSection] @ industryTrendRows @ sectorTrendRows @ [timeRow]
+        [
+            warningSection
+            screenerRows
+            smaTrendRows
+            smaBreakdownChartSection
+            smaBreakdownSmoothedChartSection
+            marketCycleSection
+            industryTrendRows
+            sectorTrendRows
+            timeRow
+        ]
 
     let handler()  = 
         
