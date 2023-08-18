@@ -43,14 +43,14 @@ module StockDashboard =
             let dateStr = screenerResult.date |> Utils.convertToDateString
             let screenerLink = dateStr |> screenerResultsLink screenerResult.screenerid
 
-            tr [] [
-                screenerLink |> generateHref dateStr |> toTdWithNode
-                (screenerResult.screenerid,screenerResult.screenername) |> generateScreenerTags |> toTdWithNode
-                screenerResult.marketCap |> marketCapFormatted |> str |> toTdWithNode
-                screenerResult.price |> dollarFormatted |> str |> toTdWithNode
-                screenerResult.change |> percentFormatted |> str |> toTdWithNode
-                screenerResult.volume |> volumeFormatted |> str |> toTdWithNode
-            ]
+            [
+                LinkColumn(dateStr, screenerLink)
+                NodeColumn((screenerResult.screenerid,screenerResult.screenername) |> generateScreenerTags)
+                StringColumn(screenerResult.marketCap |> marketCapFormatted)
+                StringColumn(screenerResult.price |> dollarFormatted )
+                StringColumn(screenerResult.change |> percentFormatted )
+                StringColumn(screenerResult.volume |> volumeFormatted )
+            ] |> toTr
 
         let allScreenerResultsRows = results |> List.map screenerResultToRow
 

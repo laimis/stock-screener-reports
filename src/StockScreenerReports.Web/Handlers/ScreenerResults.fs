@@ -19,17 +19,17 @@ module ScreenerResults =
         let rowAttributes = [_height "50px"]
 
         tr rowAttributes [
-            result.ticker |> generateTickerLink |> toTdWithNode
+            TickerLinkColumn(result.ticker) |> toTd
             [earningsIcon; fireIcon] |> toTdWithNodes
-            result.name |> toTd 
-            result.sector |> Links.sectorLink |> generateHref result.sector |> toTdWithNode
-            result.industry |> Links.industryLink |> generateHref result.industry |> toTdWithNode
-            result.country |> Links.countryLink |> generateHref result.country |> toTdWithNode
-            result.marketCap |> marketCapFormatted |> toTd
-            result.price |> dollarFormatted |> toTd
-            result.change |> percentFormatted |> toTd
-            result.volume |> volumeFormatted |> toTd
-            result.ticker |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
+            StringColumn(result.name) |> toTd 
+            LinkColumn(result.sector, result.sector |> Links.sectorLink) |> toTd
+            LinkColumn(result.industry, result.industry |> Links.industryLink) |> toTd
+            LinkColumn(result.country, result.country |> Links.countryLink) |> toTd
+            StringColumn(result.marketCap |> marketCapFormatted) |> toTd
+            StringColumn(result.price |> dollarFormatted) |> toTd
+            StringColumn(result.change |> percentFormatted) |> toTd
+            StringColumn(result.volume |> volumeFormatted) |> toTd
+            LinkNewTabColumn("chart", result.ticker |> Links.tradingViewLink) |> toTd
         ]
     
     let calculateBreakdowns (screenerResults:list<ScreenerResultReportItem>) =

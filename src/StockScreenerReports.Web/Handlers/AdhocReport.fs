@@ -79,12 +79,12 @@ module AdhocReport =
                 
                 let earningsIcon = hasEarnings |> generateEarningsIcon
                 
-                tr [] [
-                    index.ToString() |> toTd
-                    ticker |> Links.tradingViewLink |> generateHref ticker |> toTdWithNode
-                    date |> StockScreenerReports.Core.Utils.convertToDateString |> toTd
-                    earningsIcon |> toTdWithNode
-                ]
+                [
+                    StringColumn(index.ToString())
+                    LinkColumn(ticker, ticker |> Links.tradingViewLink)
+                    DateColumn(date)
+                    NodeColumn(earningsIcon)
+                ] |> toTr
             )
 
         let headerCells = ["#"; "ticker"; "date"; "earnings"]

@@ -60,11 +60,11 @@ module IndustriesDashboard =
                         | None -> Trend.blank()
 
                     [
-                        $"{smaBreakdown.breakdown.above} / {smaBreakdown.breakdown.total}" |> toTd
-                        System.String.Format("{0:N2}%", smaBreakdown.breakdown.percentAbove) |> toTd
-                        trend.changeFormatted |> toTd
-                        trend.streakFormatted |> toTd
-                        trend.streakRateFormatted |> toTd
+                        StringColumn($"{smaBreakdown.breakdown.above} / {smaBreakdown.breakdown.total}")
+                        StringColumn(System.String.Format("{0:N2}%", smaBreakdown.breakdown.percentAbove))
+                        StringColumn(trend.changeFormatted)
+                        StringColumn(trend.streakFormatted)
+                        StringColumn(trend.streakRateFormatted)
                     ]
 
                 let smaBreakdown = industrySMABreakdowns20 |> Map.tryFind industryName
@@ -82,9 +82,9 @@ module IndustriesDashboard =
 
                     let diff = iu.breakdown.percentAbove - toCompare.breakdown.percentAbove
                     
-                    System.Math.Round(diff, 0).ToString() |> toTd
+                    StringColumn(System.Math.Round(diff, 0).ToString())
 
-                let industryLinks = [
+                let industryLinks = div [] [
                     span [ _class "mr-2"] [
                             iu.industry |> Links.industryLink |> generateHref iu.industry
                         ]
@@ -95,8 +95,8 @@ module IndustriesDashboard =
                 ]
 
                 let commonCells = [
-                    (index+1).ToString() |> toTd
-                    industryLinks |> toTdWithNodes
+                    StringColumn((index+1).ToString())
+                    NodeColumn(industryLinks)
                 ]
 
                 // TODO: precalculate these, it can get expensive
@@ -114,15 +114,15 @@ module IndustriesDashboard =
                     cycleScoreComponents |> MarketCycleScoring.componentScoreMultiplying
 
                 let diffCells = [
-                    interestScore1.ToString() |> toTd
-                    interestScore2.ToString() |> toTd
+                    StringColumn(interestScore1.ToString())
+                    StringColumn(interestScore2.ToString())
                     breakdownDiff smaBreakdown200_30days
                     breakdownDiff smaBreakdown200_60days
                 ]
 
                 let cells = commonCells @ sma20Cells @ sma200Cells @ diffCells
 
-                tr [] cells
+                cells |> toTr
             )
 
         let industry20And200Header = [

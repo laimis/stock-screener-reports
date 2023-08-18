@@ -38,19 +38,21 @@ module Search =
                         let matchedStock = stock.value
 
                         [
-                            td [] ["Stock" |> str]
-                            td [] [m |> getLink |> generateHref stock.name]
-                            td [] [matchedStock.company |> str]
-                            td [] [matchedStock.industry |> Links.industryLink |> generateHref matchedStock.industry]
-                            td [] [matchedStock.country |> Links.countryLink |> generateHref matchedStock.country]
+                            StringColumn("Stock")
+                            LinkColumn(stock.name, m |> getLink)
+                            StringColumn(matchedStock.company)
+                            LinkColumn(matchedStock.industry, matchedStock.industry |> Links.industryLink)
+                            LinkColumn(matchedStock.country, matchedStock.country |> Links.countryLink)
                         ]
                     | IndustryMatch industry -> [
-                            td [] ["Industry" |> str]
-                            td [] [m |> getLink |> generateHref industry]
-                            td [_colspan "3"] ["" |> str]
+                            StringColumn("Industry")
+                            LinkColumn(industry, (m |> getLink))
+                            StringColumn("")
+                            StringColumn("")
+                            StringColumn("")
                         ]
 
-            tr [] cells
+            cells |> toTr
 
         let rows = results |> List.map matchToRow
 

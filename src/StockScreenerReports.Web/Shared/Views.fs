@@ -9,6 +9,18 @@ module Views =
     let billion = 1_000_000_000m
     let million = 1_000_000m
 
+    type LinkTitle = string
+    type LinkUrl = string
+
+    type ColumnValue =
+            | LinkColumn of LinkTitle * LinkUrl
+            | LinkNewTabColumn of LinkTitle * LinkUrl
+            | StringColumn of string
+            | DateColumn of System.DateTime
+            | NumberColumn of decimal
+            | TickerLinkColumn of string
+            | NodeColumn of XmlNode
+
     let marketCapFormatted marketCap =
         match marketCap with
         | d when d > billion -> System.Math.Round(d / billion, 2).ToString() + "B"
@@ -105,11 +117,24 @@ module Views =
     let toTdWithNode node =
         [node] |> toTdWithNodes 
 
-    let toTd input =
-        input |> str |> toTdWithNode
-
     let toHeaderCell title =
         th [] [str title]
+
+    let toTd cell = 
+        let node =
+            match cell with
+            | LinkColumn (title, link) -> generateHref title link
+            | LinkNewTabColumn (title, link) -> generateHrefNewTab title link
+            | StringColumn text -> str text
+            | DateColumn date -> date.ToString("yyyy-MM-dd") |> str
+            | NumberColumn number -> number.ToString("N2") |> str
+            | TickerLinkColumn ticker -> generateTickerLink ticker
+            | NodeColumn node -> node
+        
+        node |> toTdWithNode
+
+    let toTr cells =
+        tr [] (cells |> List.map toTd)
 
     let toSortableHeaderCell title = 
         th [ 
@@ -442,12 +467,12 @@ module Views =
         |> List.sortByDescending (fun stock -> stock.marketCap)
         |> List.map (fun stock ->
             tr [] [
-                stock.ticker    |> StockTicker.value |> generateTickerLink |> toTdWithNode
-                stock.company   |> toTd
-                stock.sector    |> Links.sectorLink |> generateHref stock.sector |> toTdWithNode
-                stock.industry  |> Links.industryLink |> generateHref stock.industry |> toTdWithNode
-                stock.marketCap |> marketCapOptionFormatted |> toTd
-                stock.ticker    |> StockTicker.value |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
+                TickerLinkColumn(stock.ticker |> StockTicker.value) |> toTd
+                StringColumn(stock.company)   |> toTd
+                LinkColumn(stock.sector, stock.sector |> Links.sectorLink) |> toTd
+                LinkColumn(stock.industry, stock.industry |> Links.industryLink) |> toTd
+                StringColumn(stock.marketCap |> marketCapOptionFormatted) |> toTd
+                LinkNewTabColumn("chart", stock.ticker |> StockTicker.value |> Links.tradingViewLink) |> toTd
             ]
         )
         |> fullWidthTableWithSortableHeaderCells stockTableHeaders

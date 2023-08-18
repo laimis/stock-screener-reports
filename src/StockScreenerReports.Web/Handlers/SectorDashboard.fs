@@ -38,16 +38,16 @@ module SectorDashboard =
             sectorName
             |> Reports.getScreenerResultsForSector 50
             |> List.map (fun screenerResult ->
-                tr [] [
-                    screenerResult.date |> Utils.convertToDateString |> toTd
-                    (screenerResult.screenerid,screenerResult.screenername) |> generateScreenerTags |> toTdWithNode
-                    screenerResult.ticker |> generateTickerLink |> toTdWithNode
-                    screenerResult.marketCap |> marketCapFormatted |> toTd
-                    screenerResult.price |> dollarFormatted |> toTd
-                    screenerResult.change |> percentFormatted |> toTd
-                    screenerResult.volume |> volumeFormatted |> toTd
-                    screenerResult.ticker |> Links.tradingViewLink |> generateHref "chart" |> toTdWithNode
-                ]
+                [
+                    DateColumn(screenerResult.date)
+                    NodeColumn((screenerResult.screenerid,screenerResult.screenername) |> generateScreenerTags)
+                    TickerLinkColumn(screenerResult.ticker)
+                    StringColumn(screenerResult.marketCap |> marketCapFormatted)
+                    StringColumn(screenerResult.price |> dollarFormatted)
+                    StringColumn(screenerResult.change |> percentFormatted)
+                    StringColumn(screenerResult.volume |> volumeFormatted)
+                    LinkNewTabColumn("chart", screenerResult.ticker |> Links.tradingViewLink)
+                ] |> toTr
             )
 
         let headerCells = [

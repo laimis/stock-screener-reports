@@ -143,15 +143,15 @@ module Trends =
                         let topIndustriesTable = 
                             trendingIndustries
                             |> List.map (fun trend ->
-                                tr [] [
-                                    trend.industry |> Links.industryLink |> generateHref trend.industry |> toTdWithNodeWithWidth 400
-                                    trend.trend.streakFormatted |> toTd
-                                    trend.trend.changeFormatted |> toTd
-                                    trend.trend.streakRateFormatted |> toTd
-                                    trend.above.ToString() |> toTd
-                                    (trend.above + trend.below).ToString() |> toTd
-                                    trend.abovePercentageFormatted() |> toTd
-                                ]
+                                [
+                                    LinkColumn(trend.industry, trend.industry |> Links.industryLink)
+                                    StringColumn(trend.trend.streakFormatted)
+                                    StringColumn(trend.trend.changeFormatted)
+                                    StringColumn(trend.trend.streakRateFormatted)
+                                    StringColumn(trend.above.ToString())
+                                    StringColumn((trend.above + trend.below).ToString())
+                                    StringColumn(trend.abovePercentageFormatted())
+                                ] |> toTr
                             )
                             |> List.ofSeq
                             |> fullWidthTable [ "Industry"; "Streak"; "Change"; "Streak Rate"; "Above"; "Total"; "%";  ]
@@ -184,13 +184,13 @@ module Trends =
                     |> List.filter (fun (_, scoreAdd, scoreMult, _, _) -> scoreAdd > 0 || scoreMult > 0)
                     |> List.sortByDescending (fun (_, scoreAdd, scoreMult, _, _) -> scoreAdd + scoreMult)
                     |> List.map (fun (industry, cycleAdd, cycleMult, trendAdd, trendMult) ->
-                        tr [] [
-                            industry |> Links.industryLink |> generateHref industry |> toTdWithNodeWithWidth 400
-                            cycleAdd.ToString() |> toTd
-                            cycleMult.ToString() |> toTd
-                            trendAdd.ToString() |> toTd
-                            trendMult.ToString() |> toTd
-                        ]
+                        [
+                            LinkColumn(industry, industry |> Links.industryLink)
+                            StringColumn(cycleAdd.ToString())
+                            StringColumn(cycleMult.ToString())
+                            StringColumn(trendAdd.ToString())
+                            StringColumn(trendMult.ToString())
+                        ] |> toTr
                     )
 
                 let industryScoresSection =

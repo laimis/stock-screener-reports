@@ -71,12 +71,12 @@ module Earnings =
             |> List.map (fun (ticker, _) -> matchFilter.[ticker])
             |> List.sortBy (fun s -> s.industry)
             |> List.map (fun s -> 
-                tr [] [
-                    s.ticker |> generateTickerLink |> toTdWithNode
-                    s.sector |> Links.sectorLink |> generateHref s.sector |> toTdWithNode
-                    s.industry |> Links.industryLink |> generateHref s.industry |> toTdWithNode
-                    s.ticker |> Links.tradingViewLink |> generateHref "chart" |> toTdWithNode
-                ]
+                [
+                    TickerLinkColumn(s.ticker)
+                    LinkColumn(s.sector, s.sector |> Links.sectorLink)
+                    LinkColumn(s.industry, s.industry |> Links.industryLink)
+                    LinkNewTabColumn("chart", s.ticker |> Links.tradingViewLink)
+                ] |> toTr
             )
 
         let headerRow = ["Ticker"; "Chart"; "Industry"; "Sector"]
@@ -120,8 +120,7 @@ module Earnings =
                 let screenerCells =
                     screenerResultMappings
                     |> List.map (fun map -> 
-                        let cellContent = ticker |> map.TryFind |> generateDivWithDateAndIcon
-                        cellContent |> toTdWithNode
+                        NodeColumn(ticker |> map.TryFind |> generateDivWithDateAndIcon)
                     )
 
                 let stock = stocks |> Map.tryFind ticker
@@ -137,19 +136,19 @@ module Earnings =
 
                 let cells = 
                     [
-                        ticker |> generateTickerLink |> toTdWithNode
-                        date.ToString("yyyy-MM-dd") |> toTd
-                        industry |> Links.industryLink |> generateHref industry |> toTdWithNode
-                        marketCap |> marketCapOptionFormatted |> toTd
+                        TickerLinkColumn(ticker)
+                        DateColumn(date)
+                        LinkColumn(industry, industry |> Links.industryLink)
+                        StringColumn(marketCap |> marketCapOptionFormatted)
                     ]
                     @
                     screenerCells
                     @
                     [
-                        ticker |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
+                        LinkNewTabColumn("chart", ticker |> Links.tradingViewLink)
                     ]
 
-                tr [] cells
+                cells |> toTr
             )
  
         let headerRow = ["Ticker"; "Date"; "Industry"; "MCap"; "New High"; "Top Gainer"; "Top Loser"; "New Low"; "Trading View"]

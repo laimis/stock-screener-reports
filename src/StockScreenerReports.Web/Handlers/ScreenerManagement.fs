@@ -114,7 +114,7 @@ module ScreenerManagement =
             screeners
             |> List.map ( fun screener ->
                 tr [] [
-                    screener.id.ToString() |> toTd
+                    StringColumn(screener.id.ToString()) |> toTd
                     td [] [
                         div [] [str screener.name]
                         div [] [screener.url |> generateHrefNewTab screener.url]
@@ -257,11 +257,11 @@ module ScreenerManagement =
                     | Failure -> "has-text-danger-dark"
 
                 tr [_class classToSet] [
-                    job.name.ToString() |> toTd
-                    job.message.ToString() |> toTd
-                    job.status.ToString() |> toTd
-                    job.timestamp.ToString() |> toTd
-                    job |> getLink |> generateHref "Run" |> toTdWithNode
+                    StringColumn(job.name.ToString()) |> toTd
+                    StringColumn(job.message) |> toTd
+                    StringColumn(job.status.ToString()) |> toTd
+                    StringColumn(job.timestamp.ToString()) |> toTd
+                    LinkColumn("Run", job |> getLink) |> toTd
                 ]
             )
 

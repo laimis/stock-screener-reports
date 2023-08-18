@@ -57,14 +57,7 @@ module Cycles =
             h4 [] [ str "Industry Cycle Start Counts" ]
             div [] chart
         ]
-            
-    type private ColumnValue =
-            | Link of string * string
-            | LinkNewTab of string * string
-            | String of string
-            | Date of System.DateTime
-            | Number of decimal
-            
+        
     let private generateCyclesSection maximumAge minimumValue minimumChange (cycles:list<IndustryWithCycle>) =
         
         let filterSection = form [] [
@@ -131,33 +124,19 @@ module Cycles =
                     |> decimal
 
                 [
-                    LinkNewTab(industry,industry |> Links.industryLink)
-                    Date(cycle.startPointDate)
-                    String(cycle.age.TotalDays |> int |> string)
-                    Number(cycle.startPointValue)
-                    Number(cycle.currentPointValue)
-                    Number(change)
-                    Date(cycle.highPointDate)
-                    Number(cycle.highPointValue)
-                    String(cycle.highPointAge.TotalDays |> int |> string)
-                    Number(score)
+                    LinkNewTabColumn(industry,industry |> Links.industryLink)
+                    DateColumn(cycle.startPointDate)
+                    StringColumn(cycle.age.TotalDays |> int |> string)
+                    NumberColumn(cycle.startPointValue)
+                    NumberColumn(cycle.currentPointValue)
+                    NumberColumn(change)
+                    DateColumn(cycle.highPointDate)
+                    NumberColumn(cycle.highPointValue)
+                    StringColumn(cycle.highPointAge.TotalDays |> int |> string)
+                    NumberColumn(score)
                 ]
             )
-            |> List.map (fun data ->
-                tr [] (
-                    data
-                    |> List.map (fun cell ->
-                        td [] [ 
-                            match cell with
-                            | Link (title, link) -> generateHref title link
-                            | LinkNewTab (title, link) -> generateHrefNewTab title link
-                            | String text -> str text
-                            | Date date -> date.ToString("yyyy-MM-dd") |> str
-                            | Number number -> number.ToString("N2") |> str
-                        ]
-                    )
-                )
-            )
+            |> List.map toTr
 
         let header = [
             "Industry"

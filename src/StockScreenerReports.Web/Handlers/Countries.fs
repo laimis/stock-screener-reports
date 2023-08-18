@@ -20,10 +20,10 @@ module Countries =
         let rows =
             countries
             |> List.map (fun (country,count) ->
-                tr [] [
-                    country |> Links.countryLink |>  Views.generateHref country |> Views.toTdWithNode
-                    Views.toTd (count.ToString())
-                ]
+                [
+                    Views.LinkColumn(country, country |> Links.countryLink)
+                    Views.StringColumn(count.ToString())
+                ] |> Views.toTr
             )
 
         let table = rows |> Views.fullWidthTable ["country"; "count"]

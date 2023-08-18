@@ -79,15 +79,15 @@ module IndustryDashboard =
                 let topLoserIcon = topLosers |> Map.tryFind stock.ticker |> generateDivWithDateAndIcon generateTopLoserIcon
                 let newLowIcon = newLows |> Map.tryFind stock.ticker |> generateDivWithDateAndIcon generateNewLowIcon
 
-                tr [] [
-                    stock.ticker |> StockTicker.value |> generateTickerLink |> toTdWithNode
-                    stock.company |> toTd
-                    newHighIcon |> toTdWithNode
-                    topGainerIcon |> toTdWithNode
-                    topLoserIcon |> toTdWithNode
-                    newLowIcon |> toTdWithNode
-                    stock.ticker |> StockTicker.value |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
-                ]
+                [
+                    TickerLinkColumn(stock.ticker |> StockTicker.value)
+                    StringColumn(stock.company)
+                    NodeColumn(newHighIcon)
+                    NodeColumn(topGainerIcon)
+                    NodeColumn(topLoserIcon)
+                    NodeColumn(newLowIcon)
+                    LinkNewTabColumn("chart", stock.ticker |> StockTicker.value |> Links.tradingViewLink)
+                ] |> toTr
             )
             |> fullWidthTableWithSortableHeaderCells earningsTableHeader
 
@@ -307,16 +307,16 @@ module IndustryDashboard =
                 industryName
                 |> getScreenerResultsForIndustry dateRange 50
                 |> List.map (fun screenerResult ->
-                    tr [] [
-                        screenerResult.date |> Utils.convertToDateString |> toTd
-                        (screenerResult.screenerid,screenerResult.screenername) |> generateScreenerTags |> toTdWithNode
-                        screenerResult.ticker       |> generateTickerLink   |> toTdWithNode
-                        screenerResult.marketCap    |> marketCapFormatted   |> toTd
-                        screenerResult.price        |> dollarFormatted      |> toTd
-                        screenerResult.change       |> percentFormatted     |> toTd
-                        screenerResult.volume       |> volumeFormatted      |> toTd
-                        screenerResult.ticker       |> Links.tradingViewLink |> generateHrefNewTab "chart" |> toTdWithNode
-                    ]
+                    [
+                        DateColumn(screenerResult.date)
+                        NodeColumn((screenerResult.screenerid,screenerResult.screenername) |> generateScreenerTags)
+                        TickerLinkColumn(screenerResult.ticker)
+                        StringColumn(screenerResult.marketCap    |> marketCapFormatted)  
+                        StringColumn(screenerResult.price        |> dollarFormatted)     
+                        StringColumn(screenerResult.change       |> percentFormatted)    
+                        StringColumn(screenerResult.volume       |> volumeFormatted)     
+                        LinkNewTabColumn("chart", screenerResult.ticker |> Links.tradingViewLink)
+                    ] |> toTr
                 )
 
             let headerNames = [
@@ -334,15 +334,6 @@ module IndustryDashboard =
                 resultRows
                 |> fullWidthTableWithSortableHeaderCells headerNames
             
-            // get stocks in industry
-            let stockTableHeaderCells = [
-                "Ticker"
-                "Company"
-                "Sector"
-                "Industry"
-                "Country"
-                "Trading View"
-            ]
 
             let stocks = industryName |> Storage.getStocksByIndustry
             let stockTable = stocks |> generateStockTable
