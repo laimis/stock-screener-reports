@@ -310,6 +310,8 @@ type MarketCycle =
     member this.currentPointValue = this.currentPoint.value
     member this.currentPointDateFormatted = this.currentPoint.date.ToString("d")
 
+    member this.change = this.currentPoint.value - this.startPoint.value
+
 type TrendWithCycle =
     {
         trend: Trend;

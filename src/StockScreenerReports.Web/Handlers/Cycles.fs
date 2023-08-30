@@ -55,10 +55,10 @@ module Cycles =
             let chart = [dataset] |> Charts.generateChartElements "Start counts" Charts.ChartType.Bar (Some maxValue) Charts.smallChart labels
 
             div [] chart |> toSection "Industry Cycle Start Counts"
-        
-    let private generateCyclesSection maximumAge minimumValue minimumChange (cycles:list<IndustryWithCycle>) =
-        
-        let filterSection = form [] [
+    
+    let private generateFilterSectionForm maximumAge minimumValue minimumChange =
+
+        form [] [
             div [ _class "columns"] [
                 div [ _class "field column" ] [
                     label [ _for maximumAgeParam ] [ str "Maximum Age" ]
@@ -100,21 +100,26 @@ module Cycles =
                 ]
                 span [] [ str " Quick Filters: " ]
                 a [ _href $"/cycles?{maximumAgeParam}=10&{minimumValueParam}=50" ] [ str "max 10 days, minimum 50" ]
+                str " | "
+                a [ _href $"/cycles?{maximumAgeParam}=30&{minimumValueParam}=50" ] [ str "max 30 days, minimum 50" ]
             ]
         ]
 
+    let private generateCyclesSection maximumAge minimumValue minimumChange (cycles:list<IndustryWithCycle>) =
+        
+        let filterSection = generateFilterSectionForm maximumAge minimumValue minimumChange
+
         let rows =
             cycles
-            |> List.sortByDescending (fun (_, cycle) -> cycle.startPointDate)
+            |> List.sortByDescending (fun (_, cycle) -> cycle.change)
             |> List.map (fun (industry, cycle) ->
                 let direction =
-                    match cycle.currentPointValue - cycle.startPointValue with
+                    match cycle.change with
                     | x when x <= 0m -> Down
                     | _ -> Up
 
                 let age = int cycle.age.TotalDays
-
-                let change = cycle.currentPointValue - cycle.startPointValue
+                let change = cycle.change
 
                 let score = 
                     (MarketCycleScoring.calculateScoreComponents direction age change)
@@ -127,7 +132,7 @@ module Cycles =
                     StringColumn(cycle.age.TotalDays |> int |> string)
                     NumberColumn(cycle.startPointValue)
                     NumberColumn(cycle.currentPointValue)
-                    NumberColumn(change)
+                    NumberColumn(cycle.change)
                     DateColumn(cycle.highPointDate)
                     NumberColumn(cycle.highPointValue)
                     StringColumn(cycle.highPointAge.TotalDays |> int |> string)
