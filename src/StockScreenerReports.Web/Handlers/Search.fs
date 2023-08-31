@@ -43,10 +43,12 @@ module Search =
                             StringColumn(matchedStock.company)
                             LinkColumn(matchedStock.industry, matchedStock.industry |> Links.industryLink)
                             LinkColumn(matchedStock.country, matchedStock.country |> Links.countryLink)
+                            LinkNewTabColumn("chart", matchedStock.ticker |> StockTicker.value |> Links.tradingViewLink)
                         ]
                     | IndustryMatch industry -> [
                             StringColumn("Industry")
                             LinkColumn(industry, (m |> getLink))
+                            StringColumn("")
                             StringColumn("")
                             StringColumn("")
                             StringColumn("")
@@ -56,7 +58,7 @@ module Search =
 
         let rows = results |> List.map matchToRow
 
-        let headers = ["Type"; "Name"; "";"";"";]
+        let headers = ["Type"; "Name"; "";"";""; ""]
 
         let table = fullWidthTable headers rows
 
