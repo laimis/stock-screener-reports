@@ -85,7 +85,7 @@ module Search =
             
             | Some queryParameter -> 
                     
-                let stocks = queryParameter |> Storage.findStocksByTicker |> List.map (fun x -> StockMatch({ name = (x.ticker |> StockTicker.value); value = x }))
+                let stocks = queryParameter |> Storage.findStocksByTickerOrName |> List.map (fun x -> StockMatch({ name = (x.ticker |> StockTicker.value); value = x }))
                 let industries = Storage.getIndustries() |> List.filter (fun x -> x.Contains(queryParameter, System.StringComparison.InvariantCultureIgnoreCase)) |> List.map (fun x -> IndustryMatch(x))
 
                 let results = stocks @ industries

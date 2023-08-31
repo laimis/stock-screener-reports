@@ -133,6 +133,15 @@ module Storage =
             |> Sql.parameters ["@ticker", $"%%{ticker}%%" |> Sql.string]
             |> Sql.execute stockMapper
 
+    let findStocksByTickerOrName (query:string) =
+        let sql = $"{stockSelect} WHERE LOWER(ticker) LIKE LOWER(@query) OR LOWER(name) LIKE LOWER(@query)"
+
+        cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters ["@query", $"%%{query}%%" |> Sql.string]
+            |> Sql.execute stockMapper
+
     let updateStockTicker (oldTicker:StockTicker.T) (newTicker:StockTicker.T) =
         let sql = @"UPDATE stocks SET ticker = @newTicker WHERE ticker = @oldTicker"
 

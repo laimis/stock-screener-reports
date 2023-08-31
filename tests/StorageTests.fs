@@ -299,3 +299,13 @@ type StorageTests(output:ITestOutputHelper) =
         let indexOfAMD = List.findIndex (fun x -> x.ticker |> StockTicker.value = "AMD") stocks
 
         Assert.True(indexOfAMD >= 0)
+
+    [<Fact>]
+    let ``find stocks with name matches query works`` () =
+        let stocks = Storage.findStocksByTickerOrName "Advanced"
+
+        Assert.NotEmpty(stocks)
+
+        let indexOfAMD = List.findIndex (fun x -> x.ticker |> StockTicker.value = "AMD") stocks
+
+        Assert.True(indexOfAMD >= 0)
