@@ -133,6 +133,7 @@ module Cycles =
                     NumberColumn(cycle.startPointValue)
                     NumberColumn(cycle.currentPointValue)
                     NumberColumn(cycle.change)
+                    NumberColumn(cycle.rateOfChange)
                     DateColumn(cycle.highPointDate)
                     NumberColumn(cycle.highPointValue)
                     StringColumn(cycle.highPointAge.TotalDays |> int |> string)
@@ -148,6 +149,7 @@ module Cycles =
             "Start Value"
             "Value"
             "Change"
+            "Rate of Change"
             "High"
             "High Value"
             "High Age"

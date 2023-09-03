@@ -289,7 +289,7 @@ type MarketCycle =
         this.currentPoint.date - this.startPoint.date
 
     member this.ageDays =
-        Math.Floor((this.currentPoint.date - this.startPoint.date).TotalDays)
+        Math.Floor((this.currentPoint.date - this.startPoint.date).TotalDays) |> decimal
 
     member this.ageFormatted =
         String.Format("{0:N0} days", this.age.TotalDays)
@@ -311,6 +311,11 @@ type MarketCycle =
     member this.currentPointDateFormatted = this.currentPoint.date.ToString("d")
 
     member this.change = this.currentPoint.value - this.startPoint.value
+
+    member this.rateOfChange =
+        match this.ageDays with
+        | 0m -> this.change
+        | _ -> this.change / this.ageDays
 
 type TrendWithCycle =
     {
