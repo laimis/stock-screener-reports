@@ -123,7 +123,7 @@ module Cycles =
 
                 let score = 
                     (MarketCycleScoring.calculateScoreComponents direction age change)
-                    |> MarketCycleScoring.componentScoreAdding
+                    |> MarketCycleScoring.componentScore
                     |> decimal
 
                 [

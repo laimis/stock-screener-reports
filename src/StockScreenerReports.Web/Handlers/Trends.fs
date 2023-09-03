@@ -173,29 +173,23 @@ module Trends =
                     industries
                     |> List.map (fun industry ->
                         let breakdowns = getIndustrySMABreakdownsForIndustry Constants.SMA20 dateRange industry
-                        let cycleScoreComponents = MarketCycleScoring.cycleScoreComponents breakdowns
-                        let scoreAdd = cycleScoreComponents |> MarketCycleScoring.componentScoreAdding
-                        let scoreMult = cycleScoreComponents |> MarketCycleScoring.componentScoreMultiplying
-                        let trendScoreComponents = MarketCycleScoring.trendScoreComponents breakdowns
-                        let trendScoreAdd = trendScoreComponents |> MarketCycleScoring.componentScoreAdding
-                        let trendScoreMult = trendScoreComponents |> MarketCycleScoring.componentScoreMultiplying
-                        (industry, scoreAdd, scoreMult, trendScoreAdd, trendScoreMult)
+                        let cycleScore = breakdowns |> MarketCycleScoring.cycleScoreComponents |> MarketCycleScoring.componentScore 
+                        let trendScore = breakdowns |> MarketCycleScoring.trendScoreComponents |> MarketCycleScoring.componentScore 
+                        (industry, cycleScore, trendScore)
                     )
-                    |> List.filter (fun (_, scoreAdd, scoreMult, _, _) -> scoreAdd > 0 || scoreMult > 0)
-                    |> List.sortByDescending (fun (_, scoreAdd, scoreMult, _, _) -> scoreAdd + scoreMult)
-                    |> List.map (fun (industry, cycleAdd, cycleMult, trendAdd, trendMult) ->
+                    |> List.filter (fun (_, cycleScore, _) -> cycleScore > 0)
+                    |> List.sortByDescending (fun (_, cycleScore, _) -> cycleScore)
+                    |> List.map (fun (industry, cycleScore, trendScore) ->
                         [
                             LinkColumn(industry, industry |> Links.industryLink)
-                            StringColumn(cycleAdd.ToString())
-                            StringColumn(cycleMult.ToString())
-                            StringColumn(trendAdd.ToString())
-                            StringColumn(trendMult.ToString())
+                            StringColumn(cycleScore.ToString())
+                            StringColumn(trendScore.ToString())
                         ] |> toTr
                     )
 
                 let industryScoresSection =
                     scoreRows
-                    |> fullWidthTableWithSortableHeaderCells [ "Industry"; "Cycle Add"; "Cycle Mult"; "Trend Add"; "Trend Mult" ]
+                    |> fullWidthTableWithSortableHeaderCells [ "Industry"; "Cycle Score"; "Trend Score" ]
                     |> toSection "Industry Scores"
 
 

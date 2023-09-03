@@ -127,41 +127,27 @@ module IndustryDashboard =
             industryName
             |> getIndustrySMABreakdownsForIndustry Constants.SMA20 dateRange
             
-        let cycleScoreComponents =
+        let cycleScore = 
             breakdowns
             |> MarketCycleScoring.cycleScoreComponents
+            |> MarketCycleScoring.componentScore
 
-        let cycleAddScore = 
-            cycleScoreComponents
-            |> MarketCycleScoring.componentScoreAdding
-
-        let cycleMultiScore =
-            cycleScoreComponents
-            |> MarketCycleScoring.componentScoreMultiplying
-
-        let trendScoreComponent =
+        let trendScore =
             breakdowns
             |> MarketCycleScoring.trendScoreComponents
-
-        let trendAddScore = 
-            trendScoreComponent
-            |> MarketCycleScoring.componentScoreAdding
-
-        let trendMultiScore =
-            trendScoreComponent
-            |> MarketCycleScoring.componentScoreMultiplying
+            |> MarketCycleScoring.componentScore
 
         let trendWithCycle =
             breakdowns
             |> TrendsCalculator.calculateTrendAndCycleForIndustry
 
         let trendCardClass =
-            match trendAddScore with
+            match trendScore with
             | x when x > 5 -> "card-positive"
             | _ -> "card-negative"
 
         let cycleCardClass =
-            match cycleAddScore with
+            match cycleScore with
             | x when x > 5 -> "card-positive"
             | _ -> "card-negative"
 
@@ -172,11 +158,11 @@ module IndustryDashboard =
                 div [_class "card-container"] [
                     div [_class $"card {trendCardClass}"] [
                         div [_class "score-title"] [ "Trend" |> str ] 
-                        div [_class "score-number"] [ $"{trendAddScore}/{trendMultiScore}" |> str ] 
+                        div [_class "score-number"] [ $"{trendScore}" |> str ] 
                     ]
                     div [_class $"card {cycleCardClass}"] [
                         div [_class "score-title"] [ "Cycle" |> str ] 
-                        div [_class "score-number"] [ $"{cycleAddScore}/{cycleMultiScore}" |> str ] 
+                        div [_class "score-number"] [ $"{cycleScore}" |> str ] 
                     ]
                 ]
                 

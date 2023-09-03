@@ -47,8 +47,11 @@ module MarketCycleScoring =
 
         calculateScoreComponents trend.direction cycle.ageInMarketDays trend.change
 
-    let componentScoreAdding components =
+    let private componentScoreAdding components =
         components.direction * (components.age + components.change)
-        
-    let componentScoreMultiplying components =
-        components.direction * components.age * components.change
+
+    // not sure if I want to use this one 
+    // let private componentScoreMultiplying components =
+    //     components.direction * components.age * components.change
+
+    let componentScore = componentScoreAdding
