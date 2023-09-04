@@ -56,23 +56,29 @@ module Search =
 
             cells |> toTr
 
-        let rows = results |> List.map matchToRow
+        let (stocks, industries) = results
+
+        let toRender = stocks @ industries
+
+        let rows = toRender |> List.map matchToRow
 
         let headers = ["Type"; "Name"; "";"";""; ""]
 
-        let table = fullWidthTable headers rows
+        let table = fullWidthTableWithSortableHeaderCells headers rows
 
         div [_class "content"] [
-            h3 [] [ str $"Search Results for {query}: {results.Length} match(es)" ]
+            h3 [] [ str $"Search Results for {query}: {toRender.Length} match(es)" ]
             table
         ]
 
     let render query results =
 
         match results with
-        | [] -> 
+        | ([],[]) -> 
             messageView $"No results found for {query}"
-        | [x] -> 
+        | ([x],_) -> 
+            redirectFirstResult x
+        | (_, [x]) -> 
             redirectFirstResult x
         | _ ->
             let view = renderMultipleResults query results
@@ -87,10 +93,16 @@ module Search =
             
             | Some queryParameter -> 
                     
-                let stocks = queryParameter |> Storage.findStocksByTickerOrName |> List.map (fun x -> StockMatch({ name = (x.ticker |> StockTicker.value); value = x }))
+                let stocks = queryParameter |> Storage.findStocksByTicker |> List.map (fun x -> StockMatch({ name = (x.ticker |> StockTicker.value); value = x }))
+
+                let stockMatches = 
+                    match stocks with
+                    | [] -> queryParameter |> Storage.findStocksByTickerOrName |> List.map (fun x -> StockMatch({ name = (x.ticker |> StockTicker.value); value = x }))
+                    | _ -> stocks
+                
                 let industries = Storage.getIndustries() |> List.filter (fun x -> x.Contains(queryParameter, System.StringComparison.InvariantCultureIgnoreCase)) |> List.map (fun x -> IndustryMatch(x))
 
-                let results = stocks @ industries
+                let results = (stockMatches, industries)
 
                 let nextFunc = results |> render queryParameter
 
