@@ -15,6 +15,8 @@ module Cycles =
     let private minimumValueParam = "minimumValue"
     [<Literal>]
     let private minimumChangeParam = "minimumChange"
+    [<Literal>]
+    let private minimumRateOfChangeParam = "minimumRateOfChange"
 
 
     let internal generateIndustryCycleStartChart (cycles:IndustryWithCycle list) =
@@ -56,7 +58,7 @@ module Cycles =
 
             div [] chart |> toSection "Industry Cycle Start Counts"
     
-    let private generateFilterSectionForm maximumAge minimumValue minimumChange =
+    let private generateFilterSectionForm maximumAge minimumValue minimumChange minimumRateOfChange =
 
         form [] [
             div [ _class "columns"] [
@@ -91,6 +93,15 @@ module Cycles =
                         _value (minimumChange.ToString())
                     ]
                 ]
+                div [ _class "field column" ] [
+                    label [ _for minimumRateOfChangeParam ] [ str "Minimum Rate of Change" ]
+                    input [
+                        _type "number"
+                        _name minimumRateOfChangeParam
+                        _class "input"
+                        _value (minimumRateOfChange.ToString())
+                    ]
+                ]
             ]
             div [ ] [
                 input [
@@ -105,9 +116,9 @@ module Cycles =
             ]
         ]
 
-    let private generateCyclesSection maximumAge minimumValue minimumChange (cycles:list<IndustryWithCycle>) =
+    let private generateCyclesSection maximumAge minimumValue minimumChange minimumRateOfChange (cycles:list<IndustryWithCycle>) =
         
-        let filterSection = generateFilterSectionForm maximumAge minimumValue minimumChange
+        let filterSection = generateFilterSectionForm maximumAge minimumValue minimumChange minimumRateOfChange
 
         let rows =
             cycles
@@ -182,17 +193,19 @@ module Cycles =
         let maximumAge = parseParam maximumAgeParam System.Int32.TryParse System.Int32.MaxValue
         let minimumValue = parseParam minimumValueParam System.Decimal.TryParse 0m
         let minimumChange = parseParam minimumChangeParam System.Decimal.TryParse 0m
+        let minimumRateOfChange = parseParam minimumRateOfChangeParam System.Decimal.TryParse 0m
 
-        (maximumAge, minimumValue, minimumChange)
+        (maximumAge, minimumValue, minimumChange, minimumRateOfChange)
 
     let handler : HttpHandler  =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
 
-            let (maximumAge, minimumValue, minimumChange) = getQueryParams ctx
+            let (maximumAge, minimumValue, minimumChange, minimumRateOfChange) = getQueryParams ctx
             let cycleFilterFunc = fun (_, cycle:MarketCycle) -> 
                 cycle.age.TotalDays <= maximumAge &&
                 cycle.currentPointValue >= minimumValue &&
-                cycle.currentPointValue - cycle.startPointValue >= minimumChange
+                cycle.currentPointValue - cycle.startPointValue >= minimumChange &&
+                cycle.rateOfChange >= minimumRateOfChange
 
             let cycles =
                 Constants.SMA20
@@ -216,7 +229,7 @@ module Cycles =
 
             let cycleTableSection =
                 filteredCycles
-                |> generateCyclesSection maximumAge minimumValue minimumChange
+                |> generateCyclesSection maximumAge minimumValue minimumChange minimumRateOfChange
 
             let view = [
                 warningSection
