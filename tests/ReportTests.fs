@@ -5,6 +5,7 @@ open Xunit.Abstractions
 open System
 open StockScreenerReports.Storage
 open StockScreenerReports.Core
+open FsUnit
 
 type ReportTests(output:ITestOutputHelper) =
     do
@@ -27,18 +28,12 @@ type ReportTests(output:ITestOutputHelper) =
         
         match screener with
             | Some screener ->
-                let grouping = screener |> resultGenerator
-                let length = grouping |> Seq.length
-                Assert.NotEqual(0, length)
+                let grouping = screener |> resultGenerator |> Seq.map (fun (name, _) -> name)
+                grouping |> should not' (be Empty)
+                grouping |> should contain containsMember
 
-                let index = Seq.tryFind (fun (name, _) -> name = containsMember) grouping
-                match index with
-                    | Some _ ->
-                        Assert.True(true)
-                    | None ->
-                        Assert.True(false, $"{containsMember} not found in {grouping}")
-
-            | None -> Assert.True(false, "Expected screener to be found")
+            | None ->
+                screener |> should not' (equal None)
 
     let parseDate dateString =
         System.DateTime.ParseExact(dateString, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)
@@ -75,7 +70,7 @@ type ReportTests(output:ITestOutputHelper) =
             screenerResults
             |> List.filter (fun x -> screenerSet.Contains(x.screenerid) |> not)
 
-        Assert.Empty(filteredList)
+        filteredList |> should be Empty
 
     [<Fact>]
     let ``Particular screener results list works``() =
@@ -84,7 +79,7 @@ type ReportTests(output:ITestOutputHelper) =
 
         let results = screener.date |> Utils.convertToDateString |> Reports.getScreenerResults screener.screenerid
 
-        Assert.NotEmpty(results)
+        results |> should not' (be Empty)
 
     [<Fact>]
     let ``Particular screener result for multiple days works``() =
@@ -95,7 +90,7 @@ type ReportTests(output:ITestOutputHelper) =
         
         let results = screener.screenerid |> Reports.getScreenerResultsForDays dayRange
 
-        Assert.NotEmpty(results)
+        results |> should not' (be Empty)
 
     [<Fact>]
     let ``Particular screener daily counts work``() =
@@ -105,10 +100,10 @@ type ReportTests(output:ITestOutputHelper) =
 
         let results = screener.Value.id |> Reports.getDailyCountsForScreener dateRange
 
-        Assert.NotEmpty(results)
+        results |> should not' (be Empty)
 
         let (_,firstCount) = results.Item(0)
-        Assert.True(firstCount > 0)
+        firstCount |> should be (greaterThan 0)
 
     [<Fact>]
     let ``Particular screener daily volume works``() =
@@ -118,10 +113,11 @@ type ReportTests(output:ITestOutputHelper) =
 
         let results = screener.Value.id |> Reports.getDailyAverageVolumeForScreener dateRange   
 
-        Assert.NotEmpty(results)
+        results |> should not' (be Empty)
 
         let (_,firstCount) = results.Item(0)
-        Assert.True(firstCount > 0)
+        
+        firstCount |> should be (greaterThan 0)
 
     [<Fact>]
     let ``Screener results for stock and date range works`` () =
@@ -133,7 +129,7 @@ type ReportTests(output:ITestOutputHelper) =
         let ticker = "ACLS" |> StockTicker.create
         let results = range |> Reports.getScreenerResultsForTickerDayRange ticker
 
-        Assert.NotEmpty(results)
+        results |> should not' (be Empty)
 
     [<Fact>]
     let ``Date range sector grouping works``() =
@@ -165,7 +161,7 @@ type ReportTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``getting screener results for ticker works``() =
         let results = "cutr" |> StockTicker.create |> Reports.getScreenerResultsForTicker 100 
-        Assert.NotEmpty(results)
+        results |> should not' (be Empty)
 
     [<Fact>]
     let ``getting daily counts for screeners filtered by sector works``() =
@@ -179,7 +175,7 @@ type ReportTests(output:ITestOutputHelper) =
 
         let results = Reports.getDailyCountsForScreenerAndSector screener sector dayRange
         
-        Assert.NotEmpty(results)
+        results |> should not' (be Empty)
 
     [<Fact>]
     let ``getting daily counts for screeners filtered by industry works``() =
@@ -193,7 +189,7 @@ type ReportTests(output:ITestOutputHelper) =
             |> List.map (fun industry -> Reports.getDailyCountsForScreenerAndIndustry screener.Value.id industry dateRange)
             |> List.exists (fun results -> results |> Seq.length > 0)
         
-        Assert.True(exists)
+        exists |> should be True
 
     [<Fact>]
     let ``getting daily counts for screeners filtered by country works``() =
@@ -203,7 +199,7 @@ type ReportTests(output:ITestOutputHelper) =
 
         let results = Reports.getDailyCountsForScreenerAndCountry screener.Value.id industry dateRange
         
-        Assert.NotEmpty(results)
+        results |> should not' (be Empty)
 
     [<Fact>]
     let ``getting trending industries works``() =
@@ -211,28 +207,27 @@ type ReportTests(output:ITestOutputHelper) =
             [Constants.NewHighsScreenerId]
             |> Reports.getTopIndustriesForScreeners 14
 
-        Assert.NotEmpty(results)
+        results |> should not' (be Empty)
 
     [<Fact>]
     let ``getting trending sectors works``() =
         let results = 
-            StockScreenerReports.Core.Constants.NewHighsScreenerId
+            Constants.NewHighsScreenerId
             |> Reports.getTopSectorsForScreener 14
 
-        Assert.NotEmpty(results)
-
+        results |> should not' (be Empty)
 
     [<Fact>]
     let ``getting countries works``() =
         let results = Reports.getStockByCountryBreakdown()
 
-        Assert.NotEmpty(results)
+        results |> should not' (be Empty)
 
         let country,count = results.Item(0)
 
-        Assert.Equal("USA", country)
-        Assert.True(count > 1000)
-        Assert.True(count < 8000)
+        country |> should equal "USA"
+        count |> should be (greaterThan 1000)
+        count |> should be (lessThan 8000)
 
     [<Fact>]
     let ``industry sma breakdowns end to end works`` () =
@@ -244,12 +239,13 @@ type ReportTests(output:ITestOutputHelper) =
 
         let updates = date |> Reports.getIndustrySMABreakdowns days
 
-        let update = Assert.Single(updates)
+        updates.Length |> should equal 1
 
-        Assert.Equal("airlines", update.industry)
-        Assert.Equal(10, update.breakdown.above)
-        Assert.Equal(50, update.breakdown.below)
+        let update = updates |> List.head
 
+        update.industry |> should equal "airlines"
+        update.breakdown.above |> should equal 10
+        update.breakdown.below |> should equal 50
     
     [<Fact>]
     let ``latest industry sma breakdow works`` () =
@@ -259,15 +255,14 @@ type ReportTests(output:ITestOutputHelper) =
 
         match update with
             | Some update ->
-                Assert.Equal(StorageTests.testStockIndustry, update.industry)
+                update.industry |> should equal StorageTests.testStockIndustry
             | None ->
-                Assert.True(false, "Expected industry sma breakdown to be found")
+                update |> should not' (equal None)
 
     [<Fact>]
     let ``latest sma breakdown date works`` () =
         let date = Reports.getIndustrySMABreakdownLatestDate()
-        Assert.True(date > DateTime.MinValue)
-
+        date |> should be (greaterThan DateTime.MinValue)
 
     [<Fact>]
     let ``get industry trends for industry`` () =
@@ -275,7 +270,8 @@ type ReportTests(output:ITestOutputHelper) =
         let trends =
             StorageTests.testStockIndustry
             |> Reports.getIndustrySMABreakdownsForIndustry 20 dateRange
-        Assert.NotEmpty(trends)
+        
+        trends |> should not' (be Empty)
 
     [<Fact>]
     let ``get stock SMA breakdown works`` () =
@@ -286,7 +282,7 @@ type ReportTests(output:ITestOutputHelper) =
         breakdowns
             |> List.collect (fun pair -> [pair |> fst; pair |> snd])
             |> List.iter (fun breakdown ->
-                Assert.True(breakdown > 0)
+                breakdown |> should be (greaterThan 0)
             )
 
         // we also add above and belows for both smas and make sure they are close
@@ -295,21 +291,23 @@ type ReportTests(output:ITestOutputHelper) =
         let pairwise = 
             sums
             |> List.pairwise
-            |> List.map (fun (a,b) -> Math.Abs(a - b))
+            |> List.map (fun (a,b) -> 
+                Math.Abs(a - b)
+            )
             |> List.head
 
-        Assert.True(pairwise <= 1) // sometimes they are off by one, something finviz
+        pairwise |> should be (lessThanOrEqualTo 1) // sometimes they are off by one, something finviz
 
     [<Fact>]
     let ``get daily SMA breakdowns works`` () =
         let results = Reports.getDailySMABreakdown (ReportsConfig.dateRangeAsStrings()) 20
-        Assert.NotEmpty(results)
+        results |> should not' (be Empty)
 
         // check order
         let first = results.Item(0)
         let last = results.Item(results.Length - 1)
 
-        Assert.True(first.date < last.date)
+        first.date |> should be (lessThan last.date)
 
     [<Fact>]
     let ``get industry trends works`` () =
@@ -317,29 +315,28 @@ type ReportTests(output:ITestOutputHelper) =
         let formattedDate = latestDate |> Utils.convertToDateString
 
         let results = Constants.SMA200 |> Reports.getIndustryTrends formattedDate
-        Assert.NotEmpty(results)
+        
+        results |> should not' (be Empty)
 
     [<Fact>]
     let ``top trending industries works`` () =
         let trendUpResults = Reports.getTopIndutriesTrending "2023-03-10" 20 Up
-        Assert.NotEmpty(trendUpResults)
-        Assert.Equal(15, trendUpResults.Length) // we ask for 20 but only 15 were >0
+        trendUpResults.Length |> should equal 15 // we ask for 20 but only 15 were >0
 
         let firstRate = trendUpResults.Item(0).trend.streakRate
         let lastRate = trendUpResults.Item(trendUpResults.Length - 1).trend.streakRate
 
-        Assert.True(firstRate >= lastRate)
-        Assert.Empty(trendUpResults |> Seq.filter (fun x -> x.trend.streakRate <= 0m))
+        firstRate |> should be (greaterThanOrEqualTo lastRate)
+        trendUpResults |> Seq.filter (fun x -> x.trend.streakRate <= 0m) |> should be Empty
 
         let trendDownResults = Reports.getTopIndutriesTrending "2023-03-10" 20 Down
-        Assert.NotEmpty(trendDownResults)
-        Assert.Equal(20, trendDownResults.Length)
+        trendDownResults.Length |> should equal 20
 
         let firstRate = trendDownResults.Item(0).trend.streakRate
         let lastRate = trendDownResults.Item(trendDownResults.Length - 1).trend.streakRate
 
-        Assert.True(firstRate <= lastRate)
-        Assert.Empty(trendDownResults |> Seq.filter (fun x -> x.trend.streakRate >= 0m))
+        firstRate |> should be (lessThanOrEqualTo lastRate)
+        trendDownResults |> Seq.filter (fun x -> x.trend.streakRate >= 0m) |> should be Empty
 
     [<Fact>]
     let ``industry trends breakdown contain both up and down`` () =
@@ -354,8 +351,8 @@ type ReportTests(output:ITestOutputHelper) =
         Constants.SMAS
         |> List.iter (fun days ->
             let (up, down) = Reports.getIndustryTrendBreakdown dateToUse days
-            Assert.True(up > 0)
-            Assert.True(down > 0)
+            up |> should be (greaterThan 0)
+            down |> should be (greaterThan 0)
         )
 
     [<Fact>]
@@ -365,28 +362,29 @@ type ReportTests(output:ITestOutputHelper) =
             |> Reports.getIndustrySMABreakdownsForIndustry 20 (ReportsConfig.dateRangeAsStrings())
         let trend = TrendsCalculator.calculateForIndustry smaBreakdowns
 
-        Assert.True(trend.streak > 0)
-        Assert.True(trend.direction = Up || trend.direction = Down)
-        Assert.True(trend.change > -100m)
-        Assert.True(trend.change < 100m)
+        trend.streak |> should be (greaterThan 0)
+        let directionIsEitherUpOrDown = trend.direction = Up || trend.direction = Down
+        directionIsEitherUpOrDown |> should be True
+        trend.change |> should be (greaterThan -100m)
+        trend.change |> should be (lessThan 100m)
 
     [<Fact>]
     let ``get industry trend works`` () =
         let dateToUseOpt = ReportsConfig.dateRangeAsStrings() |> snd |> Reports.getIndustryTrendsLastKnownDateAsOf
         let dateToUse = dateToUseOpt |> Option.get |> Utils.convertToDateString
         let trend = Reports.getIndustryTrend 20 dateToUse StorageTests.testStockIndustry
-        Assert.True(trend.IsSome)
+        trend.IsSome |> should be True
 
     [<Fact>]
     let ``get tickers with earnings works`` () =
         let results = Reports.getTickersWithEarnings "2022-08-18"
-        Assert.NotEmpty(results)
+        results |> should not' (be Empty)
 
     [<Fact>]
     let ``get tickers with earnings for date range works`` () =
         let dateRange = ("2023-02-01", "2023-02-14")
         let results = dateRange |> Reports.getEarningsTickers
-        Assert.NotEmpty(results)
+        results |> should not' (be Empty)
 
     [<Fact>]
     let ``get earnings by date breakdown works`` () =
@@ -396,8 +394,8 @@ type ReportTests(output:ITestOutputHelper) =
 
         let breakdownsWithEarnings = breakdown |> Seq.filter (fun (d,c) -> c > 0)
 
-        Assert.NotEmpty(breakdown)
-        Assert.NotEmpty(breakdownsWithEarnings)
+        breakdown |> should not' (be Empty)
+        breakdownsWithEarnings |> should not' (be Empty)
 
     [<Fact>]
     let ``get tickers for screener and date range works`` () =
@@ -409,4 +407,4 @@ type ReportTests(output:ITestOutputHelper) =
 
         let results = Constants.NewHighsScreenerId |> Reports.getTickersWithScreenerResultsForDateRange dateRange
 
-        Assert.NotEmpty(results)
+        results |> should not' (be Empty)

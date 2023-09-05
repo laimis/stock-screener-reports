@@ -3,6 +3,7 @@ module FinvizClientTests
 open Xunit
 open StockScreenerReports.FinvizClient
 open Xunit.Abstractions
+open FsUnit
 
 type ParsingTests(output:ITestOutputHelper) =
     do
@@ -18,13 +19,13 @@ type ParsingTests(output:ITestOutputHelper) =
             screenerUrl
             |> FinvizClient.getResults
 
-        Assert.NotEmpty(results)
+        results |> should not' (be Empty)
 
     [<Fact>]
     let ``End to end earnings works`` () =
         let earnings = FinvizClient.getEarnings()
 
-        Assert.NotEmpty(earnings)
+        earnings |> should not' (be Empty)
 
     [<Fact>]
     let ``Fetch count works`` () =
@@ -32,7 +33,7 @@ type ParsingTests(output:ITestOutputHelper) =
             screenerUrl
             |> FinvizClient.getResultCount
 
-        Assert.True(count > 0, "Result count for test screener should be greater than 0")
+        count |> should be (greaterThan 0)
 
     [<Fact>]
     let ``industry fetch works`` () =
@@ -40,8 +41,8 @@ type ParsingTests(output:ITestOutputHelper) =
             StorageTests.testStockIndustry
             |> FinvizClient.getResultCountForIndustryAboveAndBelowSMA 20 
 
-        Assert.True(above > 0)
-        Assert.True(below > 0)
+        above |> should be (greaterThan 0)
+        below |> should be (greaterThan 0)
 
 
     [<Fact>]
@@ -52,4 +53,4 @@ type ParsingTests(output:ITestOutputHelper) =
 
         let total = above + below
 
-        Assert.True(total < 100)
+        total |> should be (lessThan 100)

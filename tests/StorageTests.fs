@@ -4,6 +4,7 @@ open Xunit
 open Xunit.Abstractions
 open StockScreenerReports.Core
 open StockScreenerReports.Storage
+open FsUnit
 
 let testScreenerName    = "New Highs, 1.5x volume, >$10"
 let screenerUrl         = "https://finviz.com/screener.ashx?v=111&s=ta_newhigh&f=fa_salesqoq_high,sh_avgvol_o200,sh_opt_optionshort,sh_price_o10,sh_relvol_o1.5,ta_perf_dup&ft=4&o=-volume"
@@ -44,68 +45,61 @@ type StorageTests(output:ITestOutputHelper) =
         let ticker = generateTicker()
 
         let stockOrNone = Storage.getStockByTicker ticker
-        Assert.True(stockOrNone.IsNone)
+        stockOrNone |> should equal None
 
         let stock = saveAndReturnTestStock ticker
 
-        Assert.True(stock.id > 0)
-        Assert.Equal(ticker, stock.ticker)
-        Assert.Equal(testStockName, stock.company)
-        Assert.Equal(testStockSector, stock.sector)
-        Assert.Equal(testStockIndustry, stock.industry)
-        Assert.Equal(testStockCountry, stock.country)
-        Assert.True(stock.marketCap > Some 0m)
+        stock.id |> should be (greaterThan 0)
+        stock.ticker |> should equal ticker
+        stock.company |> should equal testStockName
+        stock.sector |> should equal testStockSector
+        stock.industry |> should equal testStockIndustry
+        stock.country |> should equal testStockCountry
+        stock.marketCap |> should equal (Some 1_000_000m)
 
         let deleted = Storage.deleteStock stock
-        Assert.Equal(1, deleted)
-
+        deleted |> should equal 1
+        
         let subsequent = Storage.getStockByTicker ticker
-
-        Assert.True(subsequent.IsNone)
+        subsequent |> should equal None
 
     [<Fact>]
     let ``Storing and retrieving screener works`` () =
         
         let screenerName = generateScreener()
 
-        let screener = Storage.getScreenerByName screenerName
-        Assert.True(screener.IsNone)
+        screenerName |> Storage.getScreenerByName |> should equal None
 
         let screener = Storage.saveScreener screenerName screenerUrl
 
-        Assert.True(screener.id > 0)
-        Assert.Equal(screenerName, screener.name)
+        screener.id |> should be (greaterThan 0)
+        screener.name |> should equal screenerName
 
         let byNameLookup = Storage.getScreenerByName screenerName
         match byNameLookup with
             | Some screener ->
-                Assert.Equal(screenerName, screener.name)
-                Assert.Equal(screenerUrl, screener.url)
+                screener.name |> should equal screenerName
+                screener.url |> should equal screenerUrl
             | None ->
-                Assert.True(false, "Expected screener to be found by name")
+                byNameLookup |> should not' (equal None)
 
         let screeners = Storage.getScreeners()
-        Assert.NotEmpty(screeners)
+        screeners |> should not' (be Empty)
 
         let byIdLookup = Storage.getScreenerById screener.id
         match byIdLookup with
             | Some screener ->
-                Assert.Equal(screenerName, screener.name)
-                Assert.Equal(screenerUrl, screener.url)
+                screener.name |> should equal screenerName
+                screener.url |> should equal screenerUrl
             | None ->
-                Assert.True(false, "Expected screener to be found by id")
+                byIdLookup |> should not' (equal None)
         
         let deleted = Storage.deleteScreener screener
-        Assert.Equal(0, deleted[0])
-        Assert.Equal(1, deleted[1])
+        deleted[0] |> should equal 0
+        deleted[1] |> should equal 1
 
         let subsequent = Storage.getScreenerByName screenerName
-        match subsequent with
-            | Some _ ->
-                Assert.True(false, "Expected screener to be deleted")
-            | None ->
-                Assert.True(true)
-
+        subsequent |> should equal None
 
     [<Fact>]
     let ``Storing and retrieving screener results works`` () =
@@ -133,9 +127,7 @@ type StorageTests(output:ITestOutputHelper) =
             volume = 1000;
         }
 
-        let stored = Storage.saveScreenerResult screener date stock result
-
-        Assert.Equal(1, stored)
+        Storage.saveScreenerResult screener date stock result |> should equal 1
 
         Storage.deleteScreenerResults screener date |> ignore
         Storage.deleteStock stock |> ignore
@@ -153,10 +145,10 @@ type StorageTests(output:ITestOutputHelper) =
         Storage.deleteScreenerResults screener date |> ignore
 
         let stock = Storage.getStockByTicker ticker
-        Assert.True(stock.IsNone)
+        stock |> should equal None
 
         let results = Reports.getScreenerResults screener.id date
-        Assert.Empty(results)
+        results |> should be Empty
 
         let result = {
             ticker = ticker;
@@ -174,40 +166,38 @@ type StorageTests(output:ITestOutputHelper) =
 
         Storage.saveScreenerResults date results
 
-        let stock = Storage.getStockByTicker ticker
+        let stockOption = Storage.getStockByTicker ticker
+        stockOption |> should not' (equal None)
 
-        match stock with
-            | Some stock ->
-                Assert.Equal(ticker, stock.ticker)
-                Assert.Equal(testStockName, stock.company)
-                Assert.Equal(testStockSector, stock.sector)
-                Assert.Equal(testStockIndustry, stock.industry)
-                Assert.Equal(testStockCountry, stock.country)
-                Assert.Equal(stock.marketCap, Some (result.marketCap))
-            | None ->
-                Assert.True(false, "Expected stock to be created")
+        let stock = stockOption.Value
+        stock.ticker |> should equal ticker
+        stock.company |> should equal testStockName
+        stock.sector |> should equal testStockSector
+        stock.industry |> should equal testStockIndustry
+        stock.country |> should equal testStockCountry
+        stock.marketCap |> should equal (Some result.marketCap)
 
         let screenerResults = Reports.getScreenerResults screener.id date
-        Assert.NotEmpty(screenerResults)
+        screenerResults |> should not' (be Empty)
 
         Storage.deleteScreenerResults screener date |> ignore
-        Storage.deleteStock stock.Value |> ignore
+        Storage.deleteStock stockOption.Value |> ignore
         Storage.deleteScreener screener |> ignore
 
     [<Fact>]
     let ``get stocks by sector works`` () =
         let stocks = Storage.getStocksBySector testStockSector
-        Assert.NotEmpty(stocks)
+        stocks |> should not' (be Empty)
 
     [<Fact>]
     let ``get stocks by industry works`` () =
         let stocks = Storage.getStocksByIndustry testStockIndustry
-        Assert.NotEmpty(stocks)
+        stocks |> should not' (be Empty)
 
     [<Fact>]
     let ``get industries works`` () =
         let industries = Storage.getIndustries()
-        Assert.NotEmpty(industries)
+        industries |> should not' (be Empty)
 
     [<Fact>]
     let ``save job works`` () =
@@ -215,21 +205,23 @@ type StorageTests(output:ITestOutputHelper) =
         let timestamp = ReportsConfig.now()
 
         let count = Storage.saveJobStatus TestJob timestamp Success message
-        Assert.Equal(1, count)
+        count |> should equal 1
 
         let testJob = Storage.getJobs() |> List.filter (fun j -> j.name = TestJob) |> List.head
 
-        Assert.Equal(message, testJob.message)
-        Assert.Equal(timestamp, testJob.timestamp, (System.TimeSpan.FromMilliseconds(1)))
+        testJob.name |> should equal TestJob
+        testJob.status |> should equal Success
+        testJob.message |> should equal message
+
+        let timestampDiff = timestamp - testJob.timestamp
+        timestampDiff.TotalSeconds |> should (equalWithin 1) 0
 
     [<Fact>]
     let ``daily sma breakdown works`` () =
 
         let date = Reports.getIndustrySMABreakdownLatestDate()
 
-        let updated = Storage.updateSMABreakdowns (date |> Utils.convertToDateString) 20
-
-        Assert.Equal(1, updated)
+        Constants.SMA20 |> Storage.updateSMABreakdowns (date |> Utils.convertToDateString) |> should equal 1
 
     [<Fact>]
     let ``updating industry trend works`` () =
@@ -250,9 +242,7 @@ type StorageTests(output:ITestOutputHelper) =
             }
         }
 
-        let updated = Storage.updateIndustryTrend industrySmaBreakdown trend
-
-        Assert.Equal(1, updated)
+        Storage.updateIndustryTrend industrySmaBreakdown trend |> should equal 1
 
     [<Fact>]
     let ``market cycle for industry works`` () =
@@ -270,42 +260,31 @@ type StorageTests(output:ITestOutputHelper) =
 
         let (industry, saved) = Storage.getIndustryCycle Constants.SMA20 testStockIndustry
 
-        Assert.Equal(cycle, saved)
-        Assert.Equal(testStockIndustry, industry)
+        saved |> should equal cycle
+        industry |> should equal testStockIndustry
 
     [<Fact>]
     let ``get stocks for tickers works`` () =
 
-        let tickers = ["AMD"; "NVDA"; "AMAT"]
-
-        let stocks = tickers |> Storage.getStockByTickers
-
-        Assert.Equal(3, stocks.Length)
+        ["AMD"; "NVDA"; "AMAT"]
+        |> Storage.getStockByTickers
+        |> List.length
+        |> should equal 3
 
     [<Fact>]
     let ``find stocks with no match query works`` () =
 
-        let stocks = Storage.findStocksByTicker "nomatches"
-
-        Assert.Empty(stocks)
+        "nomatches" |> Storage.findStocksByTicker |> should be Empty
 
     [<Fact>]
     let ``find stocks with match query works`` () =
 
         let stocks = Storage.findStocksByTicker "AM"
 
-        Assert.NotEmpty(stocks)
-
-        let indexOfAMD = List.findIndex (fun x -> x.ticker |> StockTicker.value = "AMD") stocks
-
-        Assert.True(indexOfAMD >= 0)
+        stocks |> List.map (fun x -> x.ticker |> StockTicker.value) |> should contain "AMD"
 
     [<Fact>]
     let ``find stocks with name matches query works`` () =
         let stocks = Storage.findStocksByTickerOrName "Advanced"
 
-        Assert.NotEmpty(stocks)
-
-        let indexOfAMD = List.findIndex (fun x -> x.ticker |> StockTicker.value = "AMD") stocks
-
-        Assert.True(indexOfAMD >= 0)
+        stocks |> List.map (fun x -> x.ticker |> StockTicker.value) |> should contain "AMD"
