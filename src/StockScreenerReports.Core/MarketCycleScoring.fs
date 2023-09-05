@@ -15,7 +15,9 @@ module MarketCycleScoring =
 
         let ageComponent =
             match age with
-            | x when x <= 10 -> 10 - age
+            | x when x <= 10 -> 10
+            | x when x <= 20 -> 8
+            | x when x <= 30 -> 3
             | _ -> 0
 
         let changeComponent =

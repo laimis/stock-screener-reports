@@ -35,6 +35,8 @@ module Router =
                     route Links.earnings >=> warbler (fun _ -> Earnings.handlerCurrentWeek())
                     route "/earnings/lastweek" >=> warbler (fun _ -> Earnings.handlerLast7Days())
 
+                    route "/analysis" >=> Analysis.handler
+
                     route "/health" >=> HealthCheck.healthCheckHandler
 
                     // jobs
@@ -56,5 +58,7 @@ module Router =
 
                     route Links.migrateDateLink >=> ScreenerManagement.migrateDateHandler
                     route Links.deleteDateLink >=> ScreenerManagement.deleteDateHandler
+
+                    route "/analysis/tickers" >=> Analysis.analyzeHandler
                 ]
             setStatusCode 404 >=> text "Not Found" ]
