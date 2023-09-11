@@ -109,6 +109,7 @@ module Cycles =
                     _class "button is-primary is-small mb-2"
                     _value "Apply Filters"
                 ]
+                a [ (_href Links.cycles); (_class "button is-secondary is-small ml-2 mr-2") ] [ "Reset" |> str ]
                 span [] [ str " Quick Filters: " ]
                 a [ _href $"/cycles?{maximumAgeParam}=10&{minimumValueParam}=50" ] [ str "max 10 days, minimum 50" ]
                 str " | "

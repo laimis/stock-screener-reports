@@ -5,6 +5,8 @@ cache/
 .ionide/
 .fake
 .vscode/
+.idea/
+
 *secret*
 node_modules/
 

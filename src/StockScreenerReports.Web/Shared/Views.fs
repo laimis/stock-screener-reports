@@ -221,7 +221,7 @@ module Views =
             | Up -> "Up"
             | Down -> "Down"
 
-        $"Trending <b>{directionStr}</b> for <b>{trend.streak} days</b>, change of <b>{trend.change:N2}</b>"
+        $"Trending <b>{directionStr}</b> for <b>{trend.streak} days</b>, change of <b>{trend.change:N2}</b>, value of <b>{trend.value:N2}</b>"
 
     let marketCycleToHtml (cycle:MarketCycle) =
         $"Market cycle started on <b>{cycle.startPointDateFormatted}</b>, <b>{cycle.ageFormatted}</b> ago ({cycle.ageInMarketDays} market days), high of <b>{cycle.highPointValueFormatted} {cycle.highPointAgeFormatted} ago</b>"
