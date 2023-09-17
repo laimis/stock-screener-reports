@@ -172,7 +172,20 @@ module Storage =
             |> Sql.parameters ["@industry", industry |> Sql.string]
             |> Sql.execute stockMapper
     
-    // TODO: should we consider types for ticker, sectory, industry, country?
+    // TODO: should we consider types for sector, industry, country?
+    
+    let renameStock (oldName:StockTicker.T) (newName:StockTicker.T) =
+        let sql = @"UPDATE stocks SET name = @newName WHERE name = @oldName"
+        
+        cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters [
+                "@oldName", oldName |> StockTicker.value |> Sql.string;
+                "@newName", newName |> StockTicker.value |> Sql.string
+            ]
+            |> Sql.executeNonQuery
+        
     let saveStock (ticker:StockTicker.T) name sector industry country marketCap =
         
         let sql = @"INSERT INTO stocks (ticker,name,sector,industry,country,lastmarketcap,lastupdated)
