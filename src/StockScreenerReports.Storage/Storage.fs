@@ -174,15 +174,15 @@ module Storage =
     
     // TODO: should we consider types for sector, industry, country?
     
-    let renameStock (oldName:StockTicker.T) (newName:StockTicker.T) =
-        let sql = @"UPDATE stocks SET name = @newName WHERE name = @oldName"
+    let renameStockTicker (oldName:StockTicker.T) (newName:StockTicker.T) =
+        let sql = @"UPDATE stocks SET ticker = @newTicker WHERE ticker = @oldTicker"
         
         cnnString
             |> Sql.connect
             |> Sql.query sql
             |> Sql.parameters [
-                "@oldName", oldName |> StockTicker.value |> Sql.string;
-                "@newName", newName |> StockTicker.value |> Sql.string
+                "@oldTicker", oldName |> StockTicker.value |> Sql.string;
+                "@newTicker", newName |> StockTicker.value |> Sql.string
             ]
             |> Sql.executeNonQuery
         
