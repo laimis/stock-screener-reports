@@ -58,7 +58,7 @@ module Router =
 
                     route Links.migrateDateLink >=> ScreenerManagement.migrateDateHandler
                     route Links.deleteDateLink >=> ScreenerManagement.deleteDateHandler
-                    route Links.renameStockLink >=> StockManagement.renameStockHandler
+                    route Links.renameStockLink >=> ScreenerManagement.renameStockHandler
 
                     route "/analysis/tickers" >=> Analysis.analyzeHandler
                 ]
