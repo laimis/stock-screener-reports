@@ -120,7 +120,7 @@ module ScreenerManagement =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
             task {
                 let! input = ctx.BindFormAsync<RenameStockInput>()
-                Storage.renameStock (input.oldTicker |> StockTicker.create) (input.newTicker |> StockTicker.create) |> ignore
+                Storage.renameStockTicker (input.oldTicker |> StockTicker.create) (input.newTicker |> StockTicker.create) |> ignore
                 return! redirectTo false Links.screeners next ctx
             }
 
