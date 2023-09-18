@@ -78,7 +78,7 @@ module Search =
             messageView $"No results found for {query}"
         | ([x],_) -> 
             redirectFirstResult x
-        | (_, [x]) -> 
+        | ([], [x]) -> 
             redirectFirstResult x
         | _ ->
             let view = renderMultipleResults query results
