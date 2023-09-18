@@ -185,6 +185,18 @@ module Storage =
                 "@newTicker", newName |> StockTicker.value |> Sql.string
             ]
             |> Sql.executeNonQuery
+            
+    let changeStockIndustry (ticker:StockTicker.T) (newIndustry:string) =
+        let sql = @"UPDATE stocks SET industry = @industry WHERE ticker = @ticker"
+        
+        cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters [
+                "@ticker", ticker |> StockTicker.value |> Sql.string;
+                "@industry", newIndustry |> Sql.string
+            ]
+            |> Sql.executeNonQuery
         
     let saveStock (ticker:StockTicker.T) name sector industry country marketCap =
         

@@ -36,6 +36,13 @@ module ScreenerManagement =
             oldTicker: string
             newTicker: string
         }
+        
+    [<CLIMutable>]
+    type ChangeStockIndustryInput =
+        {
+            ticker: string
+            newIndustry: string
+        }
 
     type ScreenerExportType =   CsvProvider<
         Schema = "date, ticker, name, sector (string), industry (string), country (string), marketCap (decimal), price (decimal), change (decimal), volume (decimal), url (string)",
@@ -121,6 +128,14 @@ module ScreenerManagement =
             task {
                 let! input = ctx.BindFormAsync<RenameStockInput>()
                 Storage.renameStockTicker (input.oldTicker |> StockTicker.create) (input.newTicker |> StockTicker.create) |> ignore
+                return! redirectTo false Links.screeners next ctx
+            }
+            
+    let changeStockIndustryHandler : HttpHandler =
+        fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
+            task {
+                let! input = ctx.BindFormAsync<ChangeStockIndustryInput>()
+                Storage.changeStockIndustry (input.ticker |> StockTicker.create) input.newIndustry |> ignore
                 return! redirectTo false Links.screeners next ctx
             }
 
@@ -234,6 +249,35 @@ module ScreenerManagement =
                     _value "Rename"
                 ]
             ]
+    
+    let createStockIndustryChangeForm =
+        form [
+                _method "POST"
+                _action Links.changeStockIndustryLink
+            ] [
+                div [ _class "field" ] [
+                    label [ _for "ticker" ] [ str "Ticker" ]
+                    input [
+                        _type "text"
+                        _name "ticker"
+                        _class "input"
+                    ]
+                ]
+                div [ _class "field" ] [
+                    label [ _for "newIndustry" ] [ str "Industry" ]
+                    input [
+                        _type "text"
+                        _name "newIndustry"
+                        _class "input"
+                    ]
+                ]
+                // submit button
+                input [
+                    _type "submit"
+                    _class "button is-primary"
+                    _value "Change"
+                ]
+            ]
 
     let createDeleteForm =
         form [
@@ -328,6 +372,8 @@ module ScreenerManagement =
         let deleteDateForm = createDeleteForm
         
         let renameStockForm = createRenameStockForm
+        
+        let changeStockIndustryForm = createStockIndustryChangeForm
 
         let jobsTable = createJobsTable jobs
 
@@ -338,6 +384,7 @@ module ScreenerManagement =
                 migrateForm     |> toSection "Migrate"
                 deleteDateForm  |> toSection "Delete Date"
                 renameStockForm |> toSection "Rename Stock"
+                changeStockIndustryForm |> toSection "Change Stock Industry"
                 jobsTable       |> toSection "Jobs"
             ]
 
