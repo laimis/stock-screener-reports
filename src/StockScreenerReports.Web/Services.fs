@@ -33,9 +33,24 @@ module Services =
                 |> List.map fetchScreenerResults
                 |> saveToDb
 
-            let message = $"Ran {results.Length} screeners successfully"
-
-            Storage.saveJobStatus ScreenerJob (ReportsConfig.nowUtcNow()) Success message |> ignore
+            let emptyResults = results |> List.filter (fun (_,results) -> results.Length = 0)
+            
+            let status, message =
+                match emptyResults with
+                | [] ->
+                    (
+                        Success,
+                        $"Ran {results.Length} screeners successfully"
+                    )
+                | _ ->
+                    let screenerNamesWithNoResults = emptyResults |> List.map (fun (screener,_) -> screener.name) |> String.concat ", "
+                    
+                    (
+                        Failure,
+                        $"Ran {results.Length} screeners successfully, but {screenerNamesWithNoResults} screeners had no results"
+                    )
+            
+            Storage.saveJobStatus ScreenerJob (ReportsConfig.nowUtcNow()) status message |> ignore
 
         runIfTradingDay funcToRun
 
