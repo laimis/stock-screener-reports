@@ -100,14 +100,12 @@ module FinvizParsing =
                 }
 
         // this code is very sensitive to changes on finviz side...
-        let nodes = doc.DocumentNode.SelectNodes("//table[@class='table-light is-new']")
+        let nodes = doc.DocumentNode.SelectNodes("//table[@class='styled-table-new is-rounded is-tabular-nums w-full screener_table']/tr")
 
         match nodes with
         | null -> Seq.empty
         | _ -> 
             nodes 
-                |> Seq.collect (fun n -> n.ChildNodes)  // this should be all tr nodes
-                |> Seq.skip 2                           // skip what looks like text element and a header row
                 |> Seq.map processScreenerRow
                 |> Seq.filter (fun r -> r.IsSome)
                 |> Seq.map (fun r -> r.Value)
