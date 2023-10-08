@@ -33,7 +33,7 @@ module Trends =
         let data =
             parsedDateRange
             |> ReportsConfig.listOfBusinessDates
-            |> Seq.map(fun (date) ->
+            |> Seq.map(fun date ->
                 let found = mapped.TryFind date.Date
                 match found with
                 | Some c -> (date,c)
@@ -42,8 +42,8 @@ module Trends =
 
         (screener,data)
 
-    let internal generateSMADirectionColumns smaBreakdowPairs =
-        smaBreakdowPairs
+    let internal generateSMADirectionColumns smaBreakdownPairs =
+        smaBreakdownPairs
         |> List.map(fun (sma, breakdowns) ->
             let trendWithCycle = TrendsCalculator.calculate breakdowns
             let trendHtml = $"<b>SMA {sma}:</b> {trendWithCycle.trend |> trendToHtml}"
@@ -55,12 +55,12 @@ module Trends =
             ]   
         )
 
-    let private generateSMATrendRows smaBreakdowPairs =
+    let private generateSMATrendRows smaBreakdownPairs =
 
-        let smaDirectionColumns = smaBreakdowPairs |> generateSMADirectionColumns
+        let smaDirectionColumns = smaBreakdownPairs |> generateSMADirectionColumns
 
         let datasets:list<Charts.DataSet<decimal>> =
-            smaBreakdowPairs
+            smaBreakdownPairs
             |> List.map (fun (sma,breakdowns) ->
                 {
                     data = breakdowns |> List.map (fun breakdown -> breakdown.percentAboveRounded)
@@ -80,7 +80,11 @@ module Trends =
                 { d with data = windowed; title = d.title + " (smoothed)"}
             )
 
-        let labels = smaBreakdowPairs |> List.head |> snd |> List.map (fun breakdown -> breakdown.date.ToString("MM/dd"))
+        let labels =
+            smaBreakdownPairs
+            |> List.head
+            |> snd
+            |> List.map (fun breakdown -> breakdown.date.ToString("MM/dd"))
 
         [
             div [_class "content"] [h4 [] [ "SMA Trends" |> str ]]
@@ -91,16 +95,11 @@ module Trends =
                 (Charts.generateChartElements "SMA breakdown (smoothed)" Charts.ChartType.Line (Some 100) Charts.smallChart labels smoothedDatasets)
         ]
 
-    let generateIndustriesSection dateRange =
+    let generateIndustriesSection (industries:IndustryTrend list option) upAndDowns =
 
-        let lastKnownDate =
-            dateRange
-            |> snd
-            |> getIndustryTrendsLastKnownDateAsOf
-
-        match lastKnownDate with
-            | None ->
-                div [ _class "mesage is-danger"] [
+        match upAndDowns with
+        | None ->
+            div [ _class "message is-danger"] [
                     div [ _class "message-header"] [
                         str "No data found"
                     ]
@@ -108,116 +107,80 @@ module Trends =
                         str "No data found for the selected date"
                     ]
                 ]
-            | Some d ->
-                let dateToUse = d |> Utils.convertToDateString
+        | Some upAndDowns ->
+            let positiveClass = "has-text-success has-text-weight-bold"
+            let negativeClass = "has-text-danger has-text-weight-bold"
 
-                let upAndDowns = 
-                    Constants.SMAS
-                    |> List.map (fun days -> days |> getIndustryTrendBreakdown dateToUse)
-                
-                let positiveClass = "has-text-success has-text-weight-bold"
-                let negativeClass = "has-text-danger has-text-weight-bold"
+            let createCells upAndDown =
+                let up = upAndDown |> fst
+                let down = upAndDown |> snd
 
-                let createCells upAndDown =
-                    let up = upAndDown |> fst
-                    let down = upAndDown |> snd
+                let cssClass =
+                    match up >= down with
+                    | true -> positiveClass
+                    | false -> negativeClass
 
-                    let cssClass =
-                        match up >= down with
-                        | true -> positiveClass
-                        | false -> negativeClass
+                [up; down] |> List.map (fun value -> td [_class cssClass] [value.ToString() |> str])
 
-                    [up; down] |> List.map (fun value -> td [_class cssClass] [value.ToString() |> str])
+            let cells = upAndDowns |> List.map createCells |> List.concat
 
-                let cells = upAndDowns |> List.map createCells |> List.concat
+            let industryTrendBreakdownRow = tr [ ] cells
 
-                let industryTrendBreakdownRow = tr [ ] cells
+            let industryTrendBreakdownTable = 
+                [ industryTrendBreakdownRow ] |> fullWidthTableTextCentered [ "20 Up"; "20 Down"; "200 Up"; "200 Down" ]
 
-                let industryTrendBreakdownTable = 
-                    [ industryTrendBreakdownRow ] |> fullWidthTableTextCentered [ "20 Up"; "20 Down"; "200 Up"; "200 Down" ]
-
-                let industryTrendSections =
-                    [(Up, "Industries Trending Up"); (Down, "Industries Trending Down")]
-                    |> List.map (fun (direction, title) -> 
-                        let trendingIndustries = getTopIndutriesTrending dateToUse 8 direction
-                        let topIndustriesTable = 
-                            trendingIndustries
-                            |> List.map (fun trend ->
-                                [
-                                    LinkColumn(trend.industry, trend.industry |> Links.industryLink)
-                                    StringColumn(trend.trend.streakFormatted)
-                                    StringColumn(trend.trend.changeFormatted)
-                                    StringColumn(trend.trend.streakRateFormatted)
-                                    StringColumn(trend.above.ToString())
-                                    StringColumn((trend.above + trend.below).ToString())
-                                    StringColumn(trend.abovePercentageFormatted())
-                                ] |> toTr
-                            )
-                            |> List.ofSeq
-                            |> fullWidthTable [ "Industry"; "Streak"; "Change"; "Streak Rate"; "Above"; "Total"; "%";  ]
+            let industryTrendSections =
+                [(Up, "Industries Trending Up"); (Down, "Industries Trending Down")]
+                |> List.map (fun (direction, title) ->
+                    
+                    let func =
+                        match direction with
+                        | Up -> fun (s:IndustryTrend list) -> s |> List.sortByDescending (fun t -> t.trend.change/(t.trend.streak |> decimal))
+                        | Down -> fun (s:IndustryTrend list) -> s |> List.sortBy (fun t -> t.trend.change/(t.trend.streak |> decimal))
                         
-                        [
-                            h4 [] [
-                                title |> str
-                            ]
-                            topIndustriesTable
+                    
+                    let topIndustries = industries.Value |> func |> List.take 8
+                    let topIndustriesTable = 
+                        topIndustries
+                        |> List.map (fun trend ->
+                            [
+                                LinkColumn(trend.industry, trend.industry |> Links.industryLink)
+                                StringColumn(trend.trend.streakFormatted)
+                                StringColumn(trend.trend.changeFormatted)
+                                StringColumn(trend.trend.streakRateFormatted)
+                                StringColumn(trend.above.ToString())
+                                StringColumn((trend.above + trend.below).ToString())
+                                StringColumn(trend.abovePercentageFormatted())
+                            ] |> toTr
+                        )
+                        |> List.ofSeq
+                        |> fullWidthTable [ "Industry"; "Streak"; "Change"; "Streak Rate"; "Above"; "Total"; "%";  ]
+                    
+                    [
+                        h4 [] [
+                            title |> str
                         ]
-                    )
-                    |> List.concat
-
-                let industries = 
-                    getIndustrySMABreakdowns Constants.SMA20 dateToUse
-                    |> List.map (fun b -> b.industry)
-
-                let scoreRows = 
-                    industries
-                    |> List.map (fun industry ->
-                        let breakdowns = getIndustrySMABreakdownsForIndustry Constants.SMA20 dateRange industry
-                        let cycleScore = breakdowns |> MarketCycleScoring.cycleScoreComponents |> MarketCycleScoring.componentScore 
-                        let trendScore = breakdowns |> MarketCycleScoring.trendScoreComponents |> MarketCycleScoring.componentScore 
-                        (industry, cycleScore, trendScore)
-                    )
-                    |> List.filter (fun (_, cycleScore, _) -> cycleScore > 0)
-                    |> List.sortByDescending (fun (_, cycleScore, _) -> cycleScore)
-                    |> List.map (fun (industry, cycleScore, trendScore) ->
-                        [
-                            LinkColumn(industry, industry |> Links.industryLink)
-                            StringColumn(cycleScore.ToString())
-                            StringColumn(trendScore.ToString())
-                        ] |> toTr
-                    )
-
-                let industryScoresSection =
-                    scoreRows
-                    |> fullWidthTableWithSortableHeaderCells [ "Industry"; "Cycle Score"; "Trend Score" ]
-                    |> toSection "Industry Scores"
-
-
-                let content = 
-                    industryTrendSections
-                    |> List.append [
-                        h4 [] [str $"Industry Trend Breakdown"]
-                        industryTrendBreakdownTable
-                        industryScoresSection
+                        topIndustriesTable
                     ]
+                )
+                |> List.concat
 
-                div [_class "content"] content
+            let content = 
+                industryTrendSections
+                |> List.append [
+                    h4 [] [str $"Industry Trend Breakdown"]
+                    industryTrendBreakdownTable
+                ]
 
-    let generateElementsToRender dateRange =
+            div [_class "content"] content
+
+    let generateElementsToRender missedJobs screeners industries upAndDowns dateRange =
         
-        // get latest job runs
-        let missedJobs =
-            Storage.getJobs()
-            |> List.filter (fun job -> job.name = TrendsJob)
-            |> List.filter Utils.failedJobFilter
-
-        let warningSection = Views.jobAlertSection missedJobs
+        let warningSection = jobAlertSection missedJobs
 
         let filters = generateFilterSection dateRange
 
-        let trendingUpAndDownIndustries = generateIndustriesSection dateRange
-            
-        let screeners = Storage.getScreeners()
+        let trendingUpAndDownIndustries = generateIndustriesSection industries upAndDowns
 
         let numberOfHitsByScreenerByDate =
             screeners
@@ -245,7 +208,7 @@ module Trends =
         let highsMinusLowsChart =
             ReportsConfig.dateRange()
             |> ReportsConfig.listOfBusinessDates
-            |> Seq.map(fun (date) ->
+            |> Seq.map(fun date ->
                 let high = 
                     match (newHighsDataMap |> Map.tryFind date.Date)
                     with
@@ -322,7 +285,38 @@ module Trends =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
         
             let dateRange = getFilterSectionParams ctx
+            
+            // get latest job runs
+            let missedJobs =
+                Storage.getJobs()
+                |> List.filter (fun job -> job.name = TrendsJob)
+                |> List.filter Utils.failedJobFilter
+                
+            let screeners = Storage.getScreeners()
+            
+            let lastKnownDate =
+                dateRange
+                |> snd
+                |> getIndustryTrendsLastKnownDateAsOf
 
-            let elementsToRender = generateElementsToRender dateRange
+            let upAndDowns =
+                match lastKnownDate with
+                | None ->
+                    None
+                | Some d ->
+                    let dateToUse = d |> Utils.convertToDateString
+                    Constants.SMAS
+                    |> List.map (fun days -> days |> getIndustryTrendBreakdown dateToUse)
+                    |> Some
+                    
+            let industries = 
+                match lastKnownDate with
+                | None ->
+                    None
+                | Some d ->
+                    let dateToUse = d |> Utils.convertToDateString
+                    Constants.SMA20 |> getIndustryTrends dateToUse |> Some
+
+            let elementsToRender = generateElementsToRender missedJobs screeners industries upAndDowns dateRange
 
             (elementsToRender |> mainLayout "All Screener Trends") next ctx
