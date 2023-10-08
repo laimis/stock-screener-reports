@@ -180,7 +180,7 @@ module IndustryDashboard =
             ]
         ]
 
-    let private smaBreakdownsAndSMACharts (dateRange) industryName =
+    let private smaBreakdownsAndSMACharts (dailySMABreakdowns:Map<int,IndustrySMABreakdown list>) (industryTrends:Map<int, IndustryTrend option>) =
 
         let createTrendDiv sma (trend:Option<IndustryTrend>) =
             let desc =
@@ -195,13 +195,15 @@ module IndustryDashboard =
             ]
 
         let createDataset smaInterval  : DataSet<decimal> =
-            let data =
-                industryName
-                |> getIndustrySMABreakdownsForIndustry smaInterval dateRange
+            
+            let series = 
+                dailySMABreakdowns
+                |> Map.tryFind smaInterval
+                |> Option.defaultValue []
                 |> List.map (fun u -> System.Math.Round(u.breakdown.percentAbove, 0))
                 
             {
-                data = data
+                data = series
                 title = $"{smaInterval} SMA Trend"
                 color = smaInterval |> Constants.mapSmaToColor
             }
@@ -210,10 +212,7 @@ module IndustryDashboard =
 
         let smoothedDataSets = datasets |> Utils.smoothedDataSets 3
 
-        let labels = 
-            industryName
-            |> getIndustrySMABreakdownsForIndustry 20 dateRange
-            |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
+        let labels = dailySMABreakdowns |> Map.tryFind 20 |> Option.defaultValue [] |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
         
         let charts =
             datasets 
@@ -226,9 +225,7 @@ module IndustryDashboard =
         let trendDiv = div [_class "columns"] (
             Constants.SMAS
                 |> List.map (fun sma -> 
-                    industryName
-                    |> getIndustryTrend sma (snd dateRange) 
-                    |> createTrendDiv sma
+                    industryTrends |> Map.tryFind sma |> Option.defaultValue None |> createTrendDiv sma
                 )
         )
 
@@ -261,7 +258,7 @@ module IndustryDashboard =
 
                     let data =
                         tradingDates
-                        |> Seq.map(fun (date) ->
+                        |> Seq.map(fun date ->
                             let found = mapped.TryFind date
                             match found with
                             | Some c -> c
@@ -341,8 +338,28 @@ module IndustryDashboard =
             ]
 
             let earningsSection = createEarningsSection industryName dateRange
-
-            let smaBreakdownsAndChartSections = industryName |> smaBreakdownsAndSMACharts dateRange 
+            
+            let dailySMABreakdowns =
+                Constants.SMAS
+                |> List.map (fun sma -> 
+                    let breakdowns =
+                        industryName
+                        |> getIndustrySMABreakdownsForIndustry sma dateRange
+                    (sma, breakdowns)
+                )
+                |> Map.ofList
+                
+            let industryTrends =
+                Constants.SMAS
+                |> List.map (fun sma -> 
+                    let industryTrend =
+                        industryName
+                        |> getIndustryTrend sma (dateRange |> snd)
+                    (sma, industryTrend)
+                )
+                |> Map.ofList
+                
+            let smaBreakdownsAndChartSections = smaBreakdownsAndSMACharts dailySMABreakdowns industryTrends
 
             let contentSections =
                 [smaBreakdownsAndChartSections; screenerChart; earningsSection; stocksSection; screenerResultsTable]
