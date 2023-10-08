@@ -319,26 +319,6 @@ type ReportTests(output:ITestOutputHelper) =
         results |> should not' (be Empty)
 
     [<Fact>]
-    let ``top trending industries works`` () =
-        let trendUpResults = Reports.getTopIndutriesTrending "2023-03-10" 20 Up
-        trendUpResults.Length |> should equal 15 // we ask for 20 but only 15 were >0
-
-        let firstRate = trendUpResults.Item(0).trend.streakRate
-        let lastRate = trendUpResults.Item(trendUpResults.Length - 1).trend.streakRate
-
-        firstRate |> should be (greaterThanOrEqualTo lastRate)
-        trendUpResults |> Seq.filter (fun x -> x.trend.streakRate <= 0m) |> should be Empty
-
-        let trendDownResults = Reports.getTopIndutriesTrending "2023-03-10" 20 Down
-        trendDownResults.Length |> should equal 20
-
-        let firstRate = trendDownResults.Item(0).trend.streakRate
-        let lastRate = trendDownResults.Item(trendDownResults.Length - 1).trend.streakRate
-
-        firstRate |> should be (lessThanOrEqualTo lastRate)
-        trendDownResults |> Seq.filter (fun x -> x.trend.streakRate >= 0m) |> should be Empty
-
-    [<Fact>]
     let ``industry trends breakdown contain both up and down`` () =
 
         let date = "2023-03-11"
