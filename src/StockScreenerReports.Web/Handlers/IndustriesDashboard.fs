@@ -9,7 +9,7 @@ module IndustriesDashboard =
     open StockScreenerReports.Web.Shared.Views
 
     
-    let private generateDataRow index industrySMABreakdown20 industrySMABreakdown200 trend20 trend200 industrySMABreakdown200_30days industrySMABreakdown200_60days dailyBreakdowns =
+    let private generateDataRow index industrySMABreakdown20 industrySMABreakdown200 trend20 trend200 dailyBreakdowns =
         let toSMACells (smaOption:Option<IndustrySMABreakdown>) (trendOption:Option<IndustryTrend>) =
             let smaBreakdown =
                 match smaOption with
@@ -32,16 +32,6 @@ module IndustriesDashboard =
         let sma20Cells = toSMACells industrySMABreakdown20 trend20
         let sma200Cells = toSMACells (Some industrySMABreakdown200) trend200
 
-        let breakdownDiff toCompare =
-            let toCompare =
-                match toCompare with
-                | Some update -> update
-                | None -> industrySMABreakdown200
-
-            let diff = industrySMABreakdown200.breakdown.percentAbove - toCompare.breakdown.percentAbove
-            
-            StringColumn(System.Math.Round(diff, 0).ToString())
-
         let industryLinks = div [] [
             span [ _class "mr-2"] [
                     industrySMABreakdown200.industry |> Links.industryLink |> generateHref industrySMABreakdown200.industry
@@ -57,23 +47,21 @@ module IndustriesDashboard =
             NodeColumn(industryLinks)
         ]
 
-        let diffCells =
+        let scoreCells =
             match dailyBreakdowns with
             | None -> [StringColumn(""); StringColumn(""); StringColumn("")]
             | Some dailyBreakdowns ->
             
-                let cycleScore = 
-                    dailyBreakdowns
-                    |> MarketCycleScoring.cycleScoreComponents
-                    |> MarketCycleScoring.componentScore
+                let cycleScore = dailyBreakdowns |> MarketCycleScoring.cycleScore
+                    
+                let trendScore = dailyBreakdowns |> MarketCycleScoring.trendScore
                 
                 [
+                    StringColumn(trendScore.ToString())
                     StringColumn(cycleScore.ToString())
-                    breakdownDiff industrySMABreakdown200_30days
-                    breakdownDiff industrySMABreakdown200_60days
                 ]
 
-        commonCells @ sma20Cells @ sma200Cells @ diffCells
+        commonCells @ sma20Cells @ sma200Cells @ scoreCells
 
     let chartRow length dailyBreakdowns =
         
@@ -112,8 +100,6 @@ module IndustriesDashboard =
     let private generateIndustrySMATable
         industrySMABreakdowns20
         industrySMABreakdowns200
-        industrySMABreakdowns30Days200
-        industrySMABreakdowns60Days200
         industryTrends20
         industryTrends200
         dailySMABreakdownMap =
@@ -124,9 +110,7 @@ module IndustriesDashboard =
             |> Map.ofList
         
         let industrySMABreakdowns20 = turnToMap industrySMABreakdowns20
-        let smaBreakdown200_30days = turnToMap industrySMABreakdowns30Days200
-        let smaBreakdown200_60days = turnToMap industrySMABreakdowns60Days200
-
+        
         let trendsTurnToMap trends =
             trends
             |> List.map (fun x -> (x.industry, x))
@@ -150,10 +134,8 @@ module IndustriesDashboard =
                 let trend20 = industryTrend20 |> Map.tryFind industrySMABreakdown200.industry
                 let trend200 = industryTrend200 |> Map.tryFind industrySMABreakdown200.industry
                 let dailyBreakdowns = dailySMABreakdownMap |> Map.tryFind industrySMABreakdown200.industry
-                let industrySMABreakdown200_30days = smaBreakdown200_30days |> Map.tryFind industrySMABreakdown200.industry
-                let industrySMABreakdown200_60days = smaBreakdown200_60days |> Map.tryFind industrySMABreakdown200.industry
                 
-                let dataCells = generateDataRow index industrySMABreakdown20 industrySMABreakdown200 trend20 trend200 industrySMABreakdown200_30days industrySMABreakdown200_60days dailyBreakdowns
+                let dataCells = generateDataRow index industrySMABreakdown20 industrySMABreakdown200 trend20 trend200 dailyBreakdowns
                 let chartRow = chartRow dataCells.Length dailyBreakdowns
                 
                 [dataCells |> toTr; chartRow]
@@ -173,9 +155,8 @@ module IndustriesDashboard =
             "Trend Change"
             "Trend Streak"
             "Rate"
+            trendScoreTm
             marketCycleScoreTm
-            "30 diff"
-            "60 diff"
         ]
 
         industry20And200Rows |> fullWidthTableWithSortableHeaderCells industry20And200Header
@@ -186,13 +167,8 @@ module IndustriesDashboard =
             let latestDate = Reports.getIndustrySMABreakdownLatestDate()
             let formattedDate = latestDate |> Utils.convertToDateString
 
-            let thirtyDaysAgo = Utils.addDaysToClosestBusinessDay latestDate -30 |> Utils.convertToDateString
-            let sixtyDaysAgo = Utils.addDaysToClosestBusinessDay latestDate -60 |> Utils.convertToDateString
-            
             let industrySMABreakdowns20 = Reports.getIndustrySMABreakdowns Constants.SMA20 formattedDate
             let industrySMABreakdowns200 = Reports.getIndustrySMABreakdowns Constants.SMA200 formattedDate
-            let industrySMABreakdowns30Days200 = Reports.getIndustrySMABreakdowns Constants.SMA200 thirtyDaysAgo
-            let industrySMABreakdowns60Days200 = Reports.getIndustrySMABreakdowns Constants.SMA200 sixtyDaysAgo
             
             let industryTrends20 = Reports.getIndustryTrends formattedDate Constants.SMA20
             let industryTrends200 = Reports.getIndustryTrends formattedDate Constants.SMA200
@@ -207,6 +183,6 @@ module IndustriesDashboard =
 
             let title = $"Industry SMA Breakdowns ({industrySMABreakdowns20.Length} industries) - {formattedDate}"
             
-            let view = generateIndustrySMATable industrySMABreakdowns20 industrySMABreakdowns200 industrySMABreakdowns30Days200 industrySMABreakdowns60Days200 industryTrends20 industryTrends200 dailySMABreakdownMap |> toSection title
+            let view = generateIndustrySMATable industrySMABreakdowns20 industrySMABreakdowns200 industryTrends20 industryTrends200 dailySMABreakdownMap |> toSection title
             
             ([view] |> mainLayout $"Industries") next ctx

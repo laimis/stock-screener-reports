@@ -125,19 +125,7 @@ module Cycles =
             cycles
             |> List.sortByDescending (fun (_, cycle) -> cycle.change)
             |> List.map (fun (industry, cycle) ->
-                let direction =
-                    match cycle.change with
-                    | x when x <= 0m -> Down
-                    | _ -> Up
-
-                let age = int cycle.age.TotalDays
-                let change = cycle.change
-
-                let score = 
-                    (MarketCycleScoring.calculateScoreComponents direction age change)
-                    |> MarketCycleScoring.componentScore
-                    |> decimal
-
+                
                 [
                     LinkNewTabColumn(industry,industry |> Links.industryLink)
                     DateColumn(cycle.startPointDate)
@@ -149,7 +137,6 @@ module Cycles =
                     DateColumn(cycle.highPointDate)
                     NumberColumn(cycle.highPointValue)
                     StringColumn(cycle.highPointAge.TotalDays |> int |> string)
-                    NumberColumn(score)
                 ]
             )
             |> List.map toTr
@@ -165,7 +152,6 @@ module Cycles =
             "High"
             "High Value"
             "High Age"
-            "Score"
         ]
 
         let table = rows |> fullWidthTableWithSortableHeaderCells header
@@ -183,7 +169,7 @@ module Cycles =
     let getQueryParams (ctx:Microsoft.AspNetCore.Http.HttpContext) =
 
         let parseParam paramName parseFunc defaultValue =
-            ctx.Request.Query.[paramName]
+            ctx.Request.Query[paramName]
             |> Seq.tryHead
             |> Option.map (fun x -> 
                 match parseFunc(x) with
@@ -201,7 +187,7 @@ module Cycles =
     let handler : HttpHandler  =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
 
-            let (maximumAge, minimumValue, minimumChange, minimumRateOfChange) = getQueryParams ctx
+            let maximumAge, minimumValue, minimumChange, minimumRateOfChange = getQueryParams ctx
             let cycleFilterFunc = fun (_, cycle:MarketCycle) -> 
                 cycle.age.TotalDays <= maximumAge &&
                 cycle.currentPointValue >= minimumValue &&

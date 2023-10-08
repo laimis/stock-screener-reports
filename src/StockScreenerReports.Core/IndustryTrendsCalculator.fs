@@ -42,8 +42,8 @@ namespace StockScreenerReports.Core
                     // to reset the streak
                     let streak = 
                         match (trend.value, breakdown.percentAbove) with
-                        | (0m, 0m) -> trend.streak + 1
-                        | (0m, _) -> 1
+                        | 0m, 0m -> trend.streak + 1
+                        | 0m, _ -> 1
                         | _ -> 
                             match direction with
                             | x when x = trend.direction -> trend.streak + 1
@@ -91,10 +91,6 @@ namespace StockScreenerReports.Core
                 }
             | _ -> trendCycleOption.Value
 
-        let calculateTrendAndCycleForIndustry (smaBreakdowns:list<IndustrySMABreakdown>) =
+        let calculateForIndustry (smaBreakdowns:list<IndustrySMABreakdown>) =
             let justBreakdowns = smaBreakdowns |> List.map (fun x -> x.breakdown)
             calculate justBreakdowns
-
-        let calculateForIndustry (smaBreakdowns:list<IndustrySMABreakdown>) =
-            let trendWithCycle = smaBreakdowns |> calculateTrendAndCycleForIndustry
-            trendWithCycle.trend

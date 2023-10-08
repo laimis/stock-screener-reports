@@ -123,23 +123,10 @@ module IndustryDashboard =
 
     let private createHeaderSection dateRange industryName  =
 
-        let breakdowns = 
-            industryName
-            |> getIndustrySMABreakdownsForIndustry Constants.SMA20 dateRange
-            
-        let cycleScore = 
-            breakdowns
-            |> MarketCycleScoring.cycleScoreComponents
-            |> MarketCycleScoring.componentScore
-
-        let trendScore =
-            breakdowns
-            |> MarketCycleScoring.trendScoreComponents
-            |> MarketCycleScoring.componentScore
-
-        let trendWithCycle =
-            breakdowns
-            |> TrendsCalculator.calculateTrendAndCycleForIndustry
+        let breakdowns = industryName |> getIndustrySMABreakdownsForIndustry Constants.SMA20 dateRange
+        let cycleScore = breakdowns |> MarketCycleScoring.cycleScore
+        let trendScore = breakdowns |> MarketCycleScoring.trendScore
+        let trendWithCycle = breakdowns |> TrendsCalculator.calculateForIndustry
 
         let trendCardClass =
             match trendScore with

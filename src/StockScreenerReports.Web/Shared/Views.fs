@@ -359,7 +359,7 @@ module Views =
         ]
 
     let marketCycleScoreTm = "Cycle Score\u2122"
-    let trendCycleScoreTm = "Trend Score\u2122"
+    let trendScoreTm = "Trend Score\u2122"
 
     let getFilterSectionParams (ctx: Microsoft.AspNetCore.Http.HttpContext) =
         let startDateParam = ctx.TryGetQueryStringValue "startDate"

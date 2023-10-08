@@ -109,7 +109,7 @@ module Services =
                 |> Seq.map (fun (industry, days) -> 
                     
                     let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry days (ReportsConfig.dateRangeAsStrings())
-                    let trendAndCycle = breakdowns |> TrendsCalculator.calculateTrendAndCycleForIndustry
+                    let trendAndCycle = breakdowns |> TrendsCalculator.calculateForIndustry
                     let trend = trendAndCycle.trend
                     let lastBreakdown = breakdowns |> List.last
                     logger.LogInformation($"Saving industry {industry} trend: {trend.direction} {trend.streak} days with change of {trend.change}")

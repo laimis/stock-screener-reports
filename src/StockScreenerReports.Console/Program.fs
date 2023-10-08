@@ -90,7 +90,7 @@ match runCyclesMigration() with
         
         let range = ReportsConfig.dateRangeAsStrings()
         let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry 20 range
-        let trendWithCycle = breakdowns |> TrendsCalculator.calculateTrendAndCycleForIndustry
+        let trendWithCycle = breakdowns |> TrendsCalculator.calculateForIndustry
         let cycle = trendWithCycle.cycle
         industry |> Storage.saveIndustryCycle 20 cycle |> ignore
 
@@ -115,9 +115,11 @@ match runTestReports() with
     |> List.iter (fun x -> Console.Write($"({x.breakdown.above}, {x.breakdown.above + x.breakdown.below});"))
     Console.WriteLine("")
 
-    let trend = 
+    let trendWithCycle = 
         smaBreakdowns
         |> TrendsCalculator.calculateForIndustry
+    
+    let trend = trendWithCycle.trend
 
     Console.WriteLine($"{industry} {20} days sma streak: {trend.streak} day {trend.direction} with change of {trend.change}")
 

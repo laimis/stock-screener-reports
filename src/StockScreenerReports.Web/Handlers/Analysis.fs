@@ -56,30 +56,9 @@ module Analysis =
                         (ticker, ticker |> StockTicker.create)
                     )
 
-                let cycleData =
+                let industryMarketCycles =
                     Constants.SMA20
                     |> Storage.getIndustryCycles
-                    |> List.map (fun (industry, cycle) -> 
-                        let direction =
-                            match cycle.change with
-                            | x when x <= 0m -> Down
-                            | _ -> Up
-
-                        let age = int cycle.age.TotalDays
-                        let change = cycle.change
-
-                        let score = 
-                            (MarketCycleScoring.calculateScoreComponents direction age change)
-                            |> MarketCycleScoring.componentScore
-                            |> decimal
-
-                        (industry, score)
-                    )
-                    |> List.sortByDescending (fun (_, score) -> score)
-                    |> List.indexed
-                    |> List.map (fun (index, (industry, score)) -> 
-                        (industry, (index, score))
-                    )
                     |> Map.ofList
 
                 let stockData =
@@ -93,7 +72,7 @@ module Analysis =
                             match stockOption with
                             | Some stock ->
                                 let industry = stock.industry
-                                let (index,score) = cycleData.[industry]
+                                let industryMarketCycle = industryMarketCycles[industry]
 
                                 [
                                     LinkNewTabColumn(ticker, stock.ticker |> StockTicker.value |> Links.stockLink)
@@ -101,8 +80,8 @@ module Analysis =
                                     LinkNewTabColumn(stock.sector, stock.sector |> Links.sectorLink)
                                     LinkNewTabColumn(stock.industry, stock.industry |> Links.industryLink)
                                     LinkNewTabColumn(stock.country, stock.country |> Links.countryLink)
-                                    NumberColumn(index |> decimal)
-                                    NumberColumn(score)
+                                    NumberColumn(industryMarketCycle.currentPoint.value)
+                                    NumberColumn(industryMarketCycle.age.TotalDays |> decimal)
                                     LinkNewTabColumn("chart", stock.ticker |> StockTicker.value |> Links.tradingViewLink)
                                 ]
                             | None -> 
@@ -122,7 +101,7 @@ module Analysis =
                     |> Array.toList
                     
 
-                let headers = ["Ticker"; "Company"; "Sector"; "Industry"; "Country"; "Industry Rank"; "Industry Score"; ""]
+                let headers = ["Ticker"; "Company"; "Sector"; "Industry"; "Country"; "Cycle Value"; "Cycle Age"; ""]
                 let table = fullWidthTableWithSortableHeaderCells headers stockData
 
                 let content =

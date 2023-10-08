@@ -1,16 +1,16 @@
 module ReportTests
 
 open Xunit
-open Xunit.Abstractions
 open System
 open StockScreenerReports.Storage
 open StockScreenerReports.Core
 open FsUnit
 
-type ReportTests(output:ITestOutputHelper) =
+type ReportTests() =
+    // output:ITestOutputHelper - add this above if you need output
     do
-        Reports.configureConnectionString (System.Environment.GetEnvironmentVariable(StorageTests.dbEnvironmentVariableName))
-        Storage.configureConnectionString (System.Environment.GetEnvironmentVariable(StorageTests.dbEnvironmentVariableName))
+        Reports.configureConnectionString (Environment.GetEnvironmentVariable(StorageTests.dbEnvironmentVariableName))
+        Storage.configureConnectionString (Environment.GetEnvironmentVariable(StorageTests.dbEnvironmentVariableName))
 
     let getTestScreener = 
         Storage.getScreenerByName StorageTests.testScreenerName
@@ -36,7 +36,9 @@ type ReportTests(output:ITestOutputHelper) =
                 screener |> should not' (equal None)
 
     let parseDate dateString =
-        System.DateTime.ParseExact(dateString, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)
+        DateTime.ParseExact(dateString, "yyyy-MM-dd", Globalization.CultureInfo.InvariantCulture)
+        
+    let getTrend trendWithCycle = trendWithCycle.trend
 
     [<Theory>]
     [<InlineData("2022-04-01")>]
@@ -102,7 +104,7 @@ type ReportTests(output:ITestOutputHelper) =
 
         results |> should not' (be Empty)
 
-        let (_,firstCount) = results.Item(0)
+        let _,firstCount = results.Item(0)
         firstCount |> should be (greaterThan 0)
 
     [<Fact>]
@@ -115,15 +117,15 @@ type ReportTests(output:ITestOutputHelper) =
 
         results |> should not' (be Empty)
 
-        let (_,firstCount) = results.Item(0)
+        let _,firstCount = results.Item(0)
         
         firstCount |> should be (greaterThan 0)
 
     [<Fact>]
     let ``Screener results for stock and date range works`` () =
 
-        let start = new DateTime(2023, 1, 1)
-        let ending = new DateTime(2023, 2, 26)
+        let start = DateTime(2023, 1, 1)
+        let ending = DateTime(2023, 2, 26)
 
         let range = (start, ending) |> ReportsConfig.formatDateRangeToStrings 
         let ticker = "ACLS" |> StockTicker.create
@@ -133,8 +135,8 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``Date range sector grouping works``() =
-        let start = new DateTime(2022, 6, 1)
-        let ending = new DateTime(2022, 6, 30)
+        let start = DateTime(2022, 6, 1)
+        let ending = DateTime(2022, 6, 30)
         let range = ReportsConfig.formatDateRangeToStrings (start, ending)
 
         "Energy" |> topGroupingTest (
@@ -144,8 +146,8 @@ type ReportTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``Date range industry grouping works``() =
-        let start = new DateTime(2022, 6, 1)
-        let ending = new DateTime(2022, 6, 30)
+        let start = DateTime(2022, 6, 1)
+        let ending = DateTime(2022, 6, 30)
         let range = ReportsConfig.formatDateRangeToStrings (start, ending)
 
         "Biotechnology" |> topGroupingTest (
@@ -330,7 +332,7 @@ type ReportTests(output:ITestOutputHelper) =
 
         Constants.SMAS
         |> List.iter (fun days ->
-            let (up, down) = Reports.getIndustryTrendBreakdown dateToUse days
+            let up, down = Reports.getIndustryTrendBreakdown dateToUse days
             up |> should be (greaterThan 0)
             down |> should be (greaterThan 0)
         )
@@ -340,7 +342,7 @@ type ReportTests(output:ITestOutputHelper) =
         let smaBreakdowns =
             StorageTests.testStockIndustry
             |> Reports.getIndustrySMABreakdownsForIndustry 20 (ReportsConfig.dateRangeAsStrings())
-        let trend = TrendsCalculator.calculateForIndustry smaBreakdowns
+        let trend = smaBreakdowns |> TrendsCalculator.calculateForIndustry |> getTrend
 
         trend.streak |> should be (greaterThan 0)
         let directionIsEitherUpOrDown = trend.direction = Up || trend.direction = Down
@@ -372,7 +374,7 @@ type ReportTests(output:ITestOutputHelper) =
 
         let breakdown = dateRange |> Reports.getEearningCountByDate
 
-        let breakdownsWithEarnings = breakdown |> Seq.filter (fun (d,c) -> c > 0)
+        let breakdownsWithEarnings = breakdown |> Seq.filter (fun (_,c) -> c > 0)
 
         breakdown |> should not' (be Empty)
         breakdownsWithEarnings |> should not' (be Empty)

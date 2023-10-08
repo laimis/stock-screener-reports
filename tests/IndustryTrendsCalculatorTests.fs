@@ -13,7 +13,7 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
         |> List.indexed
         |> List.map (fun (index,pairs) ->
 
-            let (above,total) = pairs
+            let above,total = pairs
             {
                 industry = "technology"
                 breakdown = {
@@ -36,13 +36,13 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``trending down works`` () =
             
-        let trendWithCycle = TrendsCalculator.calculateTrendAndCycleForIndustry testDataDecreasingTrend
+        let trendWithCycle = TrendsCalculator.calculateForIndustry testDataDecreasingTrend
 
         let trend = trendWithCycle.trend
 
         trend.streak |> should equal 1
         trend.direction |> should equal Down
-        System.Math.Round(trend.change, 2) |> should equal -10m
+        Math.Round(trend.change, 2) |> should equal -10m
 
         let cycle = trendWithCycle.cycle
 
@@ -58,11 +58,11 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``trending up works`` () =
             
-        let trendWithCycle = TrendsCalculator.calculateTrendAndCycleForIndustry testDataIncreasingTrend
+        let trendWithCycle = TrendsCalculator.calculateForIndustry testDataIncreasingTrend
         let trend = trendWithCycle.trend
         trend.streak |> should equal 2
         trend.direction |> should equal Up
-        System.Math.Round(trend.change, 2) |> should equal 20m
+        Math.Round(trend.change, 2) |> should equal 20m
 
         let cycle = trendWithCycle.cycle
 
@@ -77,12 +77,12 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``encountering zero should stop``() =
-        let trendWithCycle = TrendsCalculator.calculateTrendAndCycleForIndustry trendFromZero
+        let trendWithCycle = TrendsCalculator.calculateForIndustry trendFromZero
 
         let trend = trendWithCycle.trend
         trend.streak |> should equal 2
         trend.direction |> should equal Up
-        System.Math.Round(trend.change, 2) |> should equal 80m
+        Math.Round(trend.change, 2) |> should equal 80m
         
         let cycle = trendWithCycle.cycle
         cycle.age.TotalDays |> should (equalWithin 0.01) 2.0
@@ -96,17 +96,18 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``copper trend works``() =
-        let trendWithCycle = TrendsCalculator.calculateTrendAndCycleForIndustry sampleCopperTrend
+        let trendWithCycle = TrendsCalculator.calculateForIndustry sampleCopperTrend
 
         let trend = trendWithCycle.trend
         trend.streak |> should equal 2
         trend.direction |> should equal Down
-        System.Math.Round(trend.change, 2) |> should equal -40m
+        Math.Round(trend.change, 2) |> should equal -40m
 
     [<Fact>]
     let ``test simple trends``() =
         let runTest data streak change direction =
-            let trend = data |> generateBreakdowns |> TrendsCalculator.calculateForIndustry
+            let trendWithCycle = data |> generateBreakdowns |> TrendsCalculator.calculateForIndustry
+            let trend = trendWithCycle.trend
 
             trend.streak |> should equal streak
             trend.change |> should equal change
@@ -121,7 +122,7 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
     [<Fact>]
     let ``simple trend of zeros`` () =
         let data = [(0, 6); (0, 6)]
-        let trendWithCycle = data |> generateBreakdowns |> TrendsCalculator.calculateTrendAndCycleForIndustry
+        let trendWithCycle = data |> generateBreakdowns |> TrendsCalculator.calculateForIndustry
 
         let trend = trendWithCycle.trend
         trend.streak |> should equal 1
@@ -140,7 +141,7 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``residential construction trend works``() =
-        let trendWithCycle = TrendsCalculator.calculateTrendAndCycleForIndustry sampleResidentialConstructionTrend
+        let trendWithCycle = TrendsCalculator.calculateForIndustry sampleResidentialConstructionTrend
 
         let trend = trendWithCycle.trend
         trend.streak |> should equal 2
@@ -155,8 +156,8 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
 
     [<Fact>]
     let ``lumber production trend works``() =
-        let trend = TrendsCalculator.calculateForIndustry sampleLumberProduction
-
+        let trendWithCycle = TrendsCalculator.calculateForIndustry sampleLumberProduction
+        let trend = trendWithCycle.trend
         trend.streak |> should equal 1
         trend.direction |> should equal Up
         Math.Round(trend.change, 2) |> should equal 20m

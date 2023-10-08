@@ -2,11 +2,15 @@ namespace StockScreenerReports.Core
 
 module MarketCycleScoring =
     
-    // TODO: ---> don't forget: it has to be recent, like the last three days, ideally come from low point, like under 20
-    // right now I am missing the "bonus" for cycles that start with under 20
-    
     type ScoreComponents = { direction:int; age:int; change:int }
 
+    let private calculateScore components =
+        components.direction * (components.age + components.change)
+
+    // NOTE: this is a very simple scoring system
+    // it is not meant to be used for anything other than a quick and dirty way to rank stocks
+    // it is not meant to be used for anything other than a quick and dirty way to rank stocks
+    // it is not meant to be used for anything other than a quick and dirty way to rank stocks
     let calculateScoreComponents direction age change =
         let directionComponent = 
             match direction with
@@ -30,7 +34,7 @@ module MarketCycleScoring =
 
         { direction = directionComponent; age = ageComponent; change = changeComponent }
 
-    let trendScoreComponents (industryBreakdowns:list<IndustrySMABreakdown>) =
+    let trendScore (industryBreakdowns:list<IndustrySMABreakdown>) =
         let breakdowns = industryBreakdowns |> List.map (fun x -> x.breakdown)
         
         let trendWithCycle = breakdowns |> TrendsCalculator.calculate
@@ -38,8 +42,10 @@ module MarketCycleScoring =
         let trend = trendWithCycle.trend
 
         calculateScoreComponents trend.direction trend.streak trend.change
+        |> calculateScore
 
-    let cycleScoreComponents (industryBreakdowns:list<IndustrySMABreakdown>) =
+
+    let cycleScore (industryBreakdowns:list<IndustrySMABreakdown>) =
         let breakdowns = industryBreakdowns |> List.map (fun x -> x.breakdown)
         
         let trendWithCycle = breakdowns |> TrendsCalculator.calculate
@@ -48,12 +54,4 @@ module MarketCycleScoring =
         let cycle = trendWithCycle.cycle
 
         calculateScoreComponents trend.direction cycle.ageInMarketDays trend.change
-
-    let private componentScoreAdding components =
-        components.direction * (components.age + components.change)
-
-    // not sure if I want to use this one 
-    // let private componentScoreMultiplying components =
-    //     components.direction * components.age * components.change
-
-    let componentScore = componentScoreAdding
+        |> calculateScore
