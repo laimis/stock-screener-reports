@@ -95,7 +95,7 @@ module Trends =
                 (Charts.generateChartElements "SMA breakdown (smoothed)" Charts.ChartType.Line (Some 100) Charts.smallChart labels smoothedDatasets)
         ]
 
-    let generateIndustriesSection (industries:IndustryTrend list option) upAndDowns =
+    let generateIndustriesSection industries upAndDowns =
 
         match upAndDowns with
         | None ->
@@ -139,7 +139,11 @@ module Trends =
                         | Down -> fun (s:IndustryTrend list) -> s |> List.sortBy (fun t -> t.trend.change/(t.trend.streak |> decimal))
                         
                     
-                    let topIndustries = industries.Value |> func |> List.take 8
+                    let topIndustries =
+                        match industries with
+                        | None -> []
+                        | Some industries -> industries |> func |> List.take 8
+                        
                     let topIndustriesTable = 
                         topIndustries
                         |> List.map (fun trend ->
