@@ -53,7 +53,6 @@ module IndustriesDashboard =
             | Some dailyBreakdowns ->
             
                 let cycleScore = dailyBreakdowns |> MarketCycleScoring.cycleScore
-                    
                 let trendScore = dailyBreakdowns |> MarketCycleScoring.trendScore
                 
                 [

@@ -130,12 +130,12 @@ module IndustryDashboard =
 
         let trendCardClass =
             match trendScore with
-            | x when x > 5 -> "card-positive"
+            | x when x > 5m -> "card-positive"
             | _ -> "card-negative"
 
         let cycleCardClass =
             match cycleScore with
-            | x when x > 5 -> "card-positive"
+            | x when x > 5m -> "card-positive"
             | _ -> "card-negative"
 
         div [ _class "columns"] [
