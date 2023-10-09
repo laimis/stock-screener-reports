@@ -27,8 +27,10 @@ module MarketCycleScoring =
         //     | x when x > 0m && x >= 20m  -> 3
         //     | x when x > 0m && x > 10m  -> 1
         //     | _ -> 0
-
         // directionComponent * (ageComponent + changeComponent)
+        
+        // TODO: add a bump if the max value is current value
+        
         let score = (directionComponent |> decimal) * value
         
         System.Math.Round(score, 2)
