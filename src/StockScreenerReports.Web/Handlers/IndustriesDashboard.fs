@@ -164,11 +164,13 @@ module IndustriesDashboard =
             
             let industryTrends20Map = Reports.getIndustryTrends formattedDate Constants.SMA20 |> toTrendsMap 
             let industryTrends200Map = Reports.getIndustryTrends formattedDate Constants.SMA200 |> toTrendsMap
-
+            
+            let dateRange = ReportsConfig.dateRangeAsStrings()
+            
             let dailySMABreakdownMap =
                 industrySMABreakdowns20Map 
                 |> Map.map (fun industry _ ->
-                    let dailyBreakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry Constants.SMA20 (ReportsConfig.dateRangeAsStrings())
+                    let dailyBreakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry Constants.SMA20 dateRange
                     dailyBreakdowns
                 )
                 
