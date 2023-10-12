@@ -61,6 +61,7 @@ module Storage =
             | TrendsJob _ -> "industrytrendsjob"
             | TestJob _ -> "testjob"
             | EarningsJob _ -> "earningsjob"
+            | CountriesJob _ -> "countriesjob"
 
     let private toJobName jobName =
         match jobName with
@@ -68,7 +69,8 @@ module Storage =
             | "industrytrendsjob" -> TrendsJob
             | "testjob" -> TestJob
             | "earningsjob" -> EarningsJob
-            | _ -> raise (new System.Exception($"Unknown job name: {jobName}"))
+            | "countriesjob" -> CountriesJob
+            | _ -> raise (System.Exception($"Unknown job name: {jobName}"))
     let private toJobStatusString status =
         match status with
             | Success _ -> "success"
@@ -342,7 +344,13 @@ module Storage =
         |> Sql.connect
         |> Sql.query "SELECT DISTINCT industry FROM stocks ORDER BY industry"
         |> Sql.execute (fun reader -> reader.string "industry")
-
+        
+    let getCountries() =
+        cnnString
+        |> Sql.connect
+        |> Sql.query "SELECT DISTINCT country FROM stocks ORDER BY country"
+        |> Sql.execute (fun reader -> reader.string "country")
+        
     let updateIndustryTrend (industrySmaBreakdown:IndustrySMABreakdown) (trend:Trend) =
         cnnString
         |> Sql.connect
@@ -361,7 +369,7 @@ module Storage =
         ]
         |> Sql.executeNonQuery
 
-    let updateSMABreakdowns date days =
+    let updateIndustrySMABreakdowns date days =
         let sql = @"SELECT sum(above) as above,sum(below) as below,@days
             FROM industrysmabreakdowns
             WHERE date = date(@date) AND days = @days"
@@ -460,6 +468,27 @@ module Storage =
         |> Sql.query sql
         |> Sql.parameters [
             "@industry", Sql.string industry;
+            "@date", Sql.string date;
+            "@days", Sql.int days;
+            "@above", Sql.int above;
+            "@below", Sql.int below;
+        ]
+        |> Sql.executeNonQuery
+        
+    let saveCountrySMABreakdowns date  (country,days,above:int,below:int) =
+        let sql = @"
+            DELETE FROM CountrySMABreakdowns WHERE country = @country AND date = date(@date) AND days = @days;
+
+            INSERT INTO CountrySMABreakdowns
+            (country,date,days,above,below)
+            VALUES
+            (@country,date(@date),@days,@above,@below)"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@country", Sql.string country;
             "@date", Sql.string date;
             "@days", Sql.int days;
             "@above", Sql.int above;

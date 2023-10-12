@@ -54,7 +54,7 @@ type ReportTests() =
 
     [<Theory>]
     [<InlineData("2022-04-01")>]
-    let ``Getting countries works`` dateStr =
+    let ``Getting top countries by date works`` dateStr =
         let date = parseDate dateStr
         "USA" |> topGroupingTest (fun x-> Reports.topCountries x.id date)
 
@@ -220,7 +220,7 @@ type ReportTests() =
         results |> should not' (be Empty)
 
     [<Fact>]
-    let ``getting countries works``() =
+    let ``getting country breakdowns works``() =
         let results = Reports.getStockByCountryBreakdown()
 
         results |> should not' (be Empty)
@@ -372,7 +372,7 @@ type ReportTests() =
     let ``get earnings by date breakdown works`` () =
         let dateRange = ("2023-03-01", "2023-05-30")
 
-        let breakdown = dateRange |> Reports.getEearningCountByDate
+        let breakdown = dateRange |> Reports.getEarningCountByDate
 
         let breakdownsWithEarnings = breakdown |> Seq.filter (fun (_,c) -> c > 0)
 

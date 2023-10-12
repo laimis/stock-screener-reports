@@ -147,3 +147,14 @@ create table industrycycles (
 
 ALTER TABLE stocks ADD COLUMN lastupdated timestamp;
 ALTER TABLE stocks ADD COLUMN lastmarketcap numeric;
+
+-- adding country sma breakdowns
+create table countrysmabreakdowns (
+    id serial primary key,
+    country text not null,
+    "date" timestamp not null,
+    days numeric not null,
+    above numeric not null,
+    below numeric not null,
+    UNIQUE(country, days, "date")
+);

@@ -65,6 +65,7 @@ module Links =
     let jobsScreeners = "/jobs/screeners"
     let jobsEarnings = "/jobs/earnings"
     let jobsTrends = "/jobs/trends"
+    let jobsCountries = "/jobs/countries"
 
     let industryFinvizLink (industryName:string) =
         let value =

@@ -253,6 +253,11 @@ module Views =
                         "Earnings"
                         Links.earnings
                         (_class "button is-small is-primary is-pulled-right mx-1")
+                        
+                    generateHrefWithAttr
+                        "Countries"
+                        Links.countries
+                        (_class "button is-small is-primary is-pulled-right mx-1")
 
                     generateHrefWithAttr
                         "Cycles"
@@ -270,7 +275,7 @@ module Views =
                         (_class "button is-small is-primary is-pulled-right mx-1")
 
                     generateHrefWithAttr
-                        "Configuration"
+                        "Admin"
                         Links.screeners
                         (_class "button is-small is-primary is-pulled-right mx-1")
                 ]

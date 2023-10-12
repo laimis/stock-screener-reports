@@ -11,7 +11,7 @@ let screenerUrl         = "https://finviz.com/screener.ashx?v=111&s=ta_newhigh&f
 let testStockName       = "Apple Inc."
 let testStockSector     = "Technology"
 let testStockIndustry   = "Computer Hardware"
-let testStockCountry    = "United States"
+let testStockCountry    = "USA"
 let testStockIndustryWithSpecialCharacters = "Furnishings, Fixtures & Appliances"
 
 let dbEnvironmentVariableName = "SSR_CONNECTIONSTRING"
@@ -198,6 +198,11 @@ type StorageTests(output:ITestOutputHelper) =
     let ``get industries works`` () =
         let industries = Storage.getIndustries()
         industries |> should not' (be Empty)
+        
+    [<Fact>]
+    let ``get countries works`` () =
+        let countries = Storage.getCountries()
+        countries |> should not' (be Empty)
 
     [<Fact>]
     let ``save job works`` () =
@@ -221,7 +226,7 @@ type StorageTests(output:ITestOutputHelper) =
 
         let date = Reports.getIndustrySMABreakdownLatestDate()
 
-        Constants.SMA20 |> Storage.updateSMABreakdowns (date |> Utils.convertToDateString) |> should equal 1
+        Constants.SMA20 |> Storage.updateIndustrySMABreakdowns (date |> Utils.convertToDateString) |> should equal 1
 
     [<Fact>]
     let ``updating industry trend works`` () =

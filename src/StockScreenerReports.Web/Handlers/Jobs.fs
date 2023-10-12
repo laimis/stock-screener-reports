@@ -17,6 +17,9 @@ module Jobs =
 
     let trends() =
         Services.trendsRun |> runWithLoggerAndRedirect Links.trends
+        
+    let countries() =
+        Services.countriesRun |> runWithLoggerAndRedirect Links.countries
 
     let earnings() =
         Services.earningsRun |> runWithLoggerAndRedirect Links.earnings

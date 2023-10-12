@@ -43,6 +43,7 @@ module Router =
                     route Links.jobsScreeners >=> warbler (fun _ -> Jobs.screeners())
                     route Links.jobsEarnings >=> warbler (fun _ -> Jobs.earnings())
                     route Links.jobsTrends >=> warbler (fun _ -> Jobs.trends())
+                    route Links.jobsCountries >=> warbler (fun _ -> Jobs.countries())
 
                 ]
             POST >=>

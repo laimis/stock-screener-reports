@@ -328,8 +328,8 @@ module ScreenerManagement =
                 ]
             ]
 
-    let createJobsTable (jobs:list<StockScreenerReports.Core.Job>) =
-        let getLink (job:StockScreenerReports.Core.Job) =
+    let createJobsTable (jobs:list<Job>) =
+        let getLink (job:Job) =
             match job.name with
             | EarningsJob -> Links.jobsEarnings
             | ScreenerJob -> Links.jobsScreeners
