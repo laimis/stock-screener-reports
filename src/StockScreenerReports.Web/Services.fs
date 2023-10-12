@@ -221,6 +221,7 @@ module Services =
                             screenerRun logger
                             earningsRun logger
                             trendsRun logger
+                            countriesRun logger
                             logger.LogInformation("Finished running")
                     with
                     | ex -> logger.LogError(ex, "Error running background service")
