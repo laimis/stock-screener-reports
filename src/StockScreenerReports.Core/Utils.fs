@@ -7,6 +7,9 @@ namespace StockScreenerReports.Core
 
         let cleanIndustry (industry:string) =
             nonAlphaRegex.Replace(industry, "").ToLower()
+            
+        let cleanCountry (country:string) =
+            nonAlphaRegex.Replace(country, "").ToLower()
 
         let addDaysToClosestBusinessDay (date:DateTime) days =
             let newDate = date.AddDays(days)

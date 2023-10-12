@@ -15,12 +15,12 @@ module Services =
         | false -> ()
 
     let screenerRun (logger:ILogger) =
-        let fetchScreenerResults (input:StockScreenerReports.Core.Screener) =
-            logger.LogInformation(sprintf "Running screener %s" input.name)
+        let fetchScreenerResults (input:Screener) =
+            logger.LogInformation $"Running screener %s{input.name}"
             let results = FinvizClient.getResults input.url
             (input,results)
 
-        let saveToDb (screenerResults:list<StockScreenerReports.Core.Screener * 'a>) =
+        let saveToDb (screenerResults:list<Screener * 'a>) =
             logger.LogInformation("Saving results to db")
             let date = Utils.getRunDate()
             screenerResults
@@ -65,7 +65,7 @@ module Services =
 
             earnings
                 |> List.iter (fun x ->
-                    let (ticker,earningsTime) = x
+                    let ticker,earningsTime = x
                     Storage.saveEarningsDate ticker (Utils.getRunDate()) earningsTime |> ignore
                 )
 
@@ -73,6 +73,49 @@ module Services =
 
         runIfTradingDay funcToRun
 
+    let countriesRun (logger:ILogger) =
+        
+        let funcToRun () =
+            
+            let date = Utils.getRunDate()
+            
+            logger.LogInformation($"Running countries for {date}")
+            
+            let countries =
+                Storage.getCountries()
+                |> List.filter (fun country -> country <> "United States" && country <> "Costa Rica") // TODO: how do we filter out test data and outdated stocks?
+            
+            let countrySmaPairs = countries |> Seq.map (fun country -> Constants.SMAS |> List.map (fun sma -> (country, sma))) |> Seq.concat
+            
+            let countriesUpdated =
+                countrySmaPairs
+                |> Seq.map (fun (country,sma) ->
+                    logger.LogInformation($"Processing country {country} {sma} day sma breakdown")
+                    (country,sma))
+                |> Seq.map (fun (country, sma) ->   
+                    let above,below = country |> FinvizClient.getResultCountForCountryAboveAndBelowSMA sma
+                    (country, sma, above, below)
+                )
+                |> Seq.map (fun r ->
+                    Storage.saveCountrySMABreakdowns date r |> ignore
+                )
+                |> Seq.length
+                
+            Storage.saveJobStatus
+                CountriesJob
+                (ReportsConfig.nowUtcNow())
+                Success
+                $"Updated sma breakdowns for {countriesUpdated} countries"
+            |> ignore
+            
+        try
+            runIfTradingDay funcToRun
+        with
+        | ex -> 
+            let message = $"Error running countries: {ex.Message}"
+            logger.LogError(ex, message)
+            Storage.saveJobStatus CountriesJob (ReportsConfig.nowUtcNow()) Failure message |> ignore
+            
     let trendsRun (logger:ILogger) =
         let funcToRun() =
             let date = Utils.getRunDate()
@@ -81,9 +124,8 @@ module Services =
         
             // pull above and below 20 and 200 for each industry, and store the results
             let knownIndustries = Storage.getIndustries()
-            let smas = Constants.SMAS
-
-            let industrySmaPairs = knownIndustries |> Seq.map (fun industry -> smas |> List.map (fun sma -> (industry, sma))) |> Seq.concat
+            
+            let industrySmaPairs = knownIndustries |> Seq.map (fun industry -> Constants.SMAS |> List.map (fun sma -> (industry, sma))) |> Seq.concat
 
             let industriesUpdated =
                 industrySmaPairs
@@ -91,7 +133,7 @@ module Services =
                     logger.LogInformation($"Processing industry {industry} {sma} day sma breakdown")
                     (industry,sma))
                 |> Seq.map (fun (industry, sma) ->   
-                    let (above,below) = industry |> FinvizClient.getResultCountForIndustryAboveAndBelowSMA sma
+                    let above,below = industry |> FinvizClient.getResultCountForIndustryAboveAndBelowSMA sma
                     (industry, sma, above, below)
                 )
                 |> Seq.map (fun r ->
@@ -99,8 +141,7 @@ module Services =
                 )
                 |> Seq.length
 
-            // updating breakdowns
-            smas |> List.iter (fun days -> Storage.updateSMABreakdowns date days |> ignore)
+            Constants.SMAS |> List.iter (fun sma -> Storage.updateIndustrySMABreakdowns date sma |> ignore)
 
             logger.LogInformation($"Calculating trends")
 
@@ -125,8 +166,6 @@ module Services =
                 $"Updated sma breakdowns for {industriesUpdated} industries and calculated {trendsUpdated} trends"
             |> ignore
 
-        // f# try/catch
-
         try
             runIfTradingDay funcToRun
         with
@@ -139,7 +178,7 @@ module Services =
     type BackgroundService(logger:ILogger<BackgroundService>) =
         inherit Microsoft.Extensions.Hosting.BackgroundService()
 
-        let runTracker = new HashSet<string>()
+        let runTracker = HashSet<string>()
 
         let doSleepInternal (sleepTime:int) =
             logger.LogInformation($"Sleeping for {sleepTime} milliseconds")
@@ -151,7 +190,7 @@ module Services =
         let shortSleep() =
             10 * 1000 |> doSleepInternal
 
-        override __.ExecuteAsync(cancellationToken) =
+        override _.ExecuteAsync(cancellationToken) =
             task {
                 while cancellationToken.IsCancellationRequested |> not do
                     
@@ -159,7 +198,7 @@ module Services =
                 logger.LogInformation("---- background service")
                 let now = ReportsConfig.now()
                 let time = now.TimeOfDay
-                let marketClose = new TimeSpan(16,0,0)
+                let marketClose = TimeSpan(16,0,0)
                 let marketCloseDelayed = marketClose.Add(TimeSpan.FromMinutes(30))
                 if runTracker.Count = 0 then
                     logger.LogInformation("Run tracker is empty, warming up")
@@ -182,6 +221,7 @@ module Services =
                             screenerRun logger
                             earningsRun logger
                             trendsRun logger
+                            countriesRun logger
                             logger.LogInformation("Finished running")
                     with
                     | ex -> logger.LogError(ex, "Error running background service")

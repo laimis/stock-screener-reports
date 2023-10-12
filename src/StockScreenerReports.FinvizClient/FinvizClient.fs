@@ -67,3 +67,15 @@ module FinvizClient =
         let after = getResults "https://finviz.com/screener.ashx?v=111&s=n_earningsafter" |> List.map (fun r -> r.ticker, AfterMarket)
 
         List.concat [before; after]
+        
+    let getResultCountForCountryAboveAndBelowSMA days country =
+        let cleaned = country |> Utils.cleanCountry
+        
+        let fetchCountWithTA ta =
+            let url = $"https://finviz.com/screener.ashx?v=111&f=geo_{cleaned},{ta}"
+            url |> getResultCount
+            
+        let above = $"ta_sma{days}_pa" |> fetchCountWithTA
+        let below = $"ta_sma{days}_pb" |> fetchCountWithTA
+        
+        (above,below)

@@ -84,7 +84,7 @@ module IndustriesDashboard =
                 let dataset : Charts.DataSet<decimal> =
                     let series = 
                         dailyBreakdowns
-                        |> List.map (fun u -> System.Math.Round(u.breakdown.percentAbove, 0))
+                        |> List.map (fun (u:IndustrySMABreakdown) -> System.Math.Round(u.breakdown.percentAbove, 0))
                         
                     {
                         data = series

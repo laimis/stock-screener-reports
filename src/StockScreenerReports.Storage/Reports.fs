@@ -58,32 +58,40 @@ module Reports =
     let private industrySMABreakdownMapper (reader:RowReader) : StockScreenerReports.Core.IndustrySMABreakdown =
         {
             industry = reader.string "industry";
-            breakdown = (
-                {
-                    date = (reader.dateTime "date");
-                    days = (reader.int "days");
-                    above = (reader.int "above");
-                    below = (reader.int "below");
-                }
-            );
+            breakdown = {
+                            date = (reader.dateTime "date");
+                            days = (reader.int "days");
+                            above = (reader.int "above");
+                            below = (reader.int "below");
+                        };
         }
+        
+    let private countrySMABreakdownMapper (reader:RowReader) : StockScreenerReports.Core.CountrySMABreakdown =
+        {
+            country = reader.string "country";
+            breakdown = {
+                            date = (reader.dateTime "date");
+                            days = (reader.int "days");
+                            above = (reader.int "above");
+                            below = (reader.int "below");
+                        };
+        }
+
 
     let private industryTrendMapper (reader:RowReader) : StockScreenerReports.Core.IndustryTrend =
         {
             industry = reader.string "industry";
-            trend = (
-                {
-                    streak = reader.int "streak";
-                    direction = (
-                        match reader.string "direction" with
-                            | "up" -> StockScreenerReports.Core.Up
-                            | "down" -> StockScreenerReports.Core.Down
-                            | x -> failwith $"invalid trend direction: {x}"
-                    );
-                    change = reader.decimal "change";
-                    value = (reader.decimal "above") / (reader.decimal "below" + reader.decimal "above");
-                }
-            );
+            trend = {
+                        streak = reader.int "streak";
+                        direction = (
+                            match reader.string "direction" with
+                                | "up" -> StockScreenerReports.Core.Up
+                                | "down" -> StockScreenerReports.Core.Down
+                                | x -> failwith $"invalid trend direction: {x}"
+                        );
+                        change = reader.decimal "change";
+                        value = (reader.decimal "above") / (reader.decimal "below" + reader.decimal "above");
+                    };
             above = reader.int "above";
             below = reader.int "below";
             days = reader.int "days";
@@ -154,14 +162,14 @@ module Reports =
     let topCountries screenerId date =
         "country" |> topGrouping screenerId date
 
-    let topSectorsOverDays scrennerId dateRange =
-        "sector" |> topGroupingOverDays scrennerId dateRange
+    let topSectorsOverDays screenerId dateRange =
+        "sector" |> topGroupingOverDays screenerId dateRange
 
-    let topIndustriesOverDays scrennerId dateRange =
-        "industry" |> topGroupingOverDays scrennerId dateRange
+    let topIndustriesOverDays screenerId dateRange =
+        "industry" |> topGroupingOverDays screenerId dateRange
 
-    let topCountriesOverDays scrennerId dateRange =
-        "country" |> topGroupingOverDays scrennerId dateRange
+    let topCountriesOverDays screenerId dateRange =
+        "country" |> topGroupingOverDays screenerId dateRange
 
     let getLatestScreenerResults() =
         let sql = @$"SELECT screenerid,name,url,date,count(*) as count FROM screenerresults
@@ -248,11 +256,11 @@ module Reports =
         |> Sql.query sql
         |> Sql.execute (fun reader -> (reader.string "ticker", reader.dateTime "date"))
 
-    let getEearningCountByDate dateRange =
+    let getEarningCountByDate dateRange =
         let sql = @$"SELECT date,count(*) as count FROM earnings
             WHERE date BETWEEN date(@start) AND date(@end)
             GROUP BY date
-            ORDER BY date ASC"
+            ORDER BY date"
         
         cnnString
         |> Sql.connect
@@ -266,7 +274,7 @@ module Reports =
     let getEarningsTickers dateRange =
         let sql = @$"SELECT ticker,date FROM earnings
             WHERE date >= date(@start) AND date <= date(@end)
-            ORDER BY date ASC, ticker ASC"
+            ORDER BY date, ticker"
         
         cnnString
         |> Sql.connect
@@ -299,7 +307,7 @@ module Reports =
                 "@date", Sql.string date;
                 "@screenerid", Sql.int id
             ]
-            |> Sql.execute (fun reader -> mapScreenerResultReportItem reader)
+            |> Sql.execute mapScreenerResultReportItem
 
     let getAllScreenerResults id =
 
@@ -372,9 +380,9 @@ module Reports =
             )
 
 
-    let getDailyCountsForScreener dateRange screernId =
+    let getDailyCountsForScreener dateRange screenerId =
 
-        let sql = @$"
+        let sql = @"
             SELECT 
                 date,count(*) as count
             FROM screenerresults
@@ -388,7 +396,7 @@ module Reports =
             |> Sql.connect
             |> Sql.query sql
             |> Sql.parameters [
-                "@screenerid", Sql.int screernId
+                "@screenerid", Sql.int screenerId
                 "@startDate", Sql.string (dateRange |> fst)
                 "@endDate", Sql.string (dateRange |> snd)
             ]
@@ -676,27 +684,49 @@ module Reports =
         match result with
             | Some (above,below) -> (above,below)
             | None -> (0,0)
-
-    let getIndustrySMABreakdownsForIndustryAndDateRange days startDate endDate industry =
+            
+    let getCountrySMABreakdowns days date =
         let sql = @"
-            SELECT industry,date,days,above,below
-            FROM IndustrySMABreakdowns
-            WHERE industry = @industry
+            SELECT country,date,days,above,below
+            FROM CountrySMABreakdowns
+            WHERE date = date(@date) AND below + above > 0
             AND days = @days
-            AND date >= date(@startDate)
-            AND date <= date(@endDate)
-            ORDER BY date"
-
+            ORDER BY (above/(below + above)) DESC"
+            
         cnnString
         |> Sql.connect
         |> Sql.query sql
         |> Sql.parameters [
-            "@industry", Sql.string industry;
+            "@date", Sql.string date;
             "@days", Sql.int days;
-            "@startDate", Sql.string startDate;
-            "@endDate", Sql.string endDate;
         ]
-        |> Sql.execute industrySMABreakdownMapper
+        |> Sql.execute countrySMABreakdownMapper
+    
+    let getCountrySMABreakdownsForCountry days dateRange country =
+        let sql = @"
+            SELECT country,date,days,above,below
+            FROM CountrySMABreakdowns
+            WHERE country = @country
+            AND days = @days
+            AND date BETWEEN date(@startDate) AND date(@endDate)
+            ORDER BY date"
+        
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@country", Sql.string country;
+            "@days", Sql.int days;
+            "@startDate", dateRange |> fst |> Sql.string;
+            "@endDate", dateRange |> snd |> Sql.string;
+        ]
+        |> Sql.execute countrySMABreakdownMapper
+
+    let getCountrySMABreakdownLatestDate() =
+        cnnString
+        |> Sql.connect
+        |> Sql.query "SELECT MAX(date) as date FROM CountrySMABreakdowns"
+        |> Sql.executeRow (fun reader -> reader.dateTime "date")
         
     let getIndustrySMABreakdownsForIndustry days dateRange industry =
         let sql = @"
@@ -808,7 +838,7 @@ module Reports =
             |> Sql.executeRow (fun reader -> (reader.int "up", reader.int "down"))
         with
             | ex -> 
-                System.Console.WriteLine("Error: " + date + " " + days.ToString())
+                Console.WriteLine("Error: " + date + " " + days.ToString())
                 reraise()
 
     let getIndustryTrend days date industry =

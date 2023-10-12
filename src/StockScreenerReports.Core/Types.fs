@@ -219,6 +219,12 @@ type IndustrySMABreakdown =
                 below = 0;
             }
         }
+        
+type CountrySMABreakdown =
+    {
+        country: string
+        breakdown: SMABreakdown
+    }
 
 type TrendDirection =
     | Up
@@ -334,6 +340,7 @@ type JobName =
     | TrendsJob
     | TestJob
     | EarningsJob
+    | CountriesJob
 
 type Job = {
     name: JobName;

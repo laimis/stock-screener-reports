@@ -54,3 +54,13 @@ type ParsingTests(output:ITestOutputHelper) =
         let total = above + below
 
         total |> should be (lessThan 100)
+        
+        
+    [<Fact>]
+    let ``country fetch works`` () =
+        let (above,below) =
+            StorageTests.testStockCountry
+            |> FinvizClient.getResultCountForCountryAboveAndBelowSMA 20 
+
+        above |> should be (greaterThan 0)
+        below |> should be (greaterThan 0)

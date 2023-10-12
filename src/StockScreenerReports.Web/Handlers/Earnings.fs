@@ -182,7 +182,7 @@ module Earnings =
             ReportsConfig.now() |> Utils.convertToDateString
         )
         
-        let earningsByDate = historicalDateRange |> getEearningCountByDate
+        let earningsByDate = historicalDateRange |> getEarningCountByDate
 
         let earningChart = earningsByDate |> createEarningsByDateChart
         
