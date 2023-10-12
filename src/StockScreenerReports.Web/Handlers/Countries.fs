@@ -74,6 +74,7 @@ module Countries =
         let headers = ["Country"; "20 Above"; "20 % Above"; "200 Above"; "200 % Above"]
         
         countries
+        |> List.sortByDescending (fun country -> countrySMABreakdowns20Map |> Map.tryFind country |> Option.map (fun x -> x.breakdown.percentAbove))
         |> List.map (fun country ->
             
             let statsCells = toCountryStatsCells countrySMABreakdowns20Map countrySMABreakdowns200Map country
