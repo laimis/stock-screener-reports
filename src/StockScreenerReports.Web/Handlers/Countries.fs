@@ -56,7 +56,7 @@ module Countries =
         
         let contents =
             match dailyBreakdowns with
-            | None -> Giraffe.ViewEngine.HtmlElements.div [] [ Giraffe.ViewEngine.HtmlElements.str "No data available to chart"]
+            | None -> HtmlElements.div [] [ HtmlElements.str "No data available to chart"]
             | Some dailyBreakdowns ->
                 
                 let smaInterval = 20
@@ -78,10 +78,10 @@ module Countries =
                 let chartElements =
                     [dataset] |> Charts.generateChartElements "sma breakdown chart" Charts.ChartType.Line (Some 100) Charts.smallChart labels
                 
-                Giraffe.ViewEngine.HtmlElements.div [] chartElements
+                HtmlElements.div [] chartElements
         
-        Giraffe.ViewEngine.HtmlElements.tr [] [
-            Giraffe.ViewEngine.HtmlElements.td [ Giraffe.ViewEngine.Attributes._colspan (length.ToString())] [
+        HtmlElements.tr [] [
+            HtmlElements.td [ Attributes._colspan (length.ToString())] [
                 contents
             ]
         ]
