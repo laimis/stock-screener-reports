@@ -121,7 +121,7 @@ module Countries =
         let sortLinks =
             [
                 sortLink PercentAbove200
-                sortLinkg PercentAbove20
+                sortLink PercentAbove20
             ]
             
         let sortLinks = sortLinks |> List.map (fun x -> div [_class "level-item"] [x])
