@@ -27,7 +27,7 @@ module Router =
                     route Links.industries >=> warbler (fun _ -> IndustriesDashboard.handler)
                     route Links.cycles >=> warbler (fun _ -> Cycles.handler)
 
-                    route Links.countries >=> warbler (fun _ -> Countries.handler())
+                    route Links.countries >=> warbler (fun _ -> Countries.handler)
                     routef "/countries/%s" CountryDashboard.handler
 
                     route "/reports/adhoc" >=> warbler (fun _ -> AdhocReport.handler())

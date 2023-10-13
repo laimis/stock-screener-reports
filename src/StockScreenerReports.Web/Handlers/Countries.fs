@@ -3,15 +3,32 @@ namespace StockScreenerReports.Web.Handlers
 open StockScreenerReports.Core
 
 module Countries =
+    open Giraffe
+    open Giraffe.ViewEngine
     open StockScreenerReports.Web.Shared
     open StockScreenerReports.Storage
     
-    let toBreakdownMap breakdowns =
+    type SortAlgo =
+        | PercentAbove200
+        | PercentAbove20
+        
+    let sortAlgoToString sortAlgo =
+        match sortAlgo with
+        | PercentAbove200 -> "percentAbove200"
+        | PercentAbove20 -> "percentAbove20"
+        
+    let stringToSortAlgo sortAlgoString =
+        match sortAlgoString with
+        | "percentAbove200" -> PercentAbove200
+        | "percentAbove20" -> PercentAbove20
+        | _ -> PercentAbove200
+    
+    let private toBreakdownMap breakdowns =
         (breakdowns:CountrySMABreakdown list)
         |> List.map (fun x -> (x.country, x))
         |> Map.ofList
         
-    let toBreakdownColumns countryBreakdownOption =
+    let private toBreakdownColumns countryBreakdownOption =
         match countryBreakdownOption with
         | Some (countryBreakdown:CountrySMABreakdown) ->
             let breakdown = countryBreakdown.breakdown
@@ -22,7 +39,7 @@ module Countries =
             ]
         | None -> [Views.StringColumn("N/A"); Views.StringColumn("N/A")]
         
-    let toCountryStatsCells countrySMABreakdowns20Map countrySMABreakdowns200Map (country:string) =
+    let private toCountryStatsCells countrySMABreakdowns20Map countrySMABreakdowns200Map (country:string) =
         let countrySMABreakdown20 = countrySMABreakdowns20Map |> Map.tryFind country
         let countrySMABreakdown200 = countrySMABreakdowns200Map |> Map.tryFind country
         
@@ -33,7 +50,7 @@ module Countries =
             
         [Views.LinkNewTabColumn(country, countryLink)] @ columns20 @ columns200 
         
-    let toCountryChartRow length dailySMABreakdownMap country =
+    let private toCountryChartRow length dailySMABreakdownMap country =
         
         let dailyBreakdowns = dailySMABreakdownMap |> Map.tryFind country
         
@@ -69,12 +86,12 @@ module Countries =
             ]
         ]
 
-    let renderCountriesTable countrySMABreakdowns20Map countrySMABreakdowns200Map dailySMABreakdownMap countries =
+    let private renderCountriesTable countrySMABreakdowns20Map countrySMABreakdowns200Map dailySMABreakdownMap countries sortFunc =
         
         let headers = ["Country"; "20 Above"; "20 % Above"; "200 Above"; "200 % Above"]
         
         countries
-        |> List.sortByDescending (fun country -> countrySMABreakdowns20Map |> Map.tryFind country |> Option.map (fun x -> x.breakdown.percentAbove))
+        |> List.sortByDescending sortFunc
         |> List.map (fun country ->
             
             let statsCells = toCountryStatsCells countrySMABreakdowns20Map countrySMABreakdowns200Map country
@@ -83,41 +100,95 @@ module Countries =
         )
         |> List.concat
         |> Views.fullWidthTableWithSortableHeaderCells headers
+        
+    let private renderSortSection selectedAlgo =
+        let sortLink sortAlgo =
+            let sortAlgoAsString = sortAlgoToString sortAlgo
+            let href = $"?sortParam={sortAlgoAsString}"
+            let classes =
+                match selectedAlgo = sortAlgo with
+                | true -> "button is-primary"
+                | false -> "button is-info is-light"
+                
+            let title =
+                match sortAlgo with
+                | PercentAbove200 -> "Sort by 200 SMA %"
+                | PercentAbove20 -> "Sort by 20 SMA %"
+                
+            let link = a [ _class classes; _href href ] [ str title ]
+            link
+            
+        let sortLinks =
+            [
+                sortLink PercentAbove200
+                sortLinkg PercentAbove20
+            ]
+            
+        let sortLinks = sortLinks |> List.map (fun x -> div [_class "level-item"] [x])
+        
+        let sortSection = div [_class "level"] sortLinks
+            
+        sortSection
     
-    let generateElementsToRender missedJobs industrySMABreakdowns20Map industrySMABreakdowns200Map dailySMABreakdownMap countries =
+    let generateElementsToRender missedJobs industrySMABreakdowns20Map industrySMABreakdowns200Map dailySMABreakdownMap countries sortAlgo sortFunc =
         
         let warningSection = Views.jobAlertSection missedJobs
         
-        let countriesTable = renderCountriesTable industrySMABreakdowns20Map industrySMABreakdowns200Map dailySMABreakdownMap countries
+        let sortSection = renderSortSection sortAlgo
+        
+        let countriesTable = renderCountriesTable industrySMABreakdowns20Map industrySMABreakdowns200Map dailySMABreakdownMap countries sortFunc
 
         [
             warningSection
+            sortSection
             countriesTable
         ]
 
-    let handler()  =
-       
-        let missedJobs =
-            Storage.getJobs()
-            |> List.filter (fun j -> j.name = JobName.CountriesJob)
-            |> List.filter Utils.failedJobFilter
+    let handler : HttpHandler  =
+        fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
             
-        let countries = Storage.getCountries()
-        
-        let latestDate = Reports.getCountrySMABreakdownLatestDate()
-        let formattedDate = latestDate |> Utils.convertToDateString
-        let dateRange = ReportsConfig.dateRangeAsStrings()
-        
-        let industrySMABreakdowns20Map = Reports.getCountrySMABreakdowns Constants.SMA20 formattedDate |> toBreakdownMap
-        let industrySMABreakdowns200Map = Reports.getCountrySMABreakdowns Constants.SMA200 formattedDate |> toBreakdownMap
-        let dailySMABreakdownMap =
-            countries
-            |> List.map (fun country ->
-                let breakdowns = country |> Reports.getCountrySMABreakdownsForCountry Constants.SMA20 dateRange
-                (country, breakdowns)
-            )
-            |> Map.ofList
+            let sortParam = ctx.GetQueryStringValue("sortParam")
+            let sortAlgo =
+                match sortParam with
+                | Ok value -> value |> stringToSortAlgo
+                | Error _ -> PercentAbove200
+                
+            let missedJobs =
+                Storage.getJobs()
+                |> List.filter (fun j -> j.name = JobName.CountriesJob)
+                |> List.filter Utils.failedJobFilter
+                
+            let countries = Storage.getCountries()
+            
+            let latestDate = Reports.getCountrySMABreakdownLatestDate()
+            let formattedDate = latestDate |> Utils.convertToDateString
+            let dateRange = ReportsConfig.dateRangeAsStrings()
+            
+            let countrySMABreakdowns20Map = Reports.getCountrySMABreakdowns Constants.SMA20 formattedDate |> toBreakdownMap
+            let countrySMABreakdowns200Map = Reports.getCountrySMABreakdowns Constants.SMA200 formattedDate |> toBreakdownMap
+            let dailySMABreakdownMap =
+                countries
+                |> List.map (fun country ->
+                    let breakdowns = country |> Reports.getCountrySMABreakdownsForCountry Constants.SMA20 dateRange
+                    (country, breakdowns)
+                )
+                |> Map.ofList
+                
+            let sortFunc =
+                match sortAlgo with
+                | PercentAbove20 ->
+                    fun country -> countrySMABreakdowns20Map |> Map.tryFind country |> Option.map (fun x -> x.breakdown.percentAbove)
+                | PercentAbove200 ->
+                    fun country -> countrySMABreakdowns200Map |> Map.tryFind country |> Option.map (fun x -> x.breakdown.percentAbove)
 
-        let elementsToRender = generateElementsToRender missedJobs industrySMABreakdowns20Map industrySMABreakdowns200Map dailySMABreakdownMap countries
+            let elementsToRender =
+                generateElementsToRender
+                    missedJobs
+                    countrySMABreakdowns20Map
+                    countrySMABreakdowns200Map
+                    dailySMABreakdownMap
+                    countries
+                    sortAlgo
+                    sortFunc
 
-        elementsToRender |> Views.mainLayout $"Countries"
+            (elementsToRender |> Views.mainLayout $"Countries") next ctx

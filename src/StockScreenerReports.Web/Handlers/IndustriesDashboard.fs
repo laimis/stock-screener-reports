@@ -8,21 +8,21 @@ module IndustriesDashboard =
     open StockScreenerReports.Web.Shared
     open StockScreenerReports.Web.Shared.Views
 
-    type SortOrder =
+    type SortAlgo =
         | PercentAbove200
         | PercentAbove20
         | CycleScore
         | TrendScore
         
-    let sortOrderToString sortOrder =
-        match sortOrder with
+    let sortAlgoToString sortAlgo =
+        match sortAlgo with
         | PercentAbove200 -> "percentAbove200"
         | PercentAbove20 -> "percentAbove20"
         | CycleScore -> "cycleScore"
         | TrendScore -> "trendScore"
         
-    let stringToSortOrder sortOrderString =
-        match sortOrderString with
+    let stringToSortAlgo sortAlgoString =
+        match sortAlgoString with
         | "percentAbove200" -> PercentAbove200
         | "percentAbove20" -> PercentAbove20
         | "cycleScore" -> CycleScore
@@ -175,17 +175,16 @@ module IndustriesDashboard =
         table
         
     let private generateSortSection algo =
-        // it's a div with button links that will point to industries link with query param attached
-        let sortLink selectedAlgo sortParamAsSortOrder =
-            let sortParam = sortOrderToString sortParamAsSortOrder
-            let href = $"?sortParam={sortParam}"
+        let sortLink selectedAlgo sortAlgo =
+            let sortAlgoAsString = sortAlgoToString sortAlgo
+            let href = $"?sortParam={sortAlgoAsString}"
             let classes =
-                match selectedAlgo = sortParamAsSortOrder with
+                match selectedAlgo = sortAlgo with
                 | true -> "button is-primary"
                 | false -> "button is-info is-light"
                 
             let title =
-                match sortParamAsSortOrder with
+                match sortAlgo with
                 | PercentAbove200 -> "Sort by 200 SMA %"
                 | PercentAbove20 -> "Sort by 20 SMA %"
                 | CycleScore -> "Sort by Cycle Score"
@@ -214,7 +213,7 @@ module IndustriesDashboard =
             let sortParam = ctx.GetQueryStringValue("sortParam")
             let sortAlgo =
                 match sortParam with
-                | Ok value -> value |> stringToSortOrder
+                | Ok value -> value |> stringToSortAlgo
                 | Error _ -> PercentAbove200
                     
             let latestDate = Reports.getIndustrySMABreakdownLatestDate()
