@@ -8,6 +8,26 @@ module IndustriesDashboard =
     open StockScreenerReports.Web.Shared
     open StockScreenerReports.Web.Shared.Views
 
+    type SortOrder =
+        | PercentAbove200
+        | PercentAbove20
+        | CycleScore
+        | TrendScore
+        
+    let sortOrderToString sortOrder =
+        match sortOrder with
+        | PercentAbove200 -> "percentAbove200"
+        | PercentAbove20 -> "percentAbove20"
+        | CycleScore -> "cycleScore"
+        | TrendScore -> "trendScore"
+        
+    let stringToSortOrder sortOrderString =
+        match sortOrderString with
+        | "percentAbove200" -> PercentAbove200
+        | "percentAbove20" -> PercentAbove20
+        | "cycleScore" -> CycleScore
+        | "trendScore" -> TrendScore
+        | _ -> PercentAbove200
     
     let toBreakdownMap breakdowns =
         (breakdowns:IndustrySMABreakdown list)
@@ -106,7 +126,7 @@ module IndustriesDashboard =
             ]
         ]
         
-    let private generateIndustrySMATable
+    let private generateIndustriesView
         industrySMABreakdowns20Map
         (industrySMABreakdowns200Map:Map<string,IndustrySMABreakdown>)
         industryTrends20Map
@@ -151,14 +171,54 @@ module IndustriesDashboard =
             marketCycleScoreTm
         ]
 
-        industry20And200Rows |> fullWidthTableWithSortableHeaderCells industry20And200Header
+        let table = industry20And200Rows |> fullWidthTableWithSortableHeaderCells industry20And200Header
+        table
+        
+    let private generateSortSection algo =
+        // it's a div with button links that will point to industries link with query param attached
+        let sortLink selectedAlgo sortParamAsSortOrder =
+            let sortParam = sortOrderToString sortParamAsSortOrder
+            let href = $"?sortParam={sortParam}"
+            let classes =
+                match selectedAlgo = sortParamAsSortOrder with
+                | true -> "button is-primary"
+                | false -> "button is-info is-light"
+                
+            let title =
+                match sortParamAsSortOrder with
+                | PercentAbove200 -> "Sort by 200 SMA %"
+                | PercentAbove20 -> "Sort by 20 SMA %"
+                | CycleScore -> "Sort by Cycle Score"
+                | TrendScore -> "Sort by Trend Score"
+                
+            let link = a [ _class classes; _href href ] [ str title ]
+            link
+            
+        let sortLinks =
+            [
+                sortLink algo PercentAbove200
+                sortLink algo PercentAbove20
+                sortLink algo CycleScore
+                sortLink algo TrendScore
+            ]
+            
+        let sortLinks = sortLinks |> List.map (fun x -> div [_class "level-item"] [x])
+        
+        let sortSection = div [_class "level"] sortLinks
+            
+        sortSection
 
     let handler : HttpHandler  =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
 
+            let sortParam = ctx.GetQueryStringValue("sortParam")
+            let sortAlgo =
+                match sortParam with
+                | Ok value -> value |> stringToSortOrder
+                | Error _ -> PercentAbove200
+                    
             let latestDate = Reports.getIndustrySMABreakdownLatestDate()
             let formattedDate = latestDate |> Utils.convertToDateString
-
             let industrySMABreakdowns20Map = Reports.getIndustrySMABreakdowns Constants.SMA20 formattedDate |> toBreakdownMap
             let industrySMABreakdowns200Map = Reports.getIndustrySMABreakdowns Constants.SMA200 formattedDate |> toBreakdownMap
             
@@ -174,23 +234,54 @@ module IndustriesDashboard =
                     dailyBreakdowns
                 )
                 
-            let sortFunc = fun industry ->
-                let update20 = industrySMABreakdowns20Map |> Map.tryFind industry
-                let update200 = industrySMABreakdowns200Map |> Map.find industry
-                match update20 with
-                | Some update20 -> (update200.breakdown.percentAbove, update20.breakdown.percentAbove)
-                | None -> raise (System.Exception("Could not find 20 day SMA breakdown for " + industry))
+            let sortFunc =
+                match sortAlgo with
+                | PercentAbove200 ->
+                    fun industry ->
+                        let update20 = industrySMABreakdowns20Map |> Map.tryFind industry
+                        match update20 with
+                        | Some update20 ->
+                            let update200 = industrySMABreakdowns200Map |> Map.find industry
+                            (update200.breakdown.percentAbove, update20.breakdown.percentAbove)
+                        | None -> raise (System.Exception("Could not find 20 day SMA breakdown for " + industry))
+                | PercentAbove20 ->
+                    fun industry ->
+                        let update20 = industrySMABreakdowns20Map |> Map.tryFind industry
+                        match update20 with
+                        | Some update20 ->
+                            let update200 = industrySMABreakdowns200Map |> Map.find industry
+                            (update20.breakdown.percentAbove, update200.breakdown.percentAbove)
+                        | None -> raise (System.Exception("Could not find 20 day SMA breakdown for " + industry))
+                | CycleScore ->
+                    fun industry ->
+                        let breakdowns = dailySMABreakdownMap |> Map.tryFind industry
+                        match breakdowns with
+                        | Some breakdowns ->
+                            let cycleScore = breakdowns |> MarketCycleScoring.cycleScore
+                            (cycleScore, 0m)
+                        | None -> raise (System.Exception("Could not find daily breakdowns for " + industry))
+                | TrendScore ->
+                    fun industry ->
+                        let breakdowns = dailySMABreakdownMap |> Map.tryFind industry
+                        match breakdowns with
+                        | Some breakdowns ->
+                            let trendScore = breakdowns |> MarketCycleScoring.trendScore
+                            (trendScore, 0m)
+                        | None -> raise (System.Exception("Could not find daily breakdowns for " + industry))
             
             let title = $"Industry SMA Breakdowns ({industrySMABreakdowns20Map.Count} industries) - {formattedDate}"
             
-            let view =
-                generateIndustrySMATable
+            let sortSection = generateSortSection sortAlgo
+            
+            let table =
+                generateIndustriesView
                     industrySMABreakdowns20Map
                     industrySMABreakdowns200Map
                     industryTrends20Map
                     industryTrends200Map
                     dailySMABreakdownMap
                     sortFunc
-                |> toSection title
+                    
+            let view = toSection title (div [] [sortSection; table])
             
             ([view] |> mainLayout $"Industries") next ctx
