@@ -14,7 +14,7 @@ module MarketCycleScoring =
             |> fun x ->
                 // if trend is negative, subtract trend value from the cycle value
                 match trend.direction with
-                | Down -> x - trend.change
+                | Down -> x - abs trend.change
                 | Up -> x
             |> fun x ->
                 // if the current point is the max point, add 10 pt bump

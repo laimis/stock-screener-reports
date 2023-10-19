@@ -40,7 +40,7 @@ let configureServices (services : IServiceCollection) =
     services.AddCors()    |> ignore
     services.AddGiraffe() |> ignore
 
-    let cnnString = System.Environment.GetEnvironmentVariable("SSR_CONNECTIONSTRING")
+    let cnnString = Environment.GetEnvironmentVariable("SSR_CONNECTIONSTRING")
     cnnString |> Storage.configureConnectionString
     cnnString |> Reports.configureConnectionString
 
@@ -50,7 +50,10 @@ let configureServices (services : IServiceCollection) =
         let now = DateTime.UtcNow
         TimeZoneInfo.ConvertTimeFromUtc(now, easternTimeZone)
 
-    services.AddHostedService<Services.BackgroundService>() |> ignore
+    let skipBackgroundJobs = Environment.GetEnvironmentVariable("SSR_SKIPBACKGROUNDJOBS")
+    match skipBackgroundJobs with
+    | "true" -> System.Console.WriteLine("Skipping background jobs") |> ignore
+    | _  -> services.AddHostedService<Services.BackgroundService>() |> ignore 
 
 let configureLogging (builder : ILoggingBuilder) =
     builder.AddConsole()
