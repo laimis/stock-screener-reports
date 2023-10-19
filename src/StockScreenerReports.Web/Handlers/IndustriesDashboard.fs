@@ -82,8 +82,8 @@ module IndustriesDashboard =
             | None -> [StringColumn(""); StringColumn(""); StringColumn("")]
             | Some dailyBreakdowns ->
             
-                let cycleScore = dailyBreakdowns |> MarketCycleScoring.cycleScore
                 let trendScore = dailyBreakdowns |> MarketCycleScoring.trendScore
+                let cycleScore = dailyBreakdowns |> MarketCycleScoring.cycleScore
                 
                 [
                     StringColumn(trendScore.ToString())
@@ -187,8 +187,8 @@ module IndustriesDashboard =
                 match sortAlgo with
                 | PercentAbove200 -> "Sort by 200 SMA %"
                 | PercentAbove20 -> "Sort by 20 SMA %"
-                | CycleScore -> "Sort by Cycle Score"
                 | TrendScore -> "Sort by Trend Score"
+                | CycleScore -> "Sort by Cycle Score"
                 
             let link = a [ _class classes; _href href ] [ str title ]
             link
@@ -197,8 +197,8 @@ module IndustriesDashboard =
             [
                 sortLink algo PercentAbove200
                 sortLink algo PercentAbove20
-                sortLink algo CycleScore
                 sortLink algo TrendScore
+                sortLink algo CycleScore
             ]
             
         let sortLinks = sortLinks |> List.map (fun x -> div [_class "level-item"] [x])
@@ -251,14 +251,6 @@ module IndustriesDashboard =
                             let update200 = industrySMABreakdowns200Map |> Map.find industry
                             (update20.breakdown.percentAbove, update200.breakdown.percentAbove)
                         | None -> raise (System.Exception("Could not find 20 day SMA breakdown for " + industry))
-                | CycleScore ->
-                    fun industry ->
-                        let breakdowns = dailySMABreakdownMap |> Map.tryFind industry
-                        match breakdowns with
-                        | Some breakdowns ->
-                            let cycleScore = breakdowns |> MarketCycleScoring.cycleScore
-                            (cycleScore, 0m)
-                        | None -> raise (System.Exception("Could not find daily breakdowns for " + industry))
                 | TrendScore ->
                     fun industry ->
                         let breakdowns = dailySMABreakdownMap |> Map.tryFind industry
@@ -266,6 +258,14 @@ module IndustriesDashboard =
                         | Some breakdowns ->
                             let trendScore = breakdowns |> MarketCycleScoring.trendScore
                             (trendScore, 0m)
+                        | None -> raise (System.Exception("Could not find daily breakdowns for " + industry))
+                | CycleScore ->
+                    fun industry ->
+                        let breakdowns = dailySMABreakdownMap |> Map.tryFind industry
+                        match breakdowns with
+                        | Some breakdowns ->
+                            let cycleScore = breakdowns |> MarketCycleScoring.cycleScore
+                            (cycleScore, 0m)
                         | None -> raise (System.Exception("Could not find daily breakdowns for " + industry))
             
             let title = $"Industry SMA Breakdowns ({industrySMABreakdowns20Map.Count} industries) - {formattedDate}"

@@ -7,33 +7,26 @@ module MarketCycleScoring =
     // is to look at the SMA trend chart and use manual visual inspection.
     // This helps a bit to filter industries but still top result might not be top
     // industry.
-    let private calculateScore value direction age change =
-        let directionComponent = 
-            match direction with
-            | Down -> -1
-            | Up -> 1
-
-        // let ageComponent =
-        //     match age with
-        //     | x when x <= 10 -> 10
-        //     | x when x <= 20 -> 8
-        //     | x when x <= 30 -> 3
-        //     | _ -> 0
-        //
-        // let changeComponent =
-        //     match change with
-        //     | x when x > 0m && x >= 40m  -> 10
-        //     | x when x > 0m && x >= 30m  -> 8
-        //     | x when x > 0m && x >= 20m  -> 3
-        //     | x when x > 0m && x > 10m  -> 1
-        //     | _ -> 0
-        // directionComponent * (ageComponent + changeComponent)
+    let private cycleScoreInternal cycle trend =
         
-        // TODO: add a bump if the max value is current value
-        
-        let score = (directionComponent |> decimal) * value
-        
+        let score =
+            cycle.currentPoint.value
+            |> fun x ->
+                // if trend is negative, subtract trend value from the cycle value
+                match trend.direction with
+                | Down -> x - trend.change
+                | Up -> x
+            |> fun x ->
+                // if the current point is the max point, add 10 pt bump
+                match cycle.highPoint.value = cycle.currentPoint.value with
+                | true -> x + 10m
+                | false -> x
+            
         System.Math.Round(score, 2)
+        
+    let private trendScoreInternal (trend:Trend) =
+        
+        System.Math.Round(trend.change, 2)
 
     let trendScore (industryBreakdowns:list<IndustrySMABreakdown>) =
         let breakdowns = industryBreakdowns |> List.map (fun x -> x.breakdown)
@@ -42,7 +35,7 @@ module MarketCycleScoring =
 
         let trend = trendWithCycle.trend
 
-        calculateScore trend.value trend.direction trend.streak trend.change
+        trendScoreInternal trend
 
     let cycleScore (industryBreakdowns:list<IndustrySMABreakdown>) =
         let breakdowns = industryBreakdowns |> List.map (fun x -> x.breakdown)
@@ -52,4 +45,4 @@ module MarketCycleScoring =
         let trend = trendWithCycle.trend
         let cycle = trendWithCycle.cycle
 
-        calculateScore cycle.currentPoint.value trend.direction cycle.ageInMarketDays cycle.change
+        cycleScoreInternal cycle trend
