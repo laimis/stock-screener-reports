@@ -56,24 +56,31 @@ module CountryDashboard =
             ]
         ]
         
-    let renderSMAChart smaInterval dailySMABreakdowns =
+    let renderSMAChart dailySMABreakdowns =
         
-        let dataset : Charts.DataSet<decimal> =
-            let series = 
-                dailySMABreakdowns
-                |> List.map (fun (u:CountrySMABreakdown) -> System.Math.Round(u.breakdown.percentAbove, 0))
-                
-            {
-                data = series
-                title = $"{smaInterval} SMA Trend"
-                color = smaInterval |> Constants.mapSmaToColor
-            }
+        let datasets =
+            dailySMABreakdowns
+            |> List.map( fun (sma,breakdowns) ->
+                let dataset : Charts.DataSet<decimal> =
+                    let series = 
+                        breakdowns
+                        |> List.map (fun (u:CountrySMABreakdown) -> System.Math.Round(u.breakdown.percentAbove, 0))
+                        
+                    {
+                        data = series
+                        title = $"{sma} SMA Trend"
+                        color = sma |> Constants.mapSmaToColor
+                    }
+                    
+                dataset
+                )
             
+        let _, breakdowns = dailySMABreakdowns[0]
+
+        let labels = breakdowns |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
             
-        let labels = dailySMABreakdowns |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
-        
         let chartElements =
-            [dataset] |> Charts.generateChartElements "sma breakdown chart" Charts.ChartType.Line (Some 100) Charts.smallChart labels
+            datasets |> Charts.generateChartElements "sma breakdown chart" Charts.ChartType.Line (Some 100) Charts.smallChart labels
         
         div [] chartElements
         
@@ -85,7 +92,7 @@ module CountryDashboard =
         let allScreenerResultsForCountry =
             Storage.getScreeners()
             |> List.map (fun screener ->
-                let data = Reports.getDailyCountsForScreenerAndCountry screener.id countryName dateRangeAsStrings
+                let data = getDailyCountsForScreenerAndCountry screener.id countryName dateRangeAsStrings
                 let mapped = data |> Map.ofList
                 let total = mapped |> Map.fold (fun acc _ v -> acc + v) 0
                 let byDateHits =
@@ -101,9 +108,10 @@ module CountryDashboard =
             )
             
         let smaChart =
-            countryName
-            |> getCountrySMABreakdownsForCountry Constants.SMA20 dateRangeAsStrings
-            |> renderSMAChart Constants.SMA20
+            Constants.SMAS
+            |> List.map (fun sma -> sma, countryName)
+            |> List.map (fun (sma, countryName) -> sma, countryName |> getCountrySMABreakdownsForCountry sma dateRangeAsStrings)
+            |> renderSMAChart
         
         let charts = allScreenerResultsForCountry |> renderCharts
         let table = countryName |> getScreenerResultsForCountry 50  |> renderScreenerResultTable
