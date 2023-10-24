@@ -1,5 +1,7 @@
 namespace StockScreenerReports.Web.Handlers
 
+open StockScreenerReports.Storage.Reports
+
 module CountryDashboard =
     open StockScreenerReports.Web.Shared
     open Giraffe.ViewEngine.HtmlElements
@@ -7,36 +9,27 @@ module CountryDashboard =
     open Giraffe.ViewEngine.Attributes
     open StockScreenerReports.Core
     open StockScreenerReports.Web.Shared.Views
-
-    let handler countryName =
-        let screeners = Storage.getScreeners()
-
-        let dateRange = ReportsConfig.dateRange()
-        let dateRangeAsStrings = ReportsConfig.dateRangeAsStrings()
-
-        let list = dateRange |> ReportsConfig.listOfBusinessDates
-
-        let charts = 
-            screeners
-            |> List.map (fun screener ->
-                let data = Reports.getDailyCountsForScreenerAndCountry screener.id countryName dateRangeAsStrings
-
-                let mapped = data |> Map.ofList
-
-                list
-                |> Seq.map(fun (date) ->
-                    let found = mapped.TryFind date
-                    match found with
-                    | Some c -> (date,c)
-                    | None -> (date,0)
-                )
+    
+    type private ScreenerCountryResult = {
+        screener: Screener
+        total: int
+        byDateHits: seq<System.DateTime * int>
+    }
+    
+    let private renderCharts screenerCountryResults =
+        screenerCountryResults
+            |> List.map (fun screenerCountryResult ->
+                let screener = screenerCountryResult.screener
+                let data = screenerCountryResult.byDateHits
+                
+                data
                 |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart (ReportsConfig.getBackgroundColorForScreenerId screener.id)
                 |> div [_class "block"] 
             )
-
+            
+    let private renderScreenerResultTable (screenerResults:ScreenerResultReportItem list) =
         let resultRows =
-            countryName
-            |> Reports.getScreenerResultsForCountry 50
+            screenerResults
             |> List.map (fun screenerResult ->
                 [
                     DateColumn(screenerResult.date)
@@ -53,13 +46,67 @@ module CountryDashboard =
         let tableHeader = [
             "Date"; "Screener"; "Ticker"; "Market Cap"; "Price"; "Change"; "Volume"; "Trading View"
         ]
-        let screenerResultsTable = resultRows |> fullWidthTableWithSortableHeaderCells tableHeader
+        
+        resultRows |> fullWidthTableWithSortableHeaderCells tableHeader
 
-        let header = 
-            div [_class "content"] [
-                h1 [] [
-                    str countryName
-                ]
+    let private renderHeader countryName =
+        div [_class "content"] [
+            h1 [] [
+                str countryName
             ]
+        ]
+        
+    let renderSMAChart smaInterval dailySMABreakdowns =
+        
+        let dataset : Charts.DataSet<decimal> =
+            let series = 
+                dailySMABreakdowns
+                |> List.map (fun (u:CountrySMABreakdown) -> System.Math.Round(u.breakdown.percentAbove, 0))
+                
+            {
+                data = series
+                title = $"{smaInterval} SMA Trend"
+                color = smaInterval |> Constants.mapSmaToColor
+            }
+            
+            
+        let labels = dailySMABreakdowns |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
+        
+        let chartElements =
+            [dataset] |> Charts.generateChartElements "sma breakdown chart" Charts.ChartType.Line (Some 100) Charts.smallChart labels
+        
+        div [] chartElements
+        
+    let handler countryName =
+        let dateRangeAsStrings = ReportsConfig.dateRangeAsStrings()
 
-        [screenerResultsTable] |> List.append charts |> List.append [header] |> mainLayout $"Country Dashboard for {countryName}" 
+        let businessDates = ReportsConfig.dateRange() |> ReportsConfig.listOfBusinessDates
+        
+        let allScreenerResultsForCountry =
+            Storage.getScreeners()
+            |> List.map (fun screener ->
+                let data = Reports.getDailyCountsForScreenerAndCountry screener.id countryName dateRangeAsStrings
+                let mapped = data |> Map.ofList
+                let total = mapped |> Map.fold (fun acc _ v -> acc + v) 0
+                let byDateHits =
+                    businessDates
+                    |> Seq.map(fun (date) ->
+                        let found = mapped.TryFind date.Date
+                        match found with
+                        | Some c -> (date,c)
+                        | None -> (date,0)
+                    )
+                
+                {screener = screener; total = total; byDateHits = byDateHits;} 
+            )
+            
+        let smaChart =
+            countryName
+            |> getCountrySMABreakdownsForCountry Constants.SMA20 dateRangeAsStrings
+            |> renderSMAChart Constants.SMA20
+        
+        let charts = allScreenerResultsForCountry |> renderCharts
+        let table = countryName |> getScreenerResultsForCountry 50  |> renderScreenerResultTable
+        let header = countryName |> renderHeader
+
+        [table] |> List.append charts |> List.append [smaChart] |> List.append [header] |> mainLayout $"Country Dashboard for {countryName}" 
