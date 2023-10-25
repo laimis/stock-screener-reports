@@ -57,7 +57,7 @@ module Analysis =
                     )
 
                 let industryMarketCycles =
-                    Constants.SMA20
+                    SMA20
                     |> Storage.getIndustryCycles
                     |> Map.ofList
 

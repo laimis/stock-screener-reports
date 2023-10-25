@@ -59,7 +59,7 @@ module Countries =
             | None -> HtmlElements.div [] [ HtmlElements.str "No data available to chart"]
             | Some dailyBreakdowns ->
                 
-                let smaInterval = 20
+                let sma = SMA20
                 
                 let dataset : Charts.DataSet<decimal> =
                     let series = 
@@ -68,8 +68,8 @@ module Countries =
                         
                     {
                         data = series
-                        title = $"{smaInterval} SMA Trend"
-                        color = smaInterval |> Constants.mapSmaToColor
+                        title = $"{sma |> SMA.toInterval} SMA Trend"
+                        color = sma |> SMA.toColor
                     }
                     
                     
@@ -164,12 +164,12 @@ module Countries =
             let formattedDate = latestDate |> Utils.convertToDateString
             let dateRange = ReportsConfig.dateRangeAsStrings()
             
-            let countrySMABreakdowns20Map = Reports.getCountrySMABreakdowns Constants.SMA20 formattedDate |> toBreakdownMap
-            let countrySMABreakdowns200Map = Reports.getCountrySMABreakdowns Constants.SMA200 formattedDate |> toBreakdownMap
+            let countrySMABreakdowns20Map = Reports.getCountrySMABreakdowns SMA20 formattedDate |> toBreakdownMap
+            let countrySMABreakdowns200Map = Reports.getCountrySMABreakdowns SMA200 formattedDate |> toBreakdownMap
             let dailySMABreakdownMap =
                 countries
                 |> List.map (fun country ->
-                    let breakdowns = country |> Reports.getCountrySMABreakdownsForCountry Constants.SMA20 dateRange
+                    let breakdowns = country |> Reports.getCountrySMABreakdownsForCountry SMA20 dateRange
                     (country, breakdowns)
                 )
                 |> Map.ofList

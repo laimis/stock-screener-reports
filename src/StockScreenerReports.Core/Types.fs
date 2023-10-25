@@ -1,5 +1,6 @@
 namespace StockScreenerReports.Core
 open System
+open Microsoft.FSharp.Reflection
 
 module StockTicker =
 
@@ -35,23 +36,36 @@ module Constants =
     [<Literal>]
     let ColorBlack = "#111111"
 
-    [<Literal>]
-    let SMA20 = 20
-    
-    [<Literal>]
-    let SMA200 = 200
-    let SMAS = [SMA20; SMA200]
 
-    let mapSmaToColor sma =
+open Constants
+
+type SMA =
+        | SMA20
+        | SMA200
+        
+module SMA =
+    
+    let all = FSharpType.GetUnionCases typeof<SMA> |> Array.map (fun x -> FSharpValue.MakeUnion(x, [||]) :?> SMA) |> Array.toList
+    
+    let toColor sma =
         match sma with
         | SMA20 -> ColorRed
         | SMA200 -> ColorBlue
-        | _ -> ColorBlack
-
+        
+    let toInterval sma =
+        match sma with
+        | SMA20 -> 20
+        | SMA200 -> 200
+        
+    let fromInterval interval =
+        match interval with
+        | 20 -> SMA20
+        | 200 -> SMA200
+        | _ -> failwith $"Invalid SMA interval {interval}"
+        
 module TimeFunctions =
     
     let mutable nowFunc = fun() -> DateTime.UtcNow
-
 
 type ScreenerInput = {
     name:string;
@@ -95,10 +109,10 @@ type ReportsConfig =
     
     static member getBackgroundColorForScreenerId id =
         match id with
-            | Constants.NewHighsScreenerId -> "#3590F3" // new high (w/ sales)
-            | Constants.TopGainerScreenerId -> "#4DBEF7" // top gainer
-            | Constants.TopLoserScreenerId -> "#C54A8B" // top loser
-            | Constants.NewLowsScreenerId -> "#90323C" // new low
+            | NewHighsScreenerId -> "#3590F3" // new high (w/ sales)
+            | TopGainerScreenerId -> "#4DBEF7" // top gainer
+            | TopLoserScreenerId -> "#C54A8B" // top loser
+            | NewLowsScreenerId -> "#90323C" // new low
             | _ -> ReportsConfig.getBackgroundColorDefault // otherwise return default
 
     static member getTradingHolidays () =
@@ -148,7 +162,7 @@ type ReportsConfig =
             Seq.initInfinite float
             |> Seq.map (fun i -> startDate.AddDays(i))
             |> Seq.takeWhile (fun date -> date <= endDate)
-            |> Seq.where( fun (date) ->
+            |> Seq.where( fun date ->
                 date.DayOfWeek = DayOfWeek.Saturday |> not &&
                 date.DayOfWeek = DayOfWeek.Sunday |> not &&
                 holidays |> List.contains date.Date |> not
@@ -188,7 +202,7 @@ type Screener = {
 type SMABreakdown =
     {
         date: DateTime;
-        days: int;
+        days: SMA;
         above: int;
         below: int;
     }
@@ -214,7 +228,7 @@ type IndustrySMABreakdown =
             industry = industry;
             breakdown = {
                 date = ReportsConfig.now();
-                days = 0;
+                days = SMA20;
                 above = 0;
                 below = 0;
             }

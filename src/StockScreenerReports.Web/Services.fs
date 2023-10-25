@@ -85,7 +85,7 @@ module Services =
                 Storage.getCountries()
                 |> List.filter (fun country -> country <> "United States" && country <> "Costa Rica") // TODO: how do we filter out test data and outdated stocks?
             
-            let countrySmaPairs = countries |> Seq.map (fun country -> Constants.SMAS |> List.map (fun sma -> (country, sma))) |> Seq.concat
+            let countrySmaPairs = countries |> Seq.map (fun country -> SMA.all |> List.map (fun sma -> (country, sma))) |> Seq.concat
             
             let countriesUpdated =
                 countrySmaPairs
@@ -125,7 +125,7 @@ module Services =
             // pull above and below 20 and 200 for each industry, and store the results
             let knownIndustries = Storage.getIndustries()
             
-            let industrySmaPairs = knownIndustries |> Seq.map (fun industry -> Constants.SMAS |> List.map (fun sma -> (industry, sma))) |> Seq.concat
+            let industrySmaPairs = knownIndustries |> Seq.map (fun industry -> SMA.all |> List.map (fun sma -> (industry, sma))) |> Seq.concat
 
             let industriesUpdated =
                 industrySmaPairs
@@ -141,7 +141,7 @@ module Services =
                 )
                 |> Seq.length
 
-            Constants.SMAS |> List.iter (fun sma -> Storage.updateIndustrySMABreakdowns date sma |> ignore)
+            SMA.all |> List.iter (fun sma -> Storage.updateIndustrySMABreakdowns date sma |> ignore)
 
             logger.LogInformation($"Calculating trends")
 

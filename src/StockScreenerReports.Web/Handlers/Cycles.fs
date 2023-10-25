@@ -195,7 +195,7 @@ module Cycles =
                 cycle.rateOfChange >= minimumRateOfChange
 
             let cycles =
-                Constants.SMA20
+                SMA20
                 |> Storage.getIndustryCycles
 
             // get latest job runs 

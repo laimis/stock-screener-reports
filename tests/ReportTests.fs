@@ -234,12 +234,12 @@ type ReportTests() =
     [<Fact>]
     let ``industry sma breakdowns end to end works`` () =
         let date = "2022-04-01"
-        let days = 20
+        let sma = SMA20
 
-        Storage.saveIndustrySMABreakdowns date ("airlines",days,10,50)
+        Storage.saveIndustrySMABreakdowns date ("airlines",sma,10,50)
         |> ignore
 
-        let updates = date |> Reports.getIndustrySMABreakdowns days
+        let updates = date |> Reports.getIndustrySMABreakdowns sma
 
         updates.Length |> should equal 1
 
@@ -253,7 +253,7 @@ type ReportTests() =
     let ``latest industry sma breakdow works`` () =
         let update =
             StorageTests.testStockIndustry
-            |> Reports.getMostRecentIndustrySMABreakdown 20
+            |> Reports.getMostRecentIndustrySMABreakdown SMA20
 
         match update with
             | Some update ->
@@ -271,14 +271,14 @@ type ReportTests() =
         let dateRange = ReportsConfig.dateRangeAsStrings()
         let trends =
             StorageTests.testStockIndustry
-            |> Reports.getIndustrySMABreakdownsForIndustry 20 dateRange
+            |> Reports.getIndustrySMABreakdownsForIndustry SMA20 dateRange
         
         trends |> should not' (be Empty)
 
     [<Fact>]
     let ``get stock SMA breakdown works`` () =
         let breakdowns =
-            Constants.SMAS |> List.map (fun sma -> Reports.getStockSMABreakdown sma)
+            SMA.all |> List.map (fun sma -> Reports.getStockSMABreakdown sma)
 
         // we collapse tuples into array and check each member to be above 0
         breakdowns
@@ -302,7 +302,7 @@ type ReportTests() =
 
     [<Fact>]
     let ``get daily SMA breakdowns works`` () =
-        let results = Reports.getDailySMABreakdown (ReportsConfig.dateRangeAsStrings()) 20
+        let results = Reports.getDailySMABreakdown (ReportsConfig.dateRangeAsStrings()) SMA20
         results |> should not' (be Empty)
 
         // check order
@@ -316,7 +316,7 @@ type ReportTests() =
         let latestDate = Reports.getIndustrySMABreakdownLatestDate()
         let formattedDate = latestDate |> Utils.convertToDateString
 
-        let results = Constants.SMA200 |> Reports.getIndustryTrends formattedDate
+        let results = SMA200 |> Reports.getIndustryTrends formattedDate
         
         results |> should not' (be Empty)
 
@@ -330,7 +330,7 @@ type ReportTests() =
             |> Reports.getIndustryTrendsLastKnownDateAsOf 
             |> Option.get |> Utils.convertToDateString
 
-        Constants.SMAS
+        SMA.all
         |> List.iter (fun days ->
             let up, down = Reports.getIndustryTrendBreakdown dateToUse days
             up |> should be (greaterThan 0)
@@ -341,7 +341,7 @@ type ReportTests() =
     let ``calculate industry trends works`` () =
         let smaBreakdowns =
             StorageTests.testStockIndustry
-            |> Reports.getIndustrySMABreakdownsForIndustry 20 (ReportsConfig.dateRangeAsStrings())
+            |> Reports.getIndustrySMABreakdownsForIndustry SMA20 (ReportsConfig.dateRangeAsStrings())
         let trend = smaBreakdowns |> TrendsCalculator.calculateForIndustry |> getTrend
 
         trend.streak |> should be (greaterThan 0)
@@ -354,7 +354,7 @@ type ReportTests() =
     let ``get industry trend works`` () =
         let dateToUseOpt = ReportsConfig.dateRangeAsStrings() |> snd |> Reports.getIndustryTrendsLastKnownDateAsOf
         let dateToUse = dateToUseOpt |> Option.get |> Utils.convertToDateString
-        let trend = Reports.getIndustryTrend 20 dateToUse StorageTests.testStockIndustry
+        let trend = Reports.getIndustryTrend SMA20 dateToUse StorageTests.testStockIndustry
         trend.IsSome |> should be True
 
     [<Fact>]

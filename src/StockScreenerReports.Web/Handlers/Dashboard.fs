@@ -27,7 +27,7 @@ module Dashboard =
             a [
                 _class "button is-primary is-fullwidth"
                 _style "justify-content: left;"
-                _href (Links.screenerResultsLink (screener.screenerid) screenerDate)] [
+                _href (Links.screenerResultsLink screener.screenerid screenerDate)] [
                 span [
                     _style "font-size: 1.5em; font-weight: bold; padding-right: 10px"
                 ] [
@@ -92,8 +92,8 @@ module Dashboard =
         div [_class "columns"] columns |> Views.toSection "Sector Trends"
 
     let private generateSMATrendRows smaTrendCyclePairs =
-        let mapTrendToHtml (sma:int) (trend:Trend) =
-            $"SMA <b>{sma}</b>: {trend |> Views.trendToHtml}"
+        let mapTrendToHtml (sma:SMA) (trend:Trend) =
+            $"SMA <b>{sma |> SMA.toInterval}</b>: {trend |> Views.trendToHtml}"
 
         let mapMarketCycleToHtml (cycle:MarketCycle) =
             $"Market cycle: {cycle |> Views.marketCycleToHtml}"
@@ -101,7 +101,7 @@ module Dashboard =
         let columns =
             smaTrendCyclePairs
                     |> List.map (fun (sma, trendWithCycle) ->
-                        let hasTextRight = match sma with | Constants.SMA200 -> "has-text-right" | _ -> ""
+                        let hasTextRight = match sma with | SMA200 -> "has-text-right" | _ -> ""
 
                         let trend = trendWithCycle.trend
                         let cycle = trendWithCycle.cycle
@@ -126,11 +126,11 @@ module Dashboard =
 
         let datasets:list<Charts.DataSet<decimal>> =
             breakdowns
-            |> List.map (fun (sma, (smaBreakdown:list<SMABreakdown>)) ->
+            |> List.map (fun (sma, smaBreakdown:list<SMABreakdown>) ->
                 {
                     data = smaBreakdown |> List.map (fun breakdown -> breakdown.percentAboveRounded)
                     title = $"SMA {sma}"
-                    color = sma |> Constants.mapSmaToColor
+                    color = sma |> SMA.toColor
                 }   
             )
 
@@ -185,7 +185,7 @@ module Dashboard =
         // end sector trends
 
         let breakdowns =
-            Constants.SMAS
+            SMA.all
             |> List.map (fun sma ->
                 let smaBreakdown = sma |> getDailySMABreakdown (ReportsConfig.dateRangeAsStrings())
                 (sma, smaBreakdown)
@@ -202,12 +202,12 @@ module Dashboard =
         // trend rows
         
         // SMA breakdown charts
-        let (smaBreakdownChartSection, smaBreakdownSmoothedChartSection) = generateSMABreakdownRows breakdowns
+        let smaBreakdownChartSection, smaBreakdownSmoothedChartSection = generateSMABreakdownRows breakdowns
         // SMA breakdown charts
 
         // cycle starts
         let marketCycleSection =
-            Constants.SMA20
+            SMA20
             |> Storage.getIndustryCycles
             |> Cycles.generateIndustryCycleStartChart
 

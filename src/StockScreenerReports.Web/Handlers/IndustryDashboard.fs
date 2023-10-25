@@ -111,11 +111,11 @@ module IndustryDashboard =
                     let pct = System.Math.Round((double t.breakdown.above) * 100.0 / (double total), 2)
                     $"<b>{pct}%%</b> ({t.breakdown.above} / {total}) above <b>{t.breakdown.days} SMA</b>"
 
-            let hasTextRight = match sma with | Constants.SMA200 -> "has-text-right" | _ -> ""
+            let hasTextRight = match sma with | SMA200 -> "has-text-right" | _ -> ""
             div [_class $"column {hasTextRight}"] [rawText description]
 
         let columns = div [_class "columns"] (
-                Constants.SMAS
+                SMA.all
                 |> List.map createBreakdownColumnDiv
             )
             
@@ -123,7 +123,7 @@ module IndustryDashboard =
 
     let private createHeaderSection dateRange industryName  =
 
-        let breakdowns = industryName |> getIndustrySMABreakdownsForIndustry Constants.SMA20 dateRange
+        let breakdowns = industryName |> getIndustrySMABreakdownsForIndustry SMA20 dateRange
         let cycleScore = breakdowns |> MarketCycleScoring.cycleScore
         let trendScore = breakdowns |> MarketCycleScoring.trendScore
         let trendWithCycle = breakdowns |> TrendsCalculator.calculateForIndustry
@@ -167,7 +167,7 @@ module IndustryDashboard =
             ]
         ]
 
-    let private smaBreakdownsAndSMACharts (dailySMABreakdowns:Map<int,IndustrySMABreakdown list>) (industryTrends:Map<int, IndustryTrend option>) =
+    let private smaBreakdownsAndSMACharts (dailySMABreakdowns:Map<SMA,IndustrySMABreakdown list>) (industryTrends:Map<SMA, IndustryTrend option>) =
 
         let createTrendDiv sma (trend:Option<IndustryTrend>) =
             let desc =
@@ -175,31 +175,31 @@ module IndustryDashboard =
                 | None -> "No trend found"
                 | Some t -> t.trend |> trendToHtml
 
-            let hasTextRight = match sma with | Constants.SMA200 -> "has-text-right" | _ -> ""
+            let hasTextRight = match sma with | SMA200 -> "has-text-right" | _ -> ""
 
             div [ _class $"column {hasTextRight}"] [
                 rawText desc
             ]
 
-        let createDataset smaInterval  : DataSet<decimal> =
+        let createDataset sma  : DataSet<decimal> =
             
             let series = 
                 dailySMABreakdowns
-                |> Map.tryFind smaInterval
+                |> Map.tryFind sma 
                 |> Option.defaultValue []
                 |> List.map (fun u -> System.Math.Round(u.breakdown.percentAbove, 0))
                 
             {
                 data = series
-                title = $"{smaInterval} SMA Trend"
-                color = smaInterval |> Constants.mapSmaToColor
+                title = $"{sma |> SMA.toInterval} SMA Trend"
+                color = sma |> SMA.toColor
             }
 
-        let datasets = Constants.SMAS |> List.map createDataset
+        let datasets = SMA.all |> List.map createDataset
 
         let smoothedDataSets = datasets |> Utils.smoothedDataSets 3
 
-        let labels = dailySMABreakdowns |> Map.tryFind 20 |> Option.defaultValue [] |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
+        let labels = dailySMABreakdowns |> Map.tryFind SMA20 |> Option.defaultValue [] |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
         
         let charts =
             datasets 
@@ -210,7 +210,7 @@ module IndustryDashboard =
             |> generateChartElements "sma breakdown chart" Line (Some 100) smallChart labels
 
         let trendDiv = div [_class "columns"] (
-            Constants.SMAS
+            SMA.all
                 |> List.map (fun sma -> 
                     industryTrends |> Map.tryFind sma |> Option.defaultValue None |> createTrendDiv sma
                 )
@@ -327,7 +327,7 @@ module IndustryDashboard =
             let earningsSection = createEarningsSection industryName dateRange
             
             let dailySMABreakdowns =
-                Constants.SMAS
+                SMA.all
                 |> List.map (fun sma -> 
                     let breakdowns =
                         industryName
@@ -337,7 +337,7 @@ module IndustryDashboard =
                 |> Map.ofList
                 
             let industryTrends =
-                Constants.SMAS
+                SMA.all
                 |> List.map (fun sma -> 
                     let industryTrend =
                         industryName

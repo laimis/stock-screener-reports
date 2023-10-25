@@ -226,7 +226,7 @@ type StorageTests(output:ITestOutputHelper) =
 
         let date = Reports.getIndustrySMABreakdownLatestDate()
 
-        Constants.SMA20 |> Storage.updateIndustrySMABreakdowns (date |> Utils.convertToDateString) |> should equal 1
+        SMA20 |> Storage.updateIndustrySMABreakdowns (date |> Utils.convertToDateString) |> should equal 1
 
     [<Fact>]
     let ``updating industry trend works`` () =
@@ -243,7 +243,7 @@ type StorageTests(output:ITestOutputHelper) =
                 date = date;
                 above = 1;
                 below = 1;
-                days = 20;
+                days = SMA20;
             }
         }
 
@@ -256,14 +256,14 @@ type StorageTests(output:ITestOutputHelper) =
 
         let trendAndCycle =
             testStockIndustry
-            |> Reports.getIndustrySMABreakdownsForIndustry Constants.SMA20 range
+            |> Reports.getIndustrySMABreakdownsForIndustry SMA20 range
             |> TrendsCalculator.calculateForIndustry
         
         let cycle = trendAndCycle.cycle
 
-        Storage.saveIndustryCycle Constants.SMA20 cycle testStockIndustry |> ignore
+        Storage.saveIndustryCycle SMA20 cycle testStockIndustry |> ignore
 
-        let (industry, saved) = Storage.getIndustryCycle Constants.SMA20 testStockIndustry
+        let (industry, saved) = Storage.getIndustryCycle SMA20 testStockIndustry
 
         saved |> should equal cycle
         industry |> should equal testStockIndustry
