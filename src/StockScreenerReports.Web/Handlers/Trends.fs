@@ -65,7 +65,7 @@ module Trends =
                 {
                     data = breakdowns |> List.map (fun breakdown -> breakdown.percentAboveRounded)
                     title = $"SMA {sma}"
-                    color = sma |> Constants.mapSmaToColor 
+                    color = sma |> SMA.toColor 
                 }
             )
 
@@ -268,7 +268,7 @@ module Trends =
             ]::volumeCharts        
 
         let trends =
-            Constants.SMAS
+            SMA.all
             |> List.map(fun sma -> 
                 (sma, sma |> getDailySMABreakdown dateRange)
             )
@@ -309,7 +309,7 @@ module Trends =
                     None
                 | Some d ->
                     let dateToUse = d |> Utils.convertToDateString
-                    Constants.SMAS
+                    SMA.all
                     |> List.map (fun days -> days |> getIndustryTrendBreakdown dateToUse)
                     |> Some
                     
@@ -319,7 +319,7 @@ module Trends =
                     None
                 | Some d ->
                     let dateToUse = d |> Utils.convertToDateString
-                    Constants.SMA20 |> getIndustryTrends dateToUse |> Some
+                    SMA20 |> getIndustryTrends dateToUse |> Some
 
             let elementsToRender = generateElementsToRender missedJobs screeners industries upAndDowns dateRange
 

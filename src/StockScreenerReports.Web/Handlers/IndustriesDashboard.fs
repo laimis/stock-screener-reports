@@ -40,12 +40,8 @@ module IndustriesDashboard =
         |> Map.ofList
 
     let private generateDataRow index industrySMABreakdown20 industrySMABreakdown200 trend20 trend200 dailyBreakdowns =
-        let toSMACells (smaOption:Option<IndustrySMABreakdown>) (trendOption:Option<IndustryTrend>) =
-            let smaBreakdown =
-                match smaOption with
-                | Some sma -> sma
-                | None -> (IndustrySMABreakdown.blank "NA")
-
+        let toSMACells (smaBreakdown:IndustrySMABreakdown) (trendOption:Option<IndustryTrend>) =
+            
             let trend =
                 match trendOption with
                 | Some trend -> trend.trend
@@ -60,7 +56,7 @@ module IndustriesDashboard =
             ]
 
         let sma20Cells = toSMACells industrySMABreakdown20 trend20
-        let sma200Cells = toSMACells (Some industrySMABreakdown200) trend200
+        let sma200Cells = toSMACells industrySMABreakdown200 trend200
 
         let industryLinks = div [] [
             span [ _class "mr-2"] [
@@ -99,7 +95,7 @@ module IndustriesDashboard =
             | None -> div [] [str "No data available to chart"]
             | Some dailyBreakdowns ->
                 
-                let smaInterval = 20
+                let sma = SMA20
                 
                 let dataset : Charts.DataSet<decimal> =
                     let series = 
@@ -108,8 +104,8 @@ module IndustriesDashboard =
                         
                     {
                         data = series
-                        title = $"{smaInterval} SMA Trend"
-                        color = smaInterval |> Constants.mapSmaToColor
+                        title = $"{sma |> SMA.toInterval} SMA Trend"
+                        color = sma |> SMA.toColor
                     }
                     
                     
@@ -140,7 +136,7 @@ module IndustriesDashboard =
             |> Seq.indexed
             |> Seq.map (fun (index,industry) ->
                 
-                let industrySMABreakdown20 = industrySMABreakdowns20Map |> Map.tryFind industry
+                let industrySMABreakdown20 = industrySMABreakdowns20Map |> Map.find industry
                 let industrySMABreakdown200 = industrySMABreakdowns200Map |> Map.find industry
                 let trend20 = industryTrends20Map |> Map.tryFind industry
                 let trend200 = industryTrends200Map |> Map.tryFind industry
@@ -218,18 +214,18 @@ module IndustriesDashboard =
                     
             let latestDate = Reports.getIndustrySMABreakdownLatestDate()
             let formattedDate = latestDate |> Utils.convertToDateString
-            let industrySMABreakdowns20Map = Reports.getIndustrySMABreakdowns Constants.SMA20 formattedDate |> toBreakdownMap
-            let industrySMABreakdowns200Map = Reports.getIndustrySMABreakdowns Constants.SMA200 formattedDate |> toBreakdownMap
+            let industrySMABreakdowns20Map = Reports.getIndustrySMABreakdowns SMA20 formattedDate |> toBreakdownMap
+            let industrySMABreakdowns200Map = Reports.getIndustrySMABreakdowns SMA200 formattedDate |> toBreakdownMap
             
-            let industryTrends20Map = Reports.getIndustryTrends formattedDate Constants.SMA20 |> toTrendsMap 
-            let industryTrends200Map = Reports.getIndustryTrends formattedDate Constants.SMA200 |> toTrendsMap
+            let industryTrends20Map = Reports.getIndustryTrends formattedDate SMA20 |> toTrendsMap 
+            let industryTrends200Map = Reports.getIndustryTrends formattedDate SMA200 |> toTrendsMap
             
             let dateRange = ReportsConfig.dateRangeAsStrings()
             
             let dailySMABreakdownMap =
                 industrySMABreakdowns20Map 
                 |> Map.map (fun industry _ ->
-                    let dailyBreakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry Constants.SMA20 dateRange
+                    let dailyBreakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry SMA20 dateRange
                     dailyBreakdowns
                 )
                 

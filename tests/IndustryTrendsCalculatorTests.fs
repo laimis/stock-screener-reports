@@ -20,7 +20,7 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
                     above = above;
                     below = total - above;
                     date = ReportsConfig.now().AddDays(-list.Length).AddDays(index);
-                    days = Constants.SMA20;
+                    days = SMA20;
                 }
             }
         )

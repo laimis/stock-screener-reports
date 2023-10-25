@@ -69,11 +69,11 @@ module CountryDashboard =
                     {
                         data = series
                         title = $"{sma} SMA Trend"
-                        color = sma |> Constants.mapSmaToColor
+                        color = sma |> SMA.toColor
                     }
                     
                 dataset
-                )
+            )
             
         let _, breakdowns = dailySMABreakdowns[0]
 
@@ -108,7 +108,7 @@ module CountryDashboard =
             )
             
         let smaChart =
-            Constants.SMAS
+            SMA.all
             |> List.map (fun sma -> sma, countryName)
             |> List.map (fun (sma, countryName) -> sma, countryName |> getCountrySMABreakdownsForCountry sma dateRangeAsStrings)
             |> renderSMAChart
