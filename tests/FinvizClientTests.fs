@@ -1,6 +1,7 @@
 module FinvizClientTests
 
 open Xunit
+open StockScreenerReports.Core
 open StockScreenerReports.FinvizClient
 open Xunit.Abstractions
 open FsUnit
@@ -39,7 +40,7 @@ type ParsingTests(output:ITestOutputHelper) =
     let ``industry fetch works`` () =
         let (above,below) =
             StorageTests.testStockIndustry
-            |> FinvizClient.getResultCountForIndustryAboveAndBelowSMA 20 
+            |> FinvizClient.getResultCountForIndustryAboveAndBelowSMA SMA20
 
         above |> should be (greaterThan 0)
         below |> should be (greaterThan 0)
@@ -49,7 +50,7 @@ type ParsingTests(output:ITestOutputHelper) =
     let ``industry with special characters works`` () =
         let (above,below) =
             StorageTests.testStockIndustryWithSpecialCharacters
-            |> FinvizClient.getResultCountForIndustryAboveAndBelowSMA 20 
+            |> FinvizClient.getResultCountForIndustryAboveAndBelowSMA SMA20 
 
         let total = above + below
 
@@ -60,7 +61,7 @@ type ParsingTests(output:ITestOutputHelper) =
     let ``country fetch works`` () =
         let (above,below) =
             StorageTests.testStockCountry
-            |> FinvizClient.getResultCountForCountryAboveAndBelowSMA 20 
+            |> FinvizClient.getResultCountForCountryAboveAndBelowSMA SMA20 
 
         above |> should be (greaterThan 0)
         below |> should be (greaterThan 0)

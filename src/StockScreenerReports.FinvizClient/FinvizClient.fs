@@ -3,7 +3,7 @@ namespace StockScreenerReports.FinvizClient
 module FinvizClient =
     open StockScreenerReports.Core
 
-    let mutable outputFunc = (fun str -> ())
+    let mutable outputFunc = (fun _ -> ())
 
     let private SLEEP_BETWEEN_REQUESTS_MS = 250
 
@@ -49,15 +49,17 @@ module FinvizClient =
     let getResultCount url =
         url |> fetchScreenerHtml |> FinvizParsing.parseResultCount
 
-    let getResultCountForIndustryAboveAndBelowSMA days industry =
+    let getResultCountForIndustryAboveAndBelowSMA sma industry =
         let cleaned = industry |> Utils.cleanIndustry
 
+        let days = sma |> SMA.toInterval
+        
         let fetchCountWithTA ta =
             let url = $"https://finviz.com/screener.ashx?v=111&f=ind_{cleaned},{ta}"
             url |> getResultCount
         
-        let above = $"ta_sma{days}_pa" |> fetchCountWithTA
-        let below = $"ta_sma{days}_pb" |> fetchCountWithTA
+        let above = $"ta_sma%i{days}_pa" |> fetchCountWithTA
+        let below = $"ta_sma%i{days}_pb" |> fetchCountWithTA
 
         (above,below)
 
