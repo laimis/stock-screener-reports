@@ -17,15 +17,23 @@ module CountryDashboard =
     }
     
     let private renderCharts screenerCountryResults =
-        screenerCountryResults
-            |> List.map (fun screenerCountryResult ->
-                let screener = screenerCountryResult.screener
-                let data = screenerCountryResult.byDateHits
+        
+        let labels = screenerCountryResults |> List.head |> fun x -> x.byDateHits |> Seq.map (fun (date,_) -> date.ToString("MMM/dd")) |> Seq.toList
+        
+        let datasets:list<Charts.DataSet<int>> = 
+            screenerCountryResults
+            |> List.map( fun result ->
+                let data = result.byDateHits |> Seq.map (fun (_,count) -> count) |> Seq.toList
                 
-                data
-                |> Charts.convertNameCountsToChart screener.name Charts.Bar None Charts.smallChart (ReportsConfig.getBackgroundColorForScreenerId screener.id)
-                |> div [_class "block"] 
+                {
+                    data = data
+                    title = result.screener.name
+                    color = result.screener.id |> ReportsConfig.getBackgroundColorForScreenerId
+                }
             )
+        
+        div [] (Charts.generateChartElements "Screener hits" Charts.Bar (Some 1) Charts.smallChart labels datasets)
+        |> toSection "Screener Hits Chart"
             
     let private renderScreenerResultTable (screenerResults:ScreenerResultReportItem list) =
         let resultRows =
@@ -47,7 +55,7 @@ module CountryDashboard =
             "Date"; "Screener"; "Ticker"; "Market Cap"; "Price"; "Change"; "Volume"; "Trading View"
         ]
         
-        resultRows |> fullWidthTableWithSortableHeaderCells tableHeader
+        resultRows |> fullWidthTableWithSortableHeaderCells tableHeader |> toSection "Screener Hits"
 
     let private renderHeader countryName =
         div [_class "content"] [
@@ -82,7 +90,7 @@ module CountryDashboard =
         let chartElements =
             datasets |> Charts.generateChartElements "sma breakdown chart" Charts.ChartType.Line (Some 100) Charts.smallChart labels
         
-        div [] chartElements
+        div [] chartElements |> toSection "SMA Breakdown"
         
     let handler countryName =
         let dateRangeAsStrings = ReportsConfig.dateRangeAsStrings()
@@ -107,14 +115,19 @@ module CountryDashboard =
                 {screener = screener; total = total; byDateHits = byDateHits;} 
             )
             
+        let countryStocks = countryName |> Storage.getStocksByCountry
+        
+        // render all data now
+        
         let smaChart =
             SMA.all
             |> List.map (fun sma -> sma, countryName)
             |> List.map (fun (sma, countryName) -> sma, countryName |> getCountrySMABreakdownsForCountry sma dateRangeAsStrings)
             |> renderSMAChart
         
-        let charts = allScreenerResultsForCountry |> renderCharts
-        let table = countryName |> getScreenerResultsForCountry 50  |> renderScreenerResultTable
+        let countryStocksTable = countryStocks |> generateStockTable
+        let screenerHitsChart = allScreenerResultsForCountry |> renderCharts
+        let screenerHitsTable = countryName |> getScreenerResultsForCountry 50  |> renderScreenerResultTable
         let header = countryName |> renderHeader
-
-        [table] |> List.append charts |> List.append [smaChart] |> List.append [header] |> mainLayout $"Country Dashboard for {countryName}" 
+        
+        [header; smaChart; countryStocksTable; screenerHitsChart; screenerHitsTable] |> mainLayout $"Country Dashboard for {countryName}" 

@@ -13,3 +13,4 @@ node_modules/
 TestResults/
 
 *.json
+*.DotSettings.user

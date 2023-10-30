@@ -193,6 +193,11 @@ type StorageTests(output:ITestOutputHelper) =
     let ``get stocks by industry works`` () =
         let stocks = Storage.getStocksByIndustry testStockIndustry
         stocks |> should not' (be Empty)
+        
+    [<Fact>]
+    let ``get stocks by country works`` () =
+        let stocks = Storage.getStocksByCountry testStockCountry
+        stocks |> should not' (be Empty)
 
     [<Fact>]
     let ``get industries works`` () =

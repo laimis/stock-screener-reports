@@ -174,6 +174,15 @@ module Storage =
             |> Sql.parameters ["@industry", industry |> Sql.string]
             |> Sql.execute stockMapper
     
+    let getStocksByCountry country =
+        let sql = $"{stockSelect} WHERE country = @country"
+        
+        cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.parameters ["@country", country |> Sql.string]
+            |> Sql.execute stockMapper
+    
     // TODO: should we consider types for sector, industry, country?
     
     let renameStockTicker (oldName:StockTicker.T) (newName:StockTicker.T) =
