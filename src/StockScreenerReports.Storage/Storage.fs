@@ -7,7 +7,6 @@ module Storage =
 
     let private defaultLogger (_:string) = ()
 
-    // TODO: add logger
     let mutable private cnnString = ""
     let configureConnectionString str =
         cnnString <- str
@@ -182,8 +181,6 @@ module Storage =
             |> Sql.query sql
             |> Sql.parameters ["@country", country |> Sql.string]
             |> Sql.execute stockMapper
-    
-    // TODO: should we consider types for sector, industry, country?
     
     let renameStockTicker (oldName:StockTicker.T) (newName:StockTicker.T) =
         let sql = @"UPDATE stocks SET ticker = @newTicker WHERE ticker = @oldTicker"

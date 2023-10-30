@@ -75,8 +75,6 @@ type ScreenerInput = {
 
 type ReportsConfig =
     {
-        screeners:list<ScreenerInput>;
-        outputPath:string;
         dbConnectionString:string;
     }
 
@@ -169,6 +167,12 @@ type ReportsConfig =
             )
 
     static member userCulture = Globalization.CultureInfo.CreateSpecificCulture("en-US")
+    
+    // countries table sometimes can have test entries, or entries that no longer return any results
+    // where data provider no longer has stocks registered for such a country, e.g.
+    // we want to filter those out and provide a method that is a single place for such filtering
+    static member includeCountryInScans countryName =
+        countryName <> "United States" && countryName <> "Costa Rica"
 
 type ScreenerResult = {
     ticker:StockTicker.T;

@@ -148,7 +148,7 @@ module IndustriesDashboard =
                 [dataCells |> toTr; chartRow]
             )
             |> Seq.concat
-            |> Seq.toList // TODO: do we truly need to convert this to list?
+            |> Seq.toList
 
         let industry20And200Header = [
             ""

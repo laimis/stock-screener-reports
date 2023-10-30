@@ -83,7 +83,7 @@ module Services =
             
             let countries =
                 Storage.getCountries()
-                |> List.filter (fun country -> country <> "United States" && country <> "Costa Rica") // TODO: how do we filter out test data and outdated stocks?
+                |> List.filter ReportsConfig.includeCountryInScans
             
             let countrySmaPairs = countries |> Seq.map (fun country -> SMA.all |> List.map (fun sma -> (country, sma))) |> Seq.concat
             

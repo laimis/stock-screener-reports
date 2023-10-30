@@ -197,11 +197,11 @@ module Views =
         ]
 
     let toHeaderAndRowsWithLinksAndClickFunc title maxNumberOfRows linkFunction clickFunction listOfNameCountPairs =
-        let (header, rows) = listOfNameCountPairs |> toNameCountRows title maxNumberOfRows (fun name -> generateHref name (linkFunction name)) clickFunction
+        let header, rows = listOfNameCountPairs |> toNameCountRows title maxNumberOfRows (fun name -> generateHref name (linkFunction name)) clickFunction
         (header, rows)
     
     let toNameCountTableWithLinksAndClickFunc title maxNumberOfRows linkFunction clickFunction listOfNameCountPairs =
-        let (header, rows) = toHeaderAndRowsWithLinksAndClickFunc title maxNumberOfRows linkFunction clickFunction listOfNameCountPairs
+        let header, rows = toHeaderAndRowsWithLinksAndClickFunc title maxNumberOfRows linkFunction clickFunction listOfNameCountPairs
         rows |> fullWidthTableWithCustomHeader header
 
     let toNameCountTableWithLinks title maxNumberOfRows linkFunction listOfNameCountPairs =
@@ -339,10 +339,9 @@ module Views =
         [view] |> mainLayout message
 
     let generateScreenerTags idAndNameTuple =
-        let (id,name) = idAndNameTuple
+        let id,name = idAndNameTuple
 
-        // TODO: screemer id mapping is hardcoded here
-        let backgroundColor = StockScreenerReports.Core.ReportsConfig.getBackgroundColorForScreenerId id
+        let backgroundColor = ReportsConfig.getBackgroundColorForScreenerId id
 
         div [ _class "tags has-addons" ] [
             span [ 
@@ -403,7 +402,7 @@ module Views =
                 (adjustedStart |> Utils.convertToDateString, adjustedEnd |> Utils.convertToDateString)
 
     let generateFilterSection dateRange =
-        let (startDate, endDate) = dateRange
+        let startDate, endDate = dateRange
         let offsets = [-30; -1; 1; 30]
 
         let buttons = 
