@@ -70,14 +70,16 @@ module FinvizClient =
 
         List.concat [before; after]
         
-    let getResultCountForCountryAboveAndBelowSMA days country =
+    let getResultCountForCountryAboveAndBelowSMA (sma:SMA) country =
         let cleaned = country |> Utils.cleanCountry
         
         let fetchCountWithTA ta =
             let url = $"https://finviz.com/screener.ashx?v=111&f=geo_{cleaned},{ta}"
             url |> getResultCount
             
-        let above = $"ta_sma{days}_pa" |> fetchCountWithTA
-        let below = $"ta_sma{days}_pb" |> fetchCountWithTA
+        let interval = sma |> SMA.toInterval
+        
+        let above = $"ta_sma%i{interval}_pa" |> fetchCountWithTA
+        let below = $"ta_sma%i{interval}_pb" |> fetchCountWithTA
         
         (above,below)

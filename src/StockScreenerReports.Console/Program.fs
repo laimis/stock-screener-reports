@@ -28,11 +28,6 @@ let containsArgument toFind =
     | None -> false
     | Some _ -> true
 
-let overrideDate = containsArgument "--override-date"
-if overrideDate then
-    let date = DateTime.Now.AddDays(-1)
-    TimeFunctions.nowFunc <- fun() -> date
-
 let now = ReportsConfig.now()
 
 Console.WriteLine("Run date: " + now.ToString())
@@ -52,6 +47,9 @@ let runTestReports() =
 let runCyclesMigration() =
     containsArgument "--cycles-migration"
 
+let runCountriesJob() =
+    containsArgument "--countries-job"
+    
 let config = readConfig()
 
 updateStatus "Config read"
@@ -99,6 +97,12 @@ match runCyclesMigration() with
 | false ->
     ()
 
+match runCountriesJob() with
+| true ->
+    let date = DateTime.Parse("2023-10-27")
+    TimeFunctions.nowFunc <- fun() -> date
+    StockScreenerReports.Web.Services.countriesRun (DummyLogger())
+| false -> ()
 
 match runTestReports() with
 | true -> 
