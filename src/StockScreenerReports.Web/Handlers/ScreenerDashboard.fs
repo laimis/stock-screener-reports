@@ -18,15 +18,15 @@ module ScreenerDashboard =
 
         let sectorsTable =
             sectorsData
-            |> Views.toNameCountTableWithLinks "Sectors" 10 (fun name -> Links.sectorLink name)
+            |> Views.toNameCountTableWithLinks "Sectors" 10 (fun name -> Links.sectorLink name) Views.SectorClicked
 
         let industriesTable = 
             industriesData
-            |> Views.toNameCountTableWithLinks "Industries" 10 (fun name -> Links.industryLink name)
+            |> Views.toNameCountTableWithLinks "Industries" 10 (fun name -> Links.industryLink name) Views.IndustryClicked
 
         let countriesTable =
             countriesData
-            |> Views.toNameCountTableWithLinks "Countries" 10 (fun name -> Links.countryLink name)
+            |> Views.toNameCountTableWithLinks "Countries" 10 (fun name -> Links.countryLink name) Views.CountryClicked
 
         let breakdownDiv = div [_class "columns"] [
             div [_class "column"] [sectorsTable]
@@ -43,7 +43,7 @@ module ScreenerDashboard =
             breakdownDiv
         ]
 
-    let generateLayoutForScreener (screener:StockScreenerReports.Core.Screener) =
+    let generateLayoutForScreener (screener:Screener) =
 
         let dateRange = ReportsConfig.dateRangeAsStrings()
 

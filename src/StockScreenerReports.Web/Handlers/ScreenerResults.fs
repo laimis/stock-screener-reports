@@ -34,13 +34,18 @@ module ScreenerResults =
     
     let calculateBreakdowns (screenerResults:list<ScreenerResultReportItem>) =
         
-        let convertToBreakdown (name, linkFunction, groupByProperty) =
-            (name, linkFunction, (screenerResults |> List.groupBy groupByProperty |> List.sortByDescending (fun (_, list) -> list.Length)) |> List.map (fun (key, list) -> (key, list.Length)))
+        let convertToBreakdown (name, linkFunction, groupByProperty, clickFunction:ClickFunction) =
+            (
+                name,
+                linkFunction,
+                (screenerResults |> List.groupBy groupByProperty |> List.sortByDescending (fun (_, list) -> list.Length)) |> List.map (fun (key, list) -> (key, list.Length)),
+                clickFunction
+            )
 
         let breakdowns = [
-            ("Sectors", Links.sectorLink, fun (a:ScreenerResultReportItem) -> a.sector);
-            ("Industries", Links.industryLink, fun (a:ScreenerResultReportItem) -> a.industry);
-            ("Countries", Links.countryLink, fun (a:ScreenerResultReportItem) -> a.country);
+            ("Sectors", Links.sectorLink, (fun (a:ScreenerResultReportItem) -> a.sector), SectorClicked);
+            ("Industries", Links.industryLink, (fun (a:ScreenerResultReportItem) -> a.industry), IndustryClicked);
+            ("Countries", Links.countryLink, (fun (a:ScreenerResultReportItem) -> a.country), CountryClicked);
         ]
         
         breakdowns |> List.map convertToBreakdown
@@ -61,11 +66,11 @@ module ScreenerResults =
         ]
 
         results
-            |> List.map (fun r -> screenerResultToTr tickersWithEarnings topGainers r)
+            |> List.map (screenerResultToTr tickersWithEarnings topGainers)
             |> fullWidthTableWithSortableHeaderCells headers
 
     let private view
-        (screener:StockScreenerReports.Core.Screener)
+        (screener:Screener)
         (results:list<ScreenerResultReportItem>)
         (allTickersWithEarnings:list<string>)
         (topGainers:list<string>)
@@ -88,8 +93,8 @@ module ScreenerResults =
         let breakdownDivs = 
             breakdowns
             |> List.map (
-                fun (breakdownTitle,linkFunction,breakdownList) ->
-                    toNameCountTableWithLinks breakdownTitle 10 linkFunction breakdownList
+                fun (breakdownTitle,linkFunction,breakdownList, clickFunction) ->
+                    toNameCountTableWithLinks breakdownTitle 10 linkFunction clickFunction breakdownList
                 )
             |> List.map (
                 fun breakdownTable ->
@@ -143,7 +148,7 @@ module ScreenerResults =
             screenerTable |> toSection "All Results"
         ]
 
-    let handler ((id:int),(dateStr:string))  = 
+    let handler (id:int,dateStr:string)  = 
         
         // get screeners, render them in HTML
         let byIdOption = StockScreenerReports.Storage.Storage.getScreenerById id

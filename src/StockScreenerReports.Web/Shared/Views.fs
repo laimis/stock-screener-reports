@@ -204,16 +204,21 @@ module Views =
         let header, rows = toHeaderAndRowsWithLinksAndClickFunc title maxNumberOfRows linkFunction clickFunction listOfNameCountPairs
         rows |> fullWidthTableWithCustomHeader header
 
-    let toNameCountTableWithLinks title maxNumberOfRows linkFunction listOfNameCountPairs =
-        // kind of hacky -- using title
-        let clickFunction = 
-            match title with
-            | "Industries" -> Some "industryClicked(event)"
-            | "Sectors" -> Some "sectorClicked(event)"
-            | "Countries" -> Some "countryClicked(event)"
-            | _ -> None
-
-        toNameCountTableWithLinksAndClickFunc title maxNumberOfRows linkFunction clickFunction listOfNameCountPairs
+    type ClickFunction =
+        | IndustryClicked | SectorClicked | CountryClicked
+        
+    module ClickFunction =        
+        let javascriptFunction clickFunction =
+            match clickFunction with
+            | IndustryClicked -> Some "industryClicked(event)"
+            | SectorClicked -> Some "sectorClicked(event)"
+            | CountryClicked -> Some "countryClicked(event)"
+    
+    let toNameCountTableWithLinks title maxNumberOfRows linkFunction clickFunction listOfNameCountPairs =
+        
+        let onClickJavascript = ClickFunction.javascriptFunction clickFunction
+            
+        toNameCountTableWithLinksAndClickFunc title maxNumberOfRows linkFunction onClickJavascript listOfNameCountPairs
 
     let trendToHtml (trend:Trend) =
         let directionStr = 

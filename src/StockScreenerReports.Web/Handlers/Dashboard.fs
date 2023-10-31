@@ -85,7 +85,7 @@ module Dashboard =
             
             data |> List.map( fun (title, data) ->
                 div [ _class "column" ] [
-                    Views.toNameCountTableWithLinks title 5 Links.sectorLink data
+                    Views.toNameCountTableWithLinks title 5 Links.sectorLink Views.SectorClicked data
                 ]
             )
         
