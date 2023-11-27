@@ -170,8 +170,9 @@ module IndustriesDashboard =
         let table = industry20And200Rows |> fullWidthTableWithSortableHeaderCells industry20And200Header
         table
         
-    let private generateSortSection algo =
-        let sortLink selectedAlgo sortAlgo =
+    let private generateSortSection selectedAlgo =
+        
+        let sortLink sortAlgo =
             let sortAlgoAsString = sortAlgoToString sortAlgo
             let href = $"?sortParam={sortAlgoAsString}"
             let classes =
@@ -186,22 +187,48 @@ module IndustriesDashboard =
                 | TrendScore -> "Sort by Trend Score"
                 | CycleScore -> "Sort by Cycle Score"
                 
-            let link = a [ _class classes; _href href ] [ str title ]
-            link
+            a [ _class classes; _href href ] [ str title ]
             
         let sortLinks =
             [
-                sortLink algo PercentAbove200
-                sortLink algo PercentAbove20
-                sortLink algo TrendScore
-                sortLink algo CycleScore
-            ]
+                PercentAbove200
+                PercentAbove20
+                TrendScore
+                CycleScore
+            ] |> List.map sortLink
             
-        let sortLinks = sortLinks |> List.map (fun x -> div [_class "level-item"] [x])
+        let sortLinks = sortLinks |> List.map (fun sortLink -> div [_class "level-item"] [sortLink])
         
         let sortSection = div [_class "level"] sortLinks
             
         sortSection
+        
+    let private filterSection selectedAlgo minimumSelected =
+        let sortAlgoAsString = sortAlgoToString selectedAlgo
+        
+        let href selection =
+            $"?sortParam={sortAlgoAsString}&minimumStocks={selection}"
+        
+        let filterLink selection =
+            let href = href selection
+            let classes =
+                match minimumSelected = selection with
+                | true -> "button is-primary"
+                | false -> "button is-info is-light"
+                
+            let title =
+                match selection with
+                | x when x > 0 -> $"With at least {selection} stocks"
+                | 0 -> "Any number of stocks"
+                | _ -> raise (System.Exception("Invalid selection"))
+                
+            a [ _class classes; _href href ] [ str title ]
+            
+        let filterLinks = [0; 5; 10; 20] |> List.map filterLink
+            
+        let filterLinks = filterLinks |> List.map (fun sortLink -> div [_class "level-item"] [sortLink])
+        
+        div [_class "level"] filterLinks
 
     let handler : HttpHandler  =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
@@ -210,12 +237,25 @@ module IndustriesDashboard =
             let sortAlgo =
                 match sortParam with
                 | Ok value -> value |> stringToSortAlgo
-                | Error _ -> PercentAbove200
+                | Error _ -> CycleScore
+                
+            let filterParam = ctx.GetQueryStringValue("minimumStocks")
+            let minimumStocks =
+                match filterParam with
+                | Ok value -> value |> int
+                | Error _ -> 0
                     
             let latestDate = Reports.getIndustrySMABreakdownLatestDate()
             let formattedDate = latestDate |> Utils.convertToDateString
-            let industrySMABreakdowns20Map = Reports.getIndustrySMABreakdowns SMA20 formattedDate |> toBreakdownMap
-            let industrySMABreakdowns200Map = Reports.getIndustrySMABreakdowns SMA200 formattedDate |> toBreakdownMap
+            let industrySMABreakdowns20Map =
+                Reports.getIndustrySMABreakdowns SMA20 formattedDate
+                |> toBreakdownMap
+                |> Map.filter (fun _ breakdown -> breakdown.breakdown.total >= minimumStocks)
+                
+            let industrySMABreakdowns200Map =
+                Reports.getIndustrySMABreakdowns SMA200 formattedDate
+                |> toBreakdownMap
+                |> Map.filter (fun _ breakdown -> breakdown.breakdown.total >= minimumStocks)
             
             let industryTrends20Map = Reports.getIndustryTrends formattedDate SMA20 |> toTrendsMap 
             let industryTrends200Map = Reports.getIndustryTrends formattedDate SMA200 |> toTrendsMap
@@ -267,6 +307,7 @@ module IndustriesDashboard =
             let title = $"Industry SMA Breakdowns ({industrySMABreakdowns20Map.Count} industries) - {formattedDate}"
             
             let sortSection = generateSortSection sortAlgo
+            let filterSection = filterSection sortAlgo minimumStocks
             
             let table =
                 generateIndustriesView
@@ -277,6 +318,6 @@ module IndustriesDashboard =
                     dailySMABreakdownMap
                     sortFunc
                     
-            let view = toSection title (div [] [sortSection; table])
+            let view = toSection title (div [] [sortSection; filterSection; table])
             
             ([view] |> mainLayout $"Industries") next ctx
