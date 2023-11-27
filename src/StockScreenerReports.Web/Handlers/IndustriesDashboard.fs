@@ -27,7 +27,7 @@ module IndustriesDashboard =
         | "percentAbove20" -> PercentAbove20
         | "cycleScore" -> CycleScore
         | "trendScore" -> TrendScore
-        | _ -> PercentAbove200
+        | _ -> CycleScore
     
     let toBreakdownMap breakdowns =
         (breakdowns:IndustrySMABreakdown list)
