@@ -169,12 +169,16 @@ module IndustriesDashboard =
 
         let table = industry20And200Rows |> fullWidthTableWithSortableHeaderCells industry20And200Header
         table
+    
+    let private generateHref sortAlgo minimumStocks =
+        let sortAlgoAsString = sortAlgoToString sortAlgo
+        let href = $"?sortParam={sortAlgoAsString}&minimumStocks={minimumStocks}"
+        href
         
-    let private generateSortSection selectedAlgo =
+    let private generateSortSection selectedAlgo selectedMinimumNumberOfStocks =
         
         let sortLink sortAlgo =
-            let sortAlgoAsString = sortAlgoToString sortAlgo
-            let href = $"?sortParam={sortAlgoAsString}"
+            let href = generateHref sortAlgo selectedMinimumNumberOfStocks
             let classes =
                 match selectedAlgo = sortAlgo with
                 | true -> "button is-primary"
@@ -204,13 +208,9 @@ module IndustriesDashboard =
         sortSection
         
     let private filterSection selectedAlgo minimumSelected =
-        let sortAlgoAsString = sortAlgoToString selectedAlgo
-        
-        let href selection =
-            $"?sortParam={sortAlgoAsString}&minimumStocks={selection}"
         
         let filterLink selection =
-            let href = href selection
+            let href = generateHref selectedAlgo selection
             let classes =
                 match minimumSelected = selection with
                 | true -> "button is-primary"
@@ -306,7 +306,7 @@ module IndustriesDashboard =
             
             let title = $"Industry SMA Breakdowns ({industrySMABreakdowns20Map.Count} industries) - {formattedDate}"
             
-            let sortSection = generateSortSection sortAlgo
+            let sortSection = generateSortSection sortAlgo minimumStocks
             let filterSection = filterSection sortAlgo minimumStocks
             
             let table =
