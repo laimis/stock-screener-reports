@@ -124,6 +124,7 @@ type ReportsConfig =
                 DateTime(2023, 6, 19)
                 DateTime(2023, 7, 4)
                 DateTime(2023, 9, 4)
+                DateTime(2023, 11, 23)
                 DateTime(2023, 12, 25)
                 DateTime(2024, 1, 1)
                 DateTime(2024, 1, 15)
