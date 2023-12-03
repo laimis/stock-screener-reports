@@ -17,6 +17,8 @@ module Cycles =
     let private minimumChangeParam = "minimumChange"
     [<Literal>]
     let private minimumRateOfChangeParam = "minimumRateOfChange"
+    [<Literal>]
+    let private maximumHighAgeParam = "maximumHighAge"
 
 
     let internal generateIndustryCycleStartChart (cycles:IndustryWithCycle list) =
@@ -58,7 +60,7 @@ module Cycles =
 
             div [] chart |> toSection "Industry Cycle Start Counts"
     
-    let private generateFilterSectionForm maximumAge minimumValue minimumChange minimumRateOfChange =
+    let private generateFilterSectionForm maximumAge minimumValue minimumChange minimumRateOfChange maximumHighAge =
 
         form [] [
             div [ _class "columns"] [
@@ -102,6 +104,15 @@ module Cycles =
                         _value (minimumRateOfChange.ToString())
                     ]
                 ]
+                div [ _class "field column" ] [
+                    label [ _for maximumHighAgeParam ] [ str "Maximum High Age" ]
+                    input [
+                        _type "number"
+                        _name maximumHighAgeParam
+                        _class "input"
+                        _value (maximumHighAge.ToString())
+                    ]
+                ]
             ]
             div [ ] [
                 input [
@@ -114,12 +125,14 @@ module Cycles =
                 a [ _href $"/cycles?{maximumAgeParam}=10&{minimumValueParam}=50" ] [ str "max 10 days, minimum 50" ]
                 str " | "
                 a [ _href $"/cycles?{maximumAgeParam}=30&{minimumValueParam}=50" ] [ str "max 30 days, minimum 50" ]
+                str " | "
+                a [ _href $"/cycles?{maximumAgeParam}=10&{maximumHighAgeParam}=5" ] [ str "max 10 days, high age max 5 days" ]
             ]
         ]
 
-    let private generateCyclesSection maximumAge minimumValue minimumChange minimumRateOfChange (cycles:list<IndustryWithCycle>) =
+    let private generateCyclesSection maximumAge minimumValue minimumChange minimumRateOfChange maximumHighAge (cycles:list<IndustryWithCycle>) =
         
-        let filterSection = generateFilterSectionForm maximumAge minimumValue minimumChange minimumRateOfChange
+        let filterSection = generateFilterSectionForm maximumAge minimumValue minimumChange minimumRateOfChange maximumHighAge
 
         let rows =
             cycles
@@ -181,18 +194,20 @@ module Cycles =
         let minimumValue = parseParam minimumValueParam System.Decimal.TryParse 0m
         let minimumChange = parseParam minimumChangeParam System.Decimal.TryParse 0m
         let minimumRateOfChange = parseParam minimumRateOfChangeParam System.Decimal.TryParse 0m
+        let maximumHighAge = parseParam maximumHighAgeParam System.Int32.TryParse System.Int32.MaxValue
 
-        (maximumAge, minimumValue, minimumChange, minimumRateOfChange)
+        (maximumAge, minimumValue, minimumChange, minimumRateOfChange, maximumHighAge)
 
     let handler : HttpHandler  =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
 
-            let maximumAge, minimumValue, minimumChange, minimumRateOfChange = getQueryParams ctx
+            let maximumAge, minimumValue, minimumChange, minimumRateOfChange, maximumHighAge = getQueryParams ctx
             let cycleFilterFunc = fun (_, cycle:MarketCycle) -> 
                 cycle.age.TotalDays <= maximumAge &&
                 cycle.currentPointValue >= minimumValue &&
                 cycle.currentPointValue - cycle.startPointValue >= minimumChange &&
-                cycle.rateOfChange >= minimumRateOfChange
+                cycle.rateOfChange >= minimumRateOfChange &&
+                cycle.highPointAge.TotalDays <= maximumHighAge
 
             let cycles =
                 SMA20
@@ -216,7 +231,7 @@ module Cycles =
 
             let cycleTableSection =
                 filteredCycles
-                |> generateCyclesSection maximumAge minimumValue minimumChange minimumRateOfChange
+                |> generateCyclesSection maximumAge minimumValue minimumChange minimumRateOfChange maximumHighAge
 
             let view = [
                 warningSection
