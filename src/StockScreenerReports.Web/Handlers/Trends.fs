@@ -47,7 +47,7 @@ module Trends =
         |> List.map(fun (sma, breakdowns) ->
             let trendWithCycle = TrendsCalculator.calculate breakdowns
             let trendHtml = $"<b>SMA {sma}:</b> {trendWithCycle.trend |> trendToHtml}"
-            let cycleHtml = $"Market cycle: {trendWithCycle.cycle |> marketCycleToHtml}"
+            let cycleHtml = $"{trendWithCycle.cycle |> marketCycleToHtml}"
 
             div [_class "column"] [
                 div [] [trendHtml |> rawText]

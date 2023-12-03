@@ -96,7 +96,7 @@ module Dashboard =
             $"SMA <b>{sma |> SMA.toInterval}</b>: {trend |> Views.trendToHtml}"
 
         let mapMarketCycleToHtml (cycle:MarketCycle) =
-            $"Market cycle: {cycle |> Views.marketCycleToHtml}"
+            $"{cycle |> Views.marketCycleToHtml}"
 
         let columns =
             smaTrendCyclePairs
