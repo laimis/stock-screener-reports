@@ -148,7 +148,7 @@ module Trends =
                         topIndustries
                         |> List.map (fun trend ->
                             [
-                                LinkColumn(trend.industry, trend.industry |> Links.industryLink)
+                                LinkNewTabColumn(trend.industry, trend.industry |> Links.industryLink)
                                 StringColumn(trend.trend.streakFormatted)
                                 StringColumn(trend.trend.changeFormatted)
                                 StringColumn(trend.trend.streakRateFormatted)
