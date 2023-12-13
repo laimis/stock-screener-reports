@@ -44,6 +44,9 @@ module Router =
                     route Links.jobsEarnings >=> warbler (fun _ -> Jobs.earnings())
                     route Links.jobsTrends >=> warbler (fun _ -> Jobs.trends())
                     route Links.jobsCountries >=> warbler (fun _ -> Jobs.countries())
+                    
+                    // test endpoint
+                    route "/screeners/diagnostics" >=> warbler (fun _ -> ScreenerManagement.checkScannerHandler())
 
                 ]
             POST >=>

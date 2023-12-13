@@ -1,5 +1,9 @@
 namespace StockScreenerReports.Web.Handlers
 
+open Microsoft.Extensions.Logging
+open StockScreenerReports.FinvizClient
+open StockScreenerReports.Web.Shared.Utils
+
 module ScreenerManagement =
 
     open FSharp.Data
@@ -50,6 +54,16 @@ module ScreenerManagement =
 
     let header = "date, ticker, name, sector, industry, country, marketCap, price, change, volume, url"
 
+    let logger : ILogger = DummyLogger()
+    let outputFunc message =
+        logger.LogInformation(message)
+        
+    let checkScannerHandler() =
+        FinvizClient.setOutputFunc outputFunc
+        let results = FinvizClient.getResultCountForIndustryAboveAndBelowSMA SMA.SMA20 "Software - Infrastructure"
+        outputFunc $"Results: {results}"
+        redirectTo false Links.screeners
+            
     let deleteHandler id =
         let screener = Storage.getScreenerById id
         match screener with
@@ -334,7 +348,8 @@ module ScreenerManagement =
             | EarningsJob -> Links.jobsEarnings
             | ScreenerJob -> Links.jobsScreeners
             | TrendsJob -> Links.jobsTrends
-            | _ -> job.name.ToString()
+            | CountriesJob -> Links.jobsCountries
+            | TestJob -> "testjob"
 
         let jobRows =
             jobs

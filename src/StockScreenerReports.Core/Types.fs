@@ -360,7 +360,7 @@ type JobName =
     | TestJob
     | EarningsJob
     | CountriesJob
-
+    
 type Job = {
     name: JobName;
     status: JobStatus;

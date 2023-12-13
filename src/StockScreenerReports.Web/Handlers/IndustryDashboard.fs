@@ -367,7 +367,7 @@ module IndustryDashboard =
         >=>
             let rows = 
                 stocks
-                |> List.sortBy (fun s -> s.ticker)
+                |> List.sortByDescending (fun s -> s.marketCap)
                 |> List.map (fun s -> 
                     IndustryExportType.Row(
                         s.ticker |> StockTicker.value,

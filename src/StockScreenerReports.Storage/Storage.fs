@@ -56,11 +56,11 @@ module Storage =
 
     let private toJobNameString jobName =
         match jobName with
-            | ScreenerJob _ -> "screenerjob"
-            | TrendsJob _ -> "industrytrendsjob"
-            | TestJob _ -> "testjob"
-            | EarningsJob _ -> "earningsjob"
-            | CountriesJob _ -> "countriesjob"
+            | ScreenerJob -> "screenerjob"
+            | TrendsJob -> "industrytrendsjob"
+            | TestJob -> "testjob"
+            | EarningsJob -> "earningsjob"
+            | CountriesJob -> "countriesjob"
 
     let private toJobName jobName =
         match jobName with
@@ -72,8 +72,8 @@ module Storage =
             | _ -> raise (System.Exception($"Unknown job name: {jobName}"))
     let private toJobStatusString status =
         match status with
-            | Success _ -> "success"
-            | Failure _ -> "failure"
+            | Success -> "success"
+            | Failure -> "failure"
 
     let private toJobStatus status =
         match status with
@@ -92,13 +92,13 @@ module Storage =
 
     let private toTrendDirectionString (trendDirection:TrendDirection) =
         match trendDirection with
-            | Up _ -> "up"
-            | Down _ -> "down"
+            | Up -> "up"
+            | Down -> "down"
 
     let private toEarningTimeString earningsTime =
         match earningsTime with
-            | BeforeMarket _ -> "beforemarket"
-            | AfterMarket _ -> "aftermarket"
+            | BeforeMarket -> "beforemarket"
+            | AfterMarket -> "aftermarket"
 
     let singleOrThrow message results =
         match results with
