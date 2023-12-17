@@ -79,4 +79,4 @@ module Links =
         let earningsCommaSeparated = earnings |> String.concat ","
 
         // https://localhost:5002
-        $"https://ngtrading-xiu9e.ondigitalocean.app/reports/outcomes?tickers={commaSeparated}&earnings={earningsCommaSeparated}&title={title}&endDate={date}"
+        $"https://ngtrading-3mun9.ondigitalocean.app/reports/outcomes?tickers={commaSeparated}&earnings={earningsCommaSeparated}&title={title}&endDate={date}"
