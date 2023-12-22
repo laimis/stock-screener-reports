@@ -465,18 +465,20 @@ module Views =
             "company"
             "sector"
             "industry"
+            "country"
             "market cap"
             "chart"
         ]
 
         stocks
-        |> List.sortByDescending (fun stock -> stock.marketCap)
+        |> List.sortByDescending _.marketCap
         |> List.map (fun stock ->
             tr [] [
                 TickerLinkColumn(stock.ticker |> StockTicker.value) |> toTd
                 StringColumn(stock.company)   |> toTd
                 LinkColumn(stock.sector, stock.sector |> Links.sectorLink) |> toTd
                 LinkColumn(stock.industry, stock.industry |> Links.industryLink) |> toTd
+                LinkColumn(stock.country, stock.country |> Links.countryLink) |> toTd
                 StringColumn(stock.marketCap |> marketCapOptionFormatted) |> toTd
                 LinkNewTabColumn("chart", stock.ticker |> StockTicker.value |> Links.tradingViewLink) |> toTd
             ]
