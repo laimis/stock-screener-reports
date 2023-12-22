@@ -121,7 +121,7 @@ module IndustryDashboard =
             
         columns |> toSection "SMA Breakdown"
 
-    let private createHeaderSection dateRange industryName  =
+    let private createHeaderSection dateRange (stocks:Stock list) industryName  =
 
         let breakdowns = industryName |> getIndustrySMABreakdownsForIndustry SMA20 dateRange
         let cycleScore = breakdowns |> MarketCycleScoring.cycleScore
@@ -140,7 +140,7 @@ module IndustryDashboard =
 
         div [ _class "columns"] [
             div [ _class "column"] [
-                h1 [] [ str industryName ]
+                h1 [] [ str $"{industryName} - {stocks.Length} stocks" ]
 
                 div [_class "card-container"] [
                     div [_class $"card {trendCardClass}"] [
@@ -320,7 +320,7 @@ module IndustryDashboard =
             ]
             
             let topLevel = [
-                industryName |> createHeaderSection dateRange
+                industryName |> createHeaderSection dateRange stocks
                 industryName |> createSMABreakdownSection
             ]
 
