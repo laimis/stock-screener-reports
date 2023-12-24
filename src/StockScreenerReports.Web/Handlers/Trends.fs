@@ -210,23 +210,18 @@ module Trends =
             |> Map.ofSeq
 
         let highsMinusLowsChart =
-            ReportsConfig.dateRange()
+            dateRange
+            |> fun (start, ``end``) -> (System.DateTime.Parse(start), System.DateTime.Parse(``end``))
             |> ReportsConfig.listOfBusinessDates
             |> Seq.map(fun date ->
-                let high = 
-                    match (newHighsDataMap |> Map.tryFind date.Date)
-                    with
-                        | Some c -> c
-                        | None -> 0
+                let highMatch = newHighsDataMap |> Map.tryFind date.Date
+                let lowMatch = newLowsDataMap |> Map.tryFind date.Date
                 
-                let low =
-                    match (newLowsDataMap |> Map.tryFind date.Date)
-                    with
-                        | Some c -> c
-                        | None -> 0
-
-                (date,high - low)
+                match highMatch, lowMatch with
+                | Some high, Some low -> Some (date, high - low)
+                | _ -> None
             )
+            |> Seq.choose id
             |> List.ofSeq
             |> Charts.convertNameCountsToChart "Highs - Lows" Charts.Bar None Charts.smallChart ReportsConfig.getBackgroundColorDefault
             |> div [_class "block"]
