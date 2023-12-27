@@ -294,12 +294,22 @@ module IndustryDashboard =
             let screenerResultsTable =
                 resultRows
                 |> fullWidthTableWithSortableHeaderCells headerNames
-            
 
             let stocks = industryName |> Storage.getStocksByIndustry
             let stockTable = stocks |> generateStockTable
 
-            let tickers = stocks |> List.map (fun stock -> stock.ticker |> StockTicker.value)
+            // tickers logic is a bit involved here. We can run analysis on 30 stocks at a time right now
+            // so I need to take top 30 stocks by market cap
+            let tickers =
+                stocks
+                |> List.sortByDescending (_.marketCap)
+                |> List.map (fun s -> s.ticker |> StockTicker.value)
+                
+            let tickers =
+                match tickers.Length with
+                | x when x > 40 -> tickers |> List.take 40
+                | _ -> tickers
+            
             let stocksSection = section [_class "mt-5"] [
                 h4 [] [
                     $"Stocks in Industry ({stocks.Length})" |> str
@@ -312,7 +322,7 @@ module IndustryDashboard =
                     small [ _class "is-pulled-right mr-2"] [
                         generateHrefWithAttrs
                             "NGTD Outcomes"
-                            ((industryName,tickers,[],"") |> Links.ngtdOutcomesReportLink)
+                            ((industryName,tickers,[],startDate,endDate) |> Links.ngtdOutcomesReportLink)
                             [(_class "button is-small is-primary mr-2") ; (_target "_blank")]
                     ]
                 ]

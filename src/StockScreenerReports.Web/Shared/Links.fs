@@ -74,9 +74,9 @@ module Links =
         
         $"https://finviz.com/screener.ashx?v=111&f=ind_" + value
 
-    let ngtdOutcomesReportLink (title,tickers,earnings,date) =
+    let ngtdOutcomesReportLink (title,tickers,earnings,endDate,startDate) =
         let commaSeparated = tickers |> String.concat ","
         let earningsCommaSeparated = earnings |> String.concat ","
+        let titleCleaned = title |> System.Uri.EscapeDataString
 
-        // https://localhost:5002
-        $"https://ngtrading-3mun9.ondigitalocean.app/reports/outcomes?tickers={commaSeparated}&earnings={earningsCommaSeparated}&title={title}&endDate={date}"
+        $"https://ngtrading-3mun9.ondigitalocean.app/reports/outcomes?tickers={commaSeparated}&earnings={earningsCommaSeparated}&title={titleCleaned}&endDate={endDate}&startDate={startDate}"
