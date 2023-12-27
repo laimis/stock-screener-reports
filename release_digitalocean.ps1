@@ -6,10 +6,42 @@ function Get-LastCommitMessage {
     return $lastCommit
 }
 
+function Speak-Message ($message) {
+    $voice = New-Object -ComObject Sapi.spvoice
+    
+    # get voices, use one where Id contains ZIRA
+    $voices = $voice.GetVoices()
+    $voice.Voice = $voices | Where-Object { $_.Id.Contains("ZIRA") }
+    $voice.rate = 0
+    $voice.speak($message)
+}
+
+function Exit-With-Error ($message) {
+    write-host $message
+    Speak-Message $message
+    exit 1
+}
+
+# check if there are any git changes, and if there are, report them and exit
+$gitStatus = git status --porcelain
+if ($null -ne $gitStatus) {
+    
+    # store message as multiline string
+    $message = "
+There are uncommitted changes in git, please make sure everything is committed before doing a release.
+Git status:
+$gitStatus
+"
+    Exit-With-Error $message
+}
+
 if ([System.String]::IsNullOrEmpty($message))
 {
     $lastCommit = Get-LastCommitMessage
-    write-host "Message is missing, would you like to use the last commit message: $lastCommit"
+    $warningMessage = "Message is missing, would you like to use the last commit message: $lastCommit"
+    write-host $warningMessage
+    Speak-Message $warningMessage
+    
     $response = Read-Host "y/n"
     if ($response -eq "y")
     {
@@ -17,8 +49,7 @@ if ([System.String]::IsNullOrEmpty($message))
     }
     else
     {
-        write-host "Please provide a message"
-        exit
+        Exit-With-Error "Please provide a message"
     }
 }
 
@@ -30,6 +61,12 @@ if ($message -eq "y")
 
 # ensure that $messsage has "'" escaped
 $message = $message -replace "'", "''"
+
+Invoke-Expression "dotnet build"
+$exitCode = $LASTEXITCODE
+if ($exitCode -ne 0) {
+    Exit-With-Error "Build failed"
+}
 
 # make sure garbage collection is not in progress
 $garbageCollection = $true
