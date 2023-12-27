@@ -37,7 +37,7 @@ module Views =
     let percentFormatted (value:decimal) =
         $"{value} %%"
 
-    let volumeFormatted (value:int) =
+    let volumeFormatted (value:int64) =
         value.ToString("N0")
 
     let generateIcon classNames =
