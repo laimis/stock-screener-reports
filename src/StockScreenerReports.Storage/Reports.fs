@@ -52,7 +52,7 @@ module Reports =
             );
             price = (reader.decimal "price");
             change = (reader.decimal "change");
-            volume = (reader.int "volume");
+            volume = (reader.int64 "volume");
             screenerid = (reader.int "screenerid");
             screenername = (reader.string "screenername");
         }
