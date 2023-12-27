@@ -184,7 +184,7 @@ type ScreenerResult = {
     marketCap:decimal;
     price:decimal;
     change:decimal;
-    volume:int;
+    volume:int64;
 }
 
 type Stock = {

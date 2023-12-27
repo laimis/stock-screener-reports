@@ -320,7 +320,7 @@ module Storage =
             "@marketcap", Sql.decimal result.marketCap;
             "@price", Sql.decimal result.price;
             "@change", Sql.decimal result.change;
-            "@volume", Sql.int result.volume
+            "@volume", Sql.int64 result.volume
         ]
         |> Sql.executeNonQuery
 

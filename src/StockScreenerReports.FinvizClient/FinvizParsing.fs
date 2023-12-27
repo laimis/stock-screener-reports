@@ -70,7 +70,10 @@ module FinvizParsing =
                     | _   -> raise (new System.Exception("Cap to decimal conversion failed for " + value))
 
             let toInt str =
-                System.Int32.Parse(str)
+                try
+                    System.Int64.Parse(str)
+                with
+                | _ -> raise (new System.Exception("toInt conversion failed for " + str))
 
             let remove characterToRemove str =
                 String.filter (fun c -> c.Equals(characterToRemove) |> not) str
