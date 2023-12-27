@@ -74,7 +74,7 @@ module Links =
         
         $"https://finviz.com/screener.ashx?v=111&f=ind_" + value
 
-    let ngtdOutcomesReportLink (title,tickers,earnings,endDate,startDate) =
+    let ngtdOutcomesReportLink (title,tickers,earnings,startDate,endDate) =
         let commaSeparated = tickers |> String.concat ","
         let earningsCommaSeparated = earnings |> String.concat ","
         let titleCleaned = title |> System.Uri.EscapeDataString

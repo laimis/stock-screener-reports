@@ -125,7 +125,7 @@ module ScreenerResults =
 
                     generateHrefWithAttrs
                         "NGTD Outcomes"
-                        ((screener.name,tickers,tickersWithEarningsInResults,date,"") |> Links.ngtdOutcomesReportLink)
+                        ((screener.name,tickers,tickersWithEarningsInResults,"",date) |> Links.ngtdOutcomesReportLink)
                         [(_class "button is-primary mr-2") ; (_target "_blank")]
 
                     button [
