@@ -52,13 +52,24 @@ namespace StockScreenerReports.Core
             | DayOfWeek.Sunday -> refDate.AddDays(-6)
             | _ -> refDate
 
-        let getLatestBusinessDate() =
-            let refDate = ReportsConfig.now()
+        let getLatestBusinessDate forDate =
+            
+            let rec firstNonHoliday (date:DateTime) =
+                match date.Date |> ReportsConfig.isHoliday with
+                | true -> firstNonHoliday (date.AddDays(-1))
+                | false -> date
+            
+            let refDate = forDate |> firstNonHoliday
             match refDate.DayOfWeek with
             | DayOfWeek.Saturday -> refDate.AddDays(-1).Date.Add(new TimeSpan(23,59,59))
             | DayOfWeek.Sunday -> refDate.AddDays(-2).Date.Add(new TimeSpan(23,59,59))
             | _ -> refDate
 
         let ageInBusinessDays (date:DateTime) =
-            let latestBusiness = getLatestBusinessDate()
-            latestBusiness.Subtract(date)
+            let latestBusiness = ReportsConfig.now() |> getLatestBusinessDate
+            let dateLatestBusinessDate = date |> getLatestBusinessDate
+            let diff = latestBusiness.Subtract(dateLatestBusinessDate)
+            printfn "Latest business date: %A" latestBusiness
+            printfn "Date latest business date: %A" dateLatestBusinessDate
+            printfn "Diff: %A" diff
+            diff
