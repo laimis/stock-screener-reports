@@ -42,6 +42,12 @@ module ScreenerManagement =
         }
         
     [<CLIMutable>]
+    type DeleteStockInput = 
+        {
+            ticker: string
+        }
+        
+    [<CLIMutable>]
     type ChangeStockIndustryInput =
         {
             ticker: string
@@ -142,6 +148,20 @@ module ScreenerManagement =
             task {
                 let! input = ctx.BindFormAsync<RenameStockInput>()
                 Storage.renameStockTicker (input.oldTicker |> StockTicker.create) (input.newTicker |> StockTicker.create) |> ignore
+                return! redirectTo false Links.screeners next ctx
+            }
+            
+    let deleteStockHandler : HttpHandler =
+        fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
+            task {
+                let! input = ctx.BindFormAsync<DeleteStockInput>()
+                let stock = Storage.getStockByTicker (input.ticker |> StockTicker.create)
+                match stock with
+                | Some s ->
+                    Storage.deleteStock s |> ignore
+                | None ->
+                    failwith $"Stock {input.ticker} not found"
+                    
                 return! redirectTo false Links.screeners next ctx
             }
             
@@ -263,6 +283,27 @@ module ScreenerManagement =
                     _value "Rename"
                 ]
             ]
+        
+    let createDeleteStockForm =
+        form [
+            _method "POST"
+            _action Links.deleteStockLink
+        ] [
+            div [ _class "field" ] [
+                label [ _for "ticker" ] [ str "Ticker" ]
+                input [
+                    _type "text"
+                    _name "ticker"
+                    _class "input"
+                ]
+            ]
+            // submit button
+            input [
+                _type "submit"
+                _class "button is-danger"
+                _value "Delete"
+            ]
+        ]
     
     let createStockIndustryChangeForm =
         form [
@@ -285,15 +326,14 @@ module ScreenerManagement =
                         _class "input"
                     ]
                 ]
-                // submit button
                 input [
                     _type "submit"
                     _class "button is-primary"
-                    _value "Change"
+                    _class "button is-primary"
                 ]
             ]
 
-    let createDeleteForm =
+    let createDeleteDateForm =
         form [
                 _method "POST"
                 _action Links.deleteDateLink
@@ -384,9 +424,11 @@ module ScreenerManagement =
 
         let migrateForm = createMigrateForm
 
-        let deleteDateForm = createDeleteForm
+        let deleteDateForm = createDeleteDateForm
         
         let renameStockForm = createRenameStockForm
+        
+        let deleteStockForm = createDeleteStockForm
         
         let changeStockIndustryForm = createStockIndustryChangeForm
 
@@ -399,6 +441,7 @@ module ScreenerManagement =
                 migrateForm     |> toSection "Migrate"
                 deleteDateForm  |> toSection "Delete Date"
                 renameStockForm |> toSection "Rename Stock"
+                deleteStockForm |> toSection "Delete Stock"
                 changeStockIndustryForm |> toSection "Change Stock Industry"
                 jobsTable       |> toSection "Jobs"
             ]

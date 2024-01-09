@@ -48,6 +48,7 @@ module Links =
     
     let deleteDateLink = "/screeners/deletedate"
     let renameStockLink = "/screeners/renamestock"
+    let deleteStockLink = "/screeners/deletestock"
     let changeStockIndustryLink = "/screeners/changestockindustry"
     
     let screeners = "/screeners"

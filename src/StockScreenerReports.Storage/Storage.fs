@@ -228,11 +228,19 @@ module Storage =
             |> Sql.executeRow stockMapper        
 
     let deleteStock (stock:Stock) =
+        
         cnnString
         |> Sql.connect
-        |> Sql.query "DELETE FROM stocks WHERE id = @stockId"
-        |> Sql.parameters ["@stockId", Sql.int stock.id]
-        |> Sql.executeNonQuery
+        |> Sql.executeTransaction [
+            
+            "DELETE FROM screenerresults WHERE stockId = @stockId", [
+                ["@stockId", Sql.int stock.id]
+            ]
+            
+            "DELETE FROM stocks WHERE id = @stockId", [
+                ["@stockId", Sql.int stock.id]
+            ]
+        ]
 
     let private screenerMapper (reader:RowReader) =
         {
