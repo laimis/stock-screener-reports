@@ -54,12 +54,6 @@ module ScreenerManagement =
             newIndustry: string
         }
 
-    type ScreenerExportType =   CsvProvider<
-        Schema = "date, ticker, name, sector (string), industry (string), country (string), marketCap (decimal), price (decimal), change (decimal), volume (decimal), url (string)",
-        HasHeaders=false>
-
-    let header = "date, ticker, name, sector, industry, country, marketCap, price, change, volume, url"
-
     let logger : ILogger = DummyLogger()
     let outputFunc message =
         logger.LogInformation(message)
@@ -78,42 +72,6 @@ module ScreenerManagement =
             redirectTo false Links.screeners
         | None ->
             redirectTo false Links.screeners
-
-    let exportHandler id =
-        setHttpHeader "Content-Type" "text/csv"
-        >=> 
-            let screener = Storage.getScreenerById id
-            let filename =
-                match screener with
-                | Some s -> $"export_{s.name}.csv"
-                | None -> $"export.csv"
-
-            let escapedFilename = System.Uri.EscapeDataString(filename)
-
-            setHttpHeader "Content-Disposition" $"attachment; filename={escapedFilename}"
-        >=>
-            let data = Reports.getAllScreenerResults id
-            let rows = 
-                data 
-                |> List.map (fun r -> 
-                    ScreenerExportType.Row(
-                        r.date,
-                        r.ticker,
-                        r.name,
-                        r.sector,
-                        r.industry,
-                        r.country,
-                        r.marketCap,
-                        r.price,
-                        r.change,
-                        r.volume,
-                        r.ticker |> Links.tradingViewLink
-                    )
-                )
-
-            let csv = new ScreenerExportType(rows)
-
-            setBodyFromString (header + System.Environment.NewLine + csv.SaveToString())
 
     let createHandler : HttpHandler =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
@@ -173,7 +131,7 @@ module ScreenerManagement =
                 return! redirectTo false Links.screeners next ctx
             }
 
-    let createScreenersTable (screeners:list<StockScreenerReports.Core.Screener>) =
+    let createScreenersTable (screeners:list<Screener>) =
         let screenerRows =
             screeners
             |> List.map ( fun screener ->

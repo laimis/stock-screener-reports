@@ -311,9 +311,9 @@ module Reports =
             ]
             |> Sql.execute mapScreenerResultReportItem
 
-    let getAllScreenerResults id =
+    let getAllScreenerResults screenerId =
 
-        let sql = @$"
+        let sql = @"
             SELECT 
                 stocks.id,ticker,stocks.name,sector,industry,country,
                 screeners.id as screenerid,screeners.name as screenername,
@@ -329,9 +329,9 @@ module Reports =
             |> Sql.connect
             |> Sql.query sql
             |> Sql.parameters [
-                "@screenerid", Sql.int id
+                "@screenerid", Sql.int screenerId
             ]
-            |> Sql.execute (fun reader -> mapScreenerResultReportItem reader)
+            |> Sql.execute mapScreenerResultReportItem
 
     let getDailyTotalVolumeForScreener dateRange screenerId =
 

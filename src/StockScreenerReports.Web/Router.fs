@@ -15,6 +15,7 @@ module Router =
                     
                     routef "/screeners/%i" ScreenerDashboard.handler
                     routef "/screeners/%i/results/%s" ScreenerResults.handler
+                    routef "/screeners/%i/results/export" ScreenerResults.exportHandler
                     route Links.trends >=> Trends.handler
 
                     route Links.searchLink >=> Search.handler
@@ -54,7 +55,7 @@ module Router =
                     route Links.screenersNew >=> ScreenerManagement.createHandler
                     routef "/screeners/%i/delete" ScreenerManagement.deleteHandler
                     
-                    routef "/screeners/%i/export" ScreenerManagement.exportHandler
+                    routef "/screeners/%i/export" ScreenerResults.exportHandler
 
                     route "/reports/adhoc/export" >=> warbler (fun _ -> AdhocReport.exportHandler())
 

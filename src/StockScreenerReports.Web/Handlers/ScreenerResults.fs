@@ -2,11 +2,21 @@ namespace StockScreenerReports.Web.Handlers
 
 module ScreenerResults =
 
+    open Giraffe
     open Giraffe.ViewEngine
+    open StockScreenerReports.Storage
     open StockScreenerReports.Storage.Reports
     open StockScreenerReports.Web.Shared
     open StockScreenerReports.Web.Shared.Views
     open StockScreenerReports.Core
+    open FSharp.Data
+
+    [<Literal>]
+    let header = "screenerid, date, ticker, name, sector, industry, country, marketCap, price, change, volume, url"
+
+    type ScreenerExportType =   CsvProvider<
+        Schema = "screenerid, date (string), ticker, name, sector (string), industry (string), country (string), marketCap (decimal), price (decimal), change (decimal), volume (decimal), url (string)",
+        HasHeaders=false>
 
     let screenerResultToTr tickersWithEarnings topGainers (result:ScreenerResultReportItem) =
         
@@ -148,10 +158,47 @@ module ScreenerResults =
             screenerTable |> toSection "All Results"
         ]
 
+    let exportHandler id =
+        setHttpHeader "Content-Type" "text/csv"
+        >=> 
+            let screener = Storage.getScreenerById id
+            let filename =
+                match screener with
+                | Some s -> $"export_{s.name}.csv"
+                | None -> "export.csv"
+
+            let escapedFilename = System.Uri.EscapeDataString(filename)
+
+            setHttpHeader "Content-Disposition" $"attachment; filename={escapedFilename}"
+        >=>
+            let data = getAllScreenerResults id
+            let rows = 
+                data 
+                |> List.map (fun r -> 
+                    ScreenerExportType.Row(
+                        r.screenerid.ToString(),
+                        r.date |> Utils.convertToDateString,
+                        r.ticker,
+                        r.name,
+                        r.sector,
+                        r.industry,
+                        r.country,
+                        r.marketCap,
+                        r.price,
+                        r.change,
+                        r.volume,
+                        r.ticker |> Links.tradingViewLink
+                    )
+                )
+
+            let csv = new ScreenerExportType(rows)
+
+            setBodyFromString (header + System.Environment.NewLine + csv.SaveToString())
+            
     let handler (id:int,dateStr:string)  = 
         
         // get screeners, render them in HTML
-        let byIdOption = StockScreenerReports.Storage.Storage.getScreenerById id
+        let byIdOption = Storage.getScreenerById id
         match byIdOption with
         | Some screener -> 
             let date = 
