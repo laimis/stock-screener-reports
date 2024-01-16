@@ -54,7 +54,7 @@ module Links =
     let screeners = "/screeners"
     let screenersNew = "/screeners/new"
     let screenersDelete id = $"/screeners/{id}/delete"
-    let screenersExport id = $"/screeners/{id}/export"
+    let screenersExport id = $"/screeners/{id}/results/export"
     let adhocReportExport = "/reports/adhoc/export"
     
     let trends = "/trends"

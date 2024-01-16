@@ -11,9 +11,6 @@ module ScreenerResults =
     open StockScreenerReports.Core
     open FSharp.Data
 
-    [<Literal>]
-    let header = "screenerid, date, ticker, name, sector, industry, country, marketCap, price, change, volume, url"
-
     type ScreenerExportType =   CsvProvider<
         Schema = "screenerid, date (string), ticker, name, sector (string), industry (string), country (string), marketCap (decimal), price (decimal), change (decimal), volume (decimal), url (string)",
         HasHeaders=false>
@@ -191,9 +188,8 @@ module ScreenerResults =
                     )
                 )
 
-            let csv = new ScreenerExportType(rows)
-
-            setBodyFromString (header + System.Environment.NewLine + csv.SaveToString())
+            (new ScreenerExportType(rows)).SaveToString()
+            |> setBodyFromString
             
     let handler (id:int,dateStr:string)  = 
         
