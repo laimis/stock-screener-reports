@@ -59,7 +59,7 @@ namespace StockScreenerReports.Core
 
                     let highPoint =
                         match cycle.highPointValue with
-                        | x when x < breakdown.percentAbove -> currentPoint
+                        | x when x <= breakdown.percentAbove -> currentPoint
                         | _ ->
                             match cycle.highPointDate < lowPoint.date with
                             | true -> currentPoint
@@ -72,7 +72,7 @@ namespace StockScreenerReports.Core
                     }
 
                     let newTrend = {
-                        trend with streak = streak; change = finalChange; value = breakdown.percentAbove; direction = direction
+                        streak = streak; change = finalChange; value = breakdown.percentAbove; direction = direction
                     }
                     
                     Some {
