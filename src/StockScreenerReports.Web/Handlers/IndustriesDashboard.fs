@@ -88,18 +88,15 @@ module IndustriesDashboard =
 
         commonCells @ sma20Cells @ sma200Cells @ scoreCells
 
-    let chartRow length dailyBreakdowns =
+    let chartRow length dailyBreakdowns20 dailyBreakdowns200 =
         
         let contents =
-            match dailyBreakdowns with
-            | None -> div [] [str "No data available to chart"]
-            | Some dailyBreakdowns ->
+            match dailyBreakdowns20, dailyBreakdowns200 with
+            | Some dailyBreakdowns20, Some dailyBreakdowns200 ->
                 
-                let sma = SMA20
-                
-                let dataset : Charts.DataSet<decimal> =
+                let generateSeries sma breakdowns : Charts.DataSet<decimal> =
                     let series = 
-                        dailyBreakdowns
+                        breakdowns
                         |> List.map (fun (u:IndustrySMABreakdown) -> System.Math.Round(u.breakdown.percentAbove, 0))
                         
                     {
@@ -108,13 +105,21 @@ module IndustriesDashboard =
                         color = sma |> SMA.toColor
                     }
                     
+                let dataSets =
+                    [
+                        generateSeries SMA20 dailyBreakdowns20
+                        generateSeries SMA200 dailyBreakdowns200
+                    ]
                     
-                let labels = dailyBreakdowns |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
+                    
+                let labels = dailyBreakdowns20 |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
                 
                 let chartElements =
-                    [dataset] |> Charts.generateChartElements "sma breakdown chart" Charts.ChartType.Line (Some 100) Charts.smallChart labels
+                    dataSets |> Charts.generateChartElements "sma breakdown chart" Charts.ChartType.Line (Some 100) Charts.smallChart labels
                 
                 div [] chartElements
+            | None, _ -> div [] [str "Missing sma 20 data "]
+            | _, None -> div [] [str "Missing sma 200 data "]
         
         tr [] [
             td [_colspan (length.ToString())] [
@@ -127,7 +132,8 @@ module IndustriesDashboard =
         (industrySMABreakdowns200Map:Map<string,IndustrySMABreakdown>)
         industryTrends20Map
         industryTrends200Map
-        dailySMABreakdownMap
+        dailySMABreakdown20Map
+        dailySMABreakdown200Map
         sortFunc =
         
         let industry20And200Rows =
@@ -140,10 +146,11 @@ module IndustriesDashboard =
                 let industrySMABreakdown200 = industrySMABreakdowns200Map |> Map.find industry
                 let trend20 = industryTrends20Map |> Map.tryFind industry
                 let trend200 = industryTrends200Map |> Map.tryFind industry
-                let dailyBreakdowns = dailySMABreakdownMap |> Map.tryFind industry
+                let dailyBreakdowns20 = dailySMABreakdown20Map |> Map.tryFind industry
+                let dailyBreakdowns200 = dailySMABreakdown200Map |> Map.tryFind industry
                 
-                let dataCells = generateDataRow index industrySMABreakdown20 industrySMABreakdown200 trend20 trend200 dailyBreakdowns
-                let chartRow = chartRow dataCells.Length dailyBreakdowns
+                let dataCells = generateDataRow index industrySMABreakdown20 industrySMABreakdown200 trend20 trend200 dailyBreakdowns20
+                let chartRow = chartRow dataCells.Length dailyBreakdowns20 dailyBreakdowns200
                 
                 [dataCells |> toTr; chartRow]
             )
@@ -262,10 +269,17 @@ module IndustriesDashboard =
             
             let dateRange = ReportsConfig.dateRangeAsStrings()
             
-            let dailySMABreakdownMap =
+            let dailySMABreakdown20Map =
                 industrySMABreakdowns20Map 
                 |> Map.map (fun industry _ ->
                     let dailyBreakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry SMA20 dateRange
+                    dailyBreakdowns
+                )
+                
+            let dailySMABreakdown200Map =
+                industrySMABreakdowns20Map 
+                |> Map.map (fun industry _ ->
+                    let dailyBreakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry SMA200 dateRange
                     dailyBreakdowns
                 )
                 
@@ -289,7 +303,7 @@ module IndustriesDashboard =
                         | None -> raise (System.Exception("Could not find 20 day SMA breakdown for " + industry))
                 | TrendScore ->
                     fun industry ->
-                        let breakdowns = dailySMABreakdownMap |> Map.tryFind industry
+                        let breakdowns = dailySMABreakdown20Map |> Map.tryFind industry
                         match breakdowns with
                         | Some breakdowns ->
                             let trendScore = breakdowns |> MarketCycleScoring.trendScore
@@ -297,7 +311,7 @@ module IndustriesDashboard =
                         | None -> raise (System.Exception("Could not find daily breakdowns for " + industry))
                 | CycleScore ->
                     fun industry ->
-                        let breakdowns = dailySMABreakdownMap |> Map.tryFind industry
+                        let breakdowns = dailySMABreakdown20Map |> Map.tryFind industry
                         match breakdowns with
                         | Some breakdowns ->
                             let cycleScore = breakdowns |> MarketCycleScoring.cycleScore
@@ -315,7 +329,8 @@ module IndustriesDashboard =
                     industrySMABreakdowns200Map
                     industryTrends20Map
                     industryTrends200Map
-                    dailySMABreakdownMap
+                    dailySMABreakdown20Map
+                    dailySMABreakdown200Map
                     sortFunc
                     
             let view = toSection title (div [] [sortSection; filterSection; table])
