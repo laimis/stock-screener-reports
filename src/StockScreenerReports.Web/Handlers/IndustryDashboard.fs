@@ -37,25 +37,25 @@ module IndustryDashboard =
         let newHighs =
             Constants.NewHighsScreenerId
             |> getScreenerResultsForDays dateRange
-            |> List.map (fun s -> (s.ticker |> StockTicker.create, s))
+            |> List.groupBy (fun s -> s.ticker |> StockTicker.create)
             |> Map.ofList
 
         let topGainers = 
             Constants.TopGainerScreenerId
             |> getScreenerResultsForDays dateRange
-            |> List.map (fun s -> (s.ticker |> StockTicker.create, s))
+            |> List.groupBy (fun s -> s.ticker |> StockTicker.create)
             |> Map.ofList
 
         let topLosers =
             Constants.TopLoserScreenerId
             |> getScreenerResultsForDays dateRange
-            |> List.map (fun s -> (s.ticker |> StockTicker.create, s))
+            |> List.groupBy (fun s -> s.ticker |> StockTicker.create)
             |> Map.ofList
 
         let newLows =
             Constants.NewLowsScreenerId
             |> getScreenerResultsForDays dateRange
-            |> List.map (fun s -> (s.ticker |> StockTicker.create, s))
+            |> List.groupBy (fun s -> s.ticker |> StockTicker.create)
             |> Map.ofList
 
         let earningsTableHeader = [ "Ticker"; "Company"; "Earnings Date"; "New High"; "Top Gainer"; "Top Loser"; "New Low"; "Trading View" ]
@@ -63,30 +63,26 @@ module IndustryDashboard =
             stocksWithEarnings
             |> List.map (fun stock ->
 
-                let generateDivWithDateAndIcon iconFunc (screenerResultOption:ScreenerResultReportItem option) =
-                    match screenerResultOption with
-                    | Some s ->
-                        div [] [
-                            true |> iconFunc
-                            s.date |> Utils.convertToDateString |> str
-                        ]
-                    | None -> 
-                        false |> iconFunc
-
-                let newHighIcon = newHighs |> Map.tryFind stock.ticker |> generateDivWithDateAndIcon generateNewHighIcon
-                let topGainerIcon = topGainers |> Map.tryFind stock.ticker |> generateDivWithDateAndIcon generateTopGainerIcon
-                let topLoserIcon = topLosers |> Map.tryFind stock.ticker |> generateDivWithDateAndIcon generateTopLoserIcon
-                let newLowIcon = newLows |> Map.tryFind stock.ticker |> generateDivWithDateAndIcon generateNewLowIcon
+                let generateDivWithDateAndIcon iconFunc (s:ScreenerResultReportItem) =
+                    div [] [
+                        true |> iconFunc
+                        s.date |> Utils.convertToDateString |> str
+                    ]
+                    
+                let newHighIcon = newHighs |> Map.tryFind stock.ticker |> Option.defaultValue [] |>  List.map (fun i -> i |> generateDivWithDateAndIcon generateNewHighIcon)
+                let topGainerIcon = topGainers |> Map.tryFind stock.ticker |> Option.defaultValue [] |> List.map (fun i -> i |> generateDivWithDateAndIcon generateTopGainerIcon)
+                let topLoserIcon = topLosers |> Map.tryFind stock.ticker |> Option.defaultValue [] |> List.map (fun i -> i |> generateDivWithDateAndIcon generateTopLoserIcon)
+                let newLowIcon = newLows |> Map.tryFind stock.ticker |> Option.defaultValue [] |> List.map (fun i -> i |> generateDivWithDateAndIcon generateNewLowIcon)
                 let earningDate = tickerToEarningDateMap |> Map.tryFind (stock.ticker |> StockTicker.value)  |> Option.get
 
                 [
                     TickerLinkColumn(stock.ticker |> StockTicker.value)
                     StringColumn(stock.company)
                     StringColumn(earningDate |> Utils.convertToDateString)
-                    NodeColumn(newHighIcon)
-                    NodeColumn(topGainerIcon)
-                    NodeColumn(topLoserIcon)
-                    NodeColumn(newLowIcon)
+                    NodeColumn(div [] newHighIcon)
+                    NodeColumn(div [] topGainerIcon)
+                    NodeColumn(div [] topLoserIcon)
+                    NodeColumn(div [] newLowIcon)
                     LinkNewTabColumn("chart", stock.ticker |> StockTicker.value |> Links.tradingViewLink)
                 ] |> toTr
             )
