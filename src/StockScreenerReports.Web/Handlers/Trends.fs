@@ -142,7 +142,7 @@ module Trends =
                     let topIndustries =
                         match industries with
                         | None -> []
-                        | Some industries -> industries |> func |> List.take 8
+                        | Some industries -> industries |> func |> List.truncate 8
                         
                     let topIndustriesTable = 
                         topIndustries

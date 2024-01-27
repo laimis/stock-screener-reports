@@ -26,12 +26,11 @@ module IndustryDashboard =
         let startDate = fullDateRange |> snd |> Utils.convertToDateTime |> fun d -> d.AddDays(-14) |> Utils.convertToDateString
         let dateRange = (startDate, fullDateRange |> snd)
 
-        let tickersWithEarnings = 
-            getEarningsTickers dateRange
-            |> List.map (fun (ticker,_) -> ticker)
+        let tickerToEarningDateMap = getEarningsTickers dateRange |> Map.ofList
 
         let stocksWithEarnings =
-            tickersWithEarnings
+            tickerToEarningDateMap
+            |> Map.keys
             |> Storage.getStockByTickers
             |> List.filter (fun s -> s.industry = industryName)
 
@@ -59,7 +58,7 @@ module IndustryDashboard =
             |> List.map (fun s -> (s.ticker |> StockTicker.create, s))
             |> Map.ofList
 
-        let earningsTableHeader = [ "Ticker"; "Company"; "New High"; "Top Gainer"; "Top Loser"; "New Low"; "Trading View" ]
+        let earningsTableHeader = [ "Ticker"; "Company"; "Earnings Date"; "New High"; "Top Gainer"; "Top Loser"; "New Low"; "Trading View" ]
         let earningsTable =
             stocksWithEarnings
             |> List.map (fun stock ->
@@ -78,10 +77,12 @@ module IndustryDashboard =
                 let topGainerIcon = topGainers |> Map.tryFind stock.ticker |> generateDivWithDateAndIcon generateTopGainerIcon
                 let topLoserIcon = topLosers |> Map.tryFind stock.ticker |> generateDivWithDateAndIcon generateTopLoserIcon
                 let newLowIcon = newLows |> Map.tryFind stock.ticker |> generateDivWithDateAndIcon generateNewLowIcon
+                let earningDate = tickerToEarningDateMap |> Map.tryFind (stock.ticker |> StockTicker.value)  |> Option.get
 
                 [
                     TickerLinkColumn(stock.ticker |> StockTicker.value)
                     StringColumn(stock.company)
+                    StringColumn(earningDate |> Utils.convertToDateString)
                     NodeColumn(newHighIcon)
                     NodeColumn(topGainerIcon)
                     NodeColumn(topLoserIcon)
