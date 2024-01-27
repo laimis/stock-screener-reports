@@ -34,30 +34,19 @@ module IndustryDashboard =
             |> Storage.getStockByTickers
             |> List.filter (fun s -> s.industry = industryName)
 
-        let newHighs =
-            Constants.NewHighsScreenerId
-            |> getScreenerResultsForDays dateRange
-            |> List.groupBy (fun s -> s.ticker |> StockTicker.create)
+        let screenerIds = [Constants.NewHighsScreenerId; Constants.TopGainerScreenerId; Constants.TopLoserScreenerId; Constants.NewLowsScreenerId]
+        
+        let screenerResultMaps =
+            screenerIds
+            |> List.map (fun screenerId ->
+                screenerId,
+                screenerId
+                |> getScreenerResultsForDays dateRange
+                |> List.groupBy (fun s -> s.ticker |> StockTicker.create)
+                |> Map.ofList
+            )
             |> Map.ofList
-
-        let topGainers = 
-            Constants.TopGainerScreenerId
-            |> getScreenerResultsForDays dateRange
-            |> List.groupBy (fun s -> s.ticker |> StockTicker.create)
-            |> Map.ofList
-
-        let topLosers =
-            Constants.TopLoserScreenerId
-            |> getScreenerResultsForDays dateRange
-            |> List.groupBy (fun s -> s.ticker |> StockTicker.create)
-            |> Map.ofList
-
-        let newLows =
-            Constants.NewLowsScreenerId
-            |> getScreenerResultsForDays dateRange
-            |> List.groupBy (fun s -> s.ticker |> StockTicker.create)
-            |> Map.ofList
-
+            
         let earningsTableHeader = [ "Ticker"; "Company"; "Earnings Date"; "New High"; "Top Gainer"; "Top Loser"; "New Low"; "Trading View" ]
         let earningsTable =
             stocksWithEarnings
@@ -69,10 +58,10 @@ module IndustryDashboard =
                         s.date |> Utils.convertToDateString |> str
                     ]
                     
-                let newHighIcon = newHighs |> Map.tryFind stock.ticker |> Option.defaultValue [] |>  List.map (fun i -> i |> generateDivWithDateAndIcon generateNewHighIcon)
-                let topGainerIcon = topGainers |> Map.tryFind stock.ticker |> Option.defaultValue [] |> List.map (fun i -> i |> generateDivWithDateAndIcon generateTopGainerIcon)
-                let topLoserIcon = topLosers |> Map.tryFind stock.ticker |> Option.defaultValue [] |> List.map (fun i -> i |> generateDivWithDateAndIcon generateTopLoserIcon)
-                let newLowIcon = newLows |> Map.tryFind stock.ticker |> Option.defaultValue [] |> List.map (fun i -> i |> generateDivWithDateAndIcon generateNewLowIcon)
+                let newHighIcon = screenerResultMaps |> Map.find Constants.NewHighsScreenerId |> Map.tryFind stock.ticker |> Option.defaultValue [] |>  List.map (fun i -> i |> generateDivWithDateAndIcon generateNewHighIcon)
+                let topGainerIcon = screenerResultMaps |> Map.find Constants.TopGainerScreenerId |> Map.tryFind stock.ticker |> Option.defaultValue [] |> List.map (fun i -> i |> generateDivWithDateAndIcon generateTopGainerIcon)
+                let topLoserIcon = screenerResultMaps |> Map.find Constants.TopLoserScreenerId |> Map.tryFind stock.ticker |> Option.defaultValue [] |> List.map (fun i -> i |> generateDivWithDateAndIcon generateTopLoserIcon)
+                let newLowIcon = screenerResultMaps |> Map.find Constants.NewLowsScreenerId |> Map.tryFind stock.ticker |> Option.defaultValue [] |> List.map (fun i -> i |> generateDivWithDateAndIcon generateNewLowIcon)
                 let earningDate = tickerToEarningDateMap |> Map.tryFind (stock.ticker |> StockTicker.value)  |> Option.get
 
                 [
