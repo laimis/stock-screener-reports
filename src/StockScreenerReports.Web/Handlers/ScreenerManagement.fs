@@ -3,19 +3,17 @@ namespace StockScreenerReports.Web.Handlers
 open Microsoft.Extensions.Logging
 open StockScreenerReports.FinvizClient
 open StockScreenerReports.Web.Shared.Utils
+open Giraffe
+open Giraffe.ViewEngine
+open StockScreenerReports.Storage
+open StockScreenerReports.Web.Shared
+open StockScreenerReports.Web.Shared.Views
+open StockScreenerReports.Core
 
 module ScreenerManagement =
-
-    open FSharp.Data
-    open Giraffe
-    open Giraffe.ViewEngine
-    open StockScreenerReports.Storage
-    open StockScreenerReports.Web.Shared
-    open StockScreenerReports.Web.Shared.Views
-    open StockScreenerReports.Core
-
+    
     [<CLIMutable>]
-    type ScreenerInput =
+    type CreateScreenerInput =
         {
             name: string
             url: string
@@ -76,8 +74,8 @@ module ScreenerManagement =
     let createHandler : HttpHandler =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
             task {
-                let! input = ctx.BindFormAsync<ScreenerInput>()
-                Storage.saveScreener input.name input.url |> ignore
+                let! input = ctx.BindFormAsync<CreateScreenerInput>()
+                Storage.createScreener input.name input.url |> ignore
                 return! redirectTo false Links.screeners next ctx
             }
 
@@ -136,7 +134,7 @@ module ScreenerManagement =
             screeners
             |> List.map ( fun screener ->
                 tr [] [
-                    StringColumn(screener.id.ToString()) |> toTd
+                    LinkColumn(screener.id.ToString(), screener.id |> Links.screenerLink) |> toTd
                     td [] [
                         div [] [str screener.name]
                         div [] [screener.url |> generateHrefNewTab screener.url]

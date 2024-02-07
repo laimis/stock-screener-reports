@@ -1,12 +1,19 @@
 namespace StockScreenerReports.Web.Handlers
 
-module ScreenerDashboard =
+open StockScreenerReports.Core
+open Giraffe
+open Giraffe.ViewEngine
+open StockScreenerReports.Storage
+open StockScreenerReports.Web.Shared
 
-    open StockScreenerReports.Core
-    open Giraffe.ViewEngine
-    open StockScreenerReports.Storage
-    open StockScreenerReports.Web.Shared
+module ScreenerDashboard =
     
+    [<CLIMutable>]
+    type UpdateScreenerInput =
+        {
+            name: string
+            url: string
+        }
 
     let private generateBreakdowsElementsForDays screenerId dateRange days =
         let fetchBreakdownData dataSource =
@@ -48,12 +55,33 @@ module ScreenerDashboard =
         let dateRange = ReportsConfig.dateRangeAsStrings()
 
         let header = 
-            div [_class "content"] [
-                h1 [] [
-                    str $"Screener: {screener.name}"
+            form [
+                _method "POST"
+                _action (screener.id |> Links.screenerLink)
+            ] [
+                div [ _class "field" ] [
+                    label [ _for "name" ] [ str "Name" ]
+                    input [
+                        _type "text"
+                        _name "name"
+                        _class "input"
+                        _value screener.name
+                    ]
                 ]
-                small [] [
-                    screener.url |> Views.generateHrefNewTab screener.url
+                div [ _class "field" ] [
+                    label [ _for "url" ] [ str "Url" ]
+                    input [
+                        _type "text"
+                        _name "url"
+                        _class "input"
+                        _value screener.url
+                    ]
+                ]
+                // submit button
+                input [
+                    _type "submit"
+                    _class "button is-primary"
+                    _value "Update"
                 ]
             ]
 
@@ -98,3 +126,16 @@ module ScreenerDashboard =
             view |> Views.mainLayout $"Screener: {screener.name}"
         | None ->
             Views.notFound "Screener not found"
+            
+    let createHandler screenerId : HttpHandler =
+        fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
+            task {
+                let! input = ctx.BindFormAsync<UpdateScreenerInput>()
+                let screener = Storage.getScreenerById screenerId
+                match screener with
+                | Some _ ->
+                    Storage.updateScreener screenerId input.name input.url |> ignore
+                    return! redirectTo false (screenerId |> Links.screenerLink) next ctx
+                | None ->
+                    return! (Views.notFound "Screener not found") next ctx
+            }

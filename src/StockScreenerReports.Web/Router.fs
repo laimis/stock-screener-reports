@@ -54,7 +54,7 @@ module Router =
                 choose [
                     route Links.screenersNew >=> ScreenerManagement.createHandler
                     routef "/screeners/%i/delete" ScreenerManagement.deleteHandler
-                    
+                    routef "/screeners/%i" ScreenerDashboard.createHandler
                     route "/reports/adhoc/export" >=> warbler (fun _ -> AdhocReport.exportHandler())
 
                     route "/stocks/adjustticker" >=> StockManagement.adjustTicker

@@ -249,7 +249,7 @@ module Storage =
             url = reader.string "url";
         }
 
-    let saveScreener name url =
+    let createScreener name url =
         cnnString
             |> Sql.connect
             |> Sql.query "INSERT INTO screeners (name,url) VALUES (@name,@url) RETURNING *"
@@ -258,6 +258,17 @@ module Storage =
                 "@url", Sql.string url
             ]
             |> Sql.executeRow screenerMapper
+            
+    let updateScreener id name url =
+        cnnString
+        |> Sql.connect
+        |> Sql.query "UPDATE screeners SET name = @name, url = @url WHERE id = @id RETURNING *"
+        |> Sql.parameters [
+            "@name", Sql.string name;
+            "@url", Sql.string url;
+            "@id", Sql.int id
+        ]
+        |> Sql.executeRow screenerMapper
 
     let getScreeners() =
         cnnString
@@ -336,7 +347,7 @@ module Storage =
         let screenerOption = getScreenerByName screener.name
         match screenerOption with
             | Some screener -> screener
-            | None -> saveScreener screener.name screener.url
+            | None -> createScreener screener.name screener.url
 
     let saveScreenerResults date (input:Screener,results:seq<ScreenerResult>) =
         
