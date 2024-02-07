@@ -134,6 +134,11 @@ module ScreenerResults =
                         "NGTD Outcomes"
                         ((screener.name,tickers,tickersWithEarningsInResults,"",date) |> Links.ngtdOutcomesReportLink)
                         [(_class "button is-primary mr-2") ; (_target "_blank")]
+                       
+                    generateHrefWithAttrs
+                        "NGTD Trades"
+                        ((screener.id,tickers) |> Links.ngtdTradesReportLink)
+                        [(_class "button is-primary mr-2"); (_target "_blank")]
 
                     button [
                         _onclick "toggleTickerCompanyVisibility()"

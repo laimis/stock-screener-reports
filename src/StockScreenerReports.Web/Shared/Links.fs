@@ -81,3 +81,9 @@ module Links =
         let titleCleaned = title |> System.Uri.EscapeDataString
 
         $"https://ngtrading-3mun9.ondigitalocean.app/reports/outcomes?tickers={commaSeparated}&earnings={earningsCommaSeparated}&title={titleCleaned}&endDate={endDate}&startDate={startDate}"
+        
+        
+    let ngtdTradesReportLink (screenerId,tickers) =
+        let commaSeparated = tickers |> String.concat ","
+        
+        $"https://ngtrading-3mun9.ondigitalocean.app/reports/trades?screenerId={screenerId}&tickers={commaSeparated}"
