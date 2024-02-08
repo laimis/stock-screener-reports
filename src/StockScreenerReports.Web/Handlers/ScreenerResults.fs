@@ -89,13 +89,15 @@ module ScreenerResults =
 
         let freshHitsTable = freshResults |> generateScreenerResultTable allTickersWithEarnings topGainers
 
-        let tickersWithEarningsInResults = results |> List.map (fun r -> r.ticker) |> List.filter (fun t -> allTickersWithEarnings |> List.contains t)
+        let tickersWithEarningsInResults = results |> List.map _.ticker |> List.filter (fun t -> allTickersWithEarnings |> List.contains t)
 
         let breakdowns = calculateBreakdowns results
 
-        let tickers = results |> List.map (fun r -> r.ticker)
+        let tickers = results |> List.map _.ticker
+        
+        let freshTickers = freshResults |> List.map _.ticker
 
-        let date = results |> List.head |> (fun r -> r.date) |> Utils.convertToDateString
+        let date = results |> List.head |> _.date |> Utils.convertToDateString
                 
         let breakdownDivs = 
             breakdowns
@@ -108,6 +110,25 @@ module ScreenerResults =
                     div [_class "column"] [breakdownTable]
                 )
 
+        let freshHitsTableSectionWithLink =
+            section [_class "content"] [
+                h4 [] [
+                    "Fresh Hits" |> str
+                    small [ _class "is-pulled-right"] [
+                        generateHrefWithAttrs
+                            "NGTD Trades"
+                            ((screener.id,freshTickers) |> Links.ngtdTradesReportLink)
+                            [(_class "button is-small is-primary mr-2"); (_target "_blank")]
+                    ]
+                    small [ _class "is-pulled-right mr-2"] [
+                        generateHrefWithAttrs
+                            "NGTD Outcomes"
+                            ((screener.name,freshTickers,tickersWithEarningsInResults,"",date) |> Links.ngtdOutcomesReportLink)
+                            [(_class "button is-small is-primary mr-2") ; (_target "_blank")]
+                    ]
+                ]
+                freshHitsTable
+            ]
         [
             div [_class "content"] [
                 h1 [] [
@@ -156,7 +177,7 @@ module ScreenerResults =
                 ]
             ]
             div [_class "columns"] breakdownDivs
-            freshHitsTable |> toSection "Fresh Hits"
+            freshHitsTableSectionWithLink
             screenerTable |> toSection "All Results"
         ]
 
