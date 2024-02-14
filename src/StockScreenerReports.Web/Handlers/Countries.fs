@@ -57,26 +57,30 @@ module Countries =
         let contents =
             match dailyBreakdowns with
             | None -> HtmlElements.div [] [ HtmlElements.str "No data available to chart"]
-            | Some dailyBreakdowns ->
+            | Some (sma20, sma200) ->
                 
-                let sma = SMA20
-                
-                let dataset : Charts.DataSet<decimal> =
+                let generateDataSet interval data : Charts.DataSet<decimal> =
                     let series = 
-                        dailyBreakdowns
+                        data
                         |> List.map (fun (u:CountrySMABreakdown) -> System.Math.Round(u.breakdown.percentAbove, 0))
                         
                     {
                         data = series
-                        title = $"{sma |> SMA.toInterval} SMA Trend"
-                        color = sma |> SMA.toColor
+                        title = $"{interval |> SMA.toInterval} SMA Trend"
+                        color = interval |> SMA.toColor
                     }
                     
                     
-                let labels = dailyBreakdowns |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
+                let labels = sma20 |> List.map (_.breakdown.date.ToString("MMM/dd"))
+                
+                let datasets = 
+                    [
+                        generateDataSet SMA20 sma20
+                        generateDataSet SMA200 sma200
+                    ]
                 
                 let chartElements =
-                    [dataset] |> Charts.generateChartElements "sma breakdown chart" Charts.ChartType.Line (Some 100) Charts.smallChart labels
+                    datasets |> Charts.generateChartElements "sma breakdown chart" Charts.ChartType.Line (Some 100) Charts.smallChart labels
                 
                 HtmlElements.div [] chartElements
         
@@ -169,17 +173,18 @@ module Countries =
             let dailySMABreakdownMap =
                 countries
                 |> List.map (fun country ->
-                    let breakdowns = country |> Reports.getCountrySMABreakdownsForCountry SMA20 dateRange
-                    (country, breakdowns)
+                    let sma20 = country |> Reports.getCountrySMABreakdownsForCountry SMA20 dateRange
+                    let sma200 = country |> Reports.getCountrySMABreakdownsForCountry SMA200 dateRange
+                    (country, (sma20, sma200))
                 )
                 |> Map.ofList
                 
             let sortFunc =
                 match sortAlgo with
                 | PercentAbove20 ->
-                    fun country -> countrySMABreakdowns20Map |> Map.tryFind country |> Option.map (fun x -> x.breakdown.percentAbove)
+                    fun country -> countrySMABreakdowns20Map |> Map.tryFind country |> Option.map (_.breakdown.percentAbove)
                 | PercentAbove200 ->
-                    fun country -> countrySMABreakdowns200Map |> Map.tryFind country |> Option.map (fun x -> x.breakdown.percentAbove)
+                    fun country -> countrySMABreakdowns200Map |> Map.tryFind country |> Option.map (_.breakdown.percentAbove)
 
             let elementsToRender =
                 generateElementsToRender
