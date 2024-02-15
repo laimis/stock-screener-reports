@@ -41,7 +41,7 @@ type IndustryAlertGeneratorTests() =
             } 
         }
         
-    let generateMapFromLists count (input:ScreenerResult list list) =
+    let generateMapFromLists count (input:ScreenerResultReportItem list list) =
         input
         |> List.concat
         |> List.distinctBy _.industry
@@ -68,19 +68,21 @@ type IndustryAlertGeneratorTests() =
         
         let result = IndustryAlertGenerator.generate screenerMap input
         
-        result |> should contain "industry1"
-        result |> should contain "industry3"
-        result |> should not' (contain "industry2")
-        result |> should contain "industry4"
+        let industries = result |> List.map _.industry
+        
+        industries |> should contain "industry1"
+        industries |> should contain "industry3"
+        industries |> should not' (contain "industry2")
+        industries |> should contain "industry4"
         
     [<Fact>]
     let ``When industry results are dominating percentage wise, it ends up on alerts``() =
         
         let firstList =
             [
-                yield! List.init 10 (fun _ -> generateScreenerResultForIndustry "industry1")
-                yield! List.init 2 (fun _ -> generateScreenerResultForIndustry "industry2")
-                yield! List.init 2 (fun _ -> generateScreenerResultForIndustry "industry3")
+                yield! List.init 5 (fun _ -> generateScreenerResultForIndustry "industry1")
+                yield! List.init 3 (fun _ -> generateScreenerResultForIndustry "industry2")
+                yield! List.init 3 (fun _ -> generateScreenerResultForIndustry "industry3")
             ]
             
         let secondList =
@@ -93,12 +95,12 @@ type IndustryAlertGeneratorTests() =
         
         let input = [(screener,firstList); (screener,secondList)]
         
-        let screenerMap = [firstList; secondList] |> generateMapFromLists 25
+        let screenerMap = [firstList; secondList] |> generateMapFromLists 10
         
         let result = IndustryAlertGenerator.generate screenerMap input
         
         result.Length |> should equal 1
-        result |> should contain "industry1"
+        result.Head.industry |> should equal "industry1"
         
     [<Fact>]
     let ``When industry results are dominating industry breakdown, it ends up on alerts``() =
@@ -110,11 +112,11 @@ type IndustryAlertGeneratorTests() =
             yield! List.init 5 (fun _ -> generateScreenerResultForIndustry "industry4")
         ]
         
-        let screenerMap = [list] |> generateMapFromLists 25 |> Map.add "industry1" (generateIndustrySMABreakdown 5 "industry1")
+        let screenerMap = [list] |> generateMapFromLists 25 |> Map.add "industry1" 5
         
         let input = [(screener,list)]
         
         let result = IndustryAlertGenerator.generate screenerMap input
         
         result.Length |> should equal 1
-        result |> should contain "industry1"
+        result |> List.map _.industry |> should contain "industry1"
