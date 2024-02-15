@@ -6,6 +6,7 @@
   <ItemGroup>
     <Compile Include="Types.fs" />
     <Compile Include="Utils.fs" />
+    <Compile Include="IndustryAlertGenerator.fs" />
     <Compile Include="IndustryTrendsCalculator.fs" />
     <Compile Include="MarketCycleScoring.fs" />
   </ItemGroup>

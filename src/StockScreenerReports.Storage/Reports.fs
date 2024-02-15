@@ -12,31 +12,6 @@ module Reports =
     let configureConnectionString str =
         cnnString <- str
 
-    type ScreenerResultReport =
-        {
-            screenerid:int;
-            name:string;
-            url:string;
-            date:DateTime;
-            count:int
-        }
-    type ScreenerResultReportItem =
-        {
-            stockid:int;
-            ticker:string;
-            name:string;
-            sector:string;
-            industry:string;
-            country:string;
-            date:DateTime;
-            marketCap:decimal;
-            price:decimal;
-            change:decimal;
-            volume:int64;
-            screenerid:int;
-            screenername:string;
-        }
-
     let private mapScreenerResultReportItem (reader:RowReader) =
         {
             stockid = (reader.int "id");
@@ -902,3 +877,18 @@ module Reports =
             "@screenerid2", Sql.int screenerId2;
         ]
         |> Sql.execute (fun reader -> (reader.string "ticker", reader.dateTime "date"))
+        
+    
+    let getScreenerResultsLastKnownDateAsOf date =
+        
+        let sql = @"
+            SELECT MAX(date) as date FROM screenerresults
+            WHERE date <= date(@date)"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@date", Sql.string date;
+        ]
+        |> Sql.executeRow (fun reader -> reader.dateTime "date")

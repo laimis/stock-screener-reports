@@ -187,6 +187,33 @@ type ScreenerResult = {
     volume:int64;
 }
 
+
+
+type ScreenerResultReport =
+    {
+        screenerid:int;
+        name:string;
+        url:string;
+        date:DateTime;
+        count:int
+    }
+type ScreenerResultReportItem =
+    {
+        stockid:int;
+        ticker:string;
+        name:string;
+        sector:string;
+        industry:string;
+        country:string;
+        date:DateTime;
+        marketCap:decimal;
+        price:decimal;
+        change:decimal;
+        volume:int64;
+        screenerid:int;
+        screenername:string;
+    }
+
 type Stock = {
     id: int;
     ticker: StockTicker.T;
@@ -371,3 +398,11 @@ type Job = {
 type EarningsTime =
     | BeforeMarket
     | AfterMarket
+    
+type IndustryAlert = {
+    date: DateTime
+    industry: string
+    alertType: string
+    description: string
+    screener: Screener
+}

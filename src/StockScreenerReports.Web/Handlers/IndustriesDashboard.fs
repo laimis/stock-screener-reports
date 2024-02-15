@@ -36,7 +36,7 @@ module IndustriesDashboard =
     
     let toTrendsMap trends =
         trends
-        |> List.map (fun x -> (x.industry, x))
+        |> List.map (fun (x:IndustryTrend) -> (x.industry, x))
         |> Map.ofList
 
     let private generateDataRow index industrySMABreakdown20 industrySMABreakdown200 trend20 trend200 dailyBreakdowns =

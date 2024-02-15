@@ -6,6 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="ReportsConfigTests.fs" />
+    <Compile Include="IndustryAlertGeneratorTests.fs" />
     <Compile Include="IndustryTrendsCalculatorTests.fs" />
     <Compile Include="StorageTests.fs" />
     <Compile Include="ReportTests.fs" />

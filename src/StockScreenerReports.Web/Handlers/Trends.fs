@@ -177,10 +177,31 @@ module Trends =
                 ]
 
             div [_class "content"] content
-
-    let generateElementsToRender missedJobs screeners industries upAndDowns dateRange =
+            
+    let private generateAlertsSection alerts =
+        
+        div [ _class "content" ] [
+            h4 [] ["Industry Screener Alerts" |> str]
+            yield!
+                match alerts with
+                | [] ->
+                    [div [] ["No alerts" |> str]]
+                | _ ->
+                    alerts
+                    |> List.map (fun (alert:IndustryAlert) ->
+                        div [ _class "columns" ] [
+                            div [_class "column"] [ generateHref alert.screener.name (Links.screenerResultsLink alert.screener.id alert.date)  ]
+                            div [_class "column"] [ generateHref alert.industry (Links.industryLink alert.industry) ]
+                            div [_class "column is-two-thirds"] [ alert.description |> str ]
+                        ]
+                    )
+        ]
+        
+    let generateElementsToRender missedJobs screeners industries upAndDowns alerts dateRange =
         
         let warningSection = jobAlertSection missedJobs
+        
+        let alertsSection = generateAlertsSection alerts
 
         let filters = generateFilterSection dateRange
 
@@ -273,6 +294,7 @@ module Trends =
             [warningSection]
             [filters]
             trends
+            [alertsSection]
             [trendingUpAndDownIndustries]
             numberOfHitsPartial
             [highsMinusLowsChart]
@@ -315,7 +337,20 @@ module Trends =
                 | Some d ->
                     let dateToUse = d |> Utils.convertToDateString
                     SMA20 |> getIndustryTrends dateToUse |> Some
+                    
+            let screenerDate = dateRange |> snd |> getScreenerResultsLastKnownDateAsOf |> Utils.convertToDateString
+            
+            // load latest screener hits for each screener
+            let screenersWithResults =
+                screeners
+                |> List.map (fun s ->
+                    s, screenerDate |> getScreenerResults s.id
+                )
+                
+            let industrySize = industries.Value |> List.map (fun i -> i.industry,i.above+ i.below) |> Map.ofList
+            
+            let alerts = IndustryAlertGenerator.generate industrySize screenersWithResults
 
-            let elementsToRender = generateElementsToRender missedJobs screeners industries upAndDowns dateRange
+            let elementsToRender = generateElementsToRender missedJobs screeners industries upAndDowns alerts dateRange
 
             (elementsToRender |> mainLayout "All Screener Trends") next ctx

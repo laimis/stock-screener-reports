@@ -9,7 +9,7 @@ module Earnings =
     open StockScreenerReports.Web.Shared.Views
     open StockScreenerReports.Storage.Reports
 
-    let private createMapFromScreenerResults stocks =
+    let private createMapFromScreenerResults (stocks:ScreenerResultReportItem list) =
         stocks
         |> List.map (fun s -> s.ticker, s)
         |> Map.ofList
@@ -35,21 +35,21 @@ module Earnings =
             let ticker,_ = pair
             ticker
         )
-        |> List.where (fun t -> membershipMap.ContainsKey t)
-        |> List.map (fun t -> membershipMap.[t])
-        |> List.groupBy (fun s -> s.industry)
+        |> List.where membershipMap.ContainsKey
+        |> List.map (fun t -> membershipMap[t])
+        |> List.groupBy (_.industry)
 
     let private createNameCountTableColumnDiv title grouping =
         let withCounts =
             grouping
             |> List.map (fun (i,l) -> (i, l |> List.length))
-            |> List.sortByDescending (fun (_,c) -> c)
+            |> List.sortByDescending snd
         
-        let countOfTickers = withCounts |> List.sumBy (fun (_,c) -> c)
+        let countOfTickers = withCounts |> List.sumBy snd
 
         let newTitle = $"{title} ({countOfTickers})"
 
-        let (header, rows) = 
+        let header, rows = 
             withCounts |>
             toHeaderAndRowsWithLinksAndClickFunc 
                 newTitle
@@ -65,8 +65,8 @@ module Earnings =
         let rows = 
             tickersWithEarnings
             |> List.filter (fun (ticker,_) -> ticker |> matchFilter.ContainsKey)
-            |> List.map (fun (ticker, _) -> matchFilter.[ticker])
-            |> List.sortBy (fun s -> s.industry)
+            |> List.map (fun (ticker, _) -> matchFilter[ticker])
+            |> List.sortBy _.industry
             |> List.map (fun s -> 
                 [
                     TickerLinkColumn(s.ticker)
@@ -91,7 +91,7 @@ module Earnings =
         (screenerResultMappings:list<Map<string,ScreenerResultReportItem>>) =
         let rows =
             tickersWithEarnings
-            |> List.map (fun (ticker, (date:System.DateTime)) ->
+            |> List.map (fun (ticker, date:System.DateTime) ->
 
                 let iconFunc screenerId =
                     match screenerId with
@@ -134,11 +134,7 @@ module Earnings =
                         DateColumn(date)
                         LinkColumn(industry, industry |> Links.industryLink)
                         StringColumn(marketCap |> marketCapOptionFormatted)
-                    ]
-                    @
-                    screenerCells
-                    @
-                    [
+                        yield! screenerCells
                         LinkNewTabColumn("chart", ticker |> Links.tradingViewLink)
                     ]
 

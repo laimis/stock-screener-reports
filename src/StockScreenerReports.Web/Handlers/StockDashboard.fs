@@ -39,7 +39,7 @@ module StockDashboard =
         ]
 
     let createScreenerResultsSection results =
-        let screenerResultToRow screenerResult =
+        let screenerResultToRow (screenerResult:ScreenerResultReportItem) =
             let dateStr = screenerResult.date |> Utils.convertToDateString
             let screenerLink = dateStr |> screenerResultsLink screenerResult.screenerid
 
@@ -76,7 +76,7 @@ module StockDashboard =
             |> List.groupBy (fun screenerResult -> (screenerResult.screenerid, screenerResult.screenername))
             |> Map.ofList
             
-        let labels = businessDays |> Seq.map (fun (date) -> date |> Utils.convertToDateString)
+        let labels = businessDays |> Seq.map (fun date -> date |> Utils.convertToDateString)
 
         let datasets:list<Charts.DataSet<int>> = 
             recentScreenerResultsByScreener
@@ -132,12 +132,9 @@ module StockDashboard =
 
         match stock with
         | Some stock ->
-            
-            let dateRangeScreenerHits = (ReportsConfig.dateRangeAsStrings()) |> getScreenerResultsForTickerDayRange stock.ticker
+            let dateRangeScreenerHits = ReportsConfig.dateRangeAsStrings() |> getScreenerResultsForTickerDayRange stock.ticker
             let lastNScreenerHits = stock.ticker |> getScreenerResultsForTicker 100
-                
             let view = renderStockInternal stock dateRangeScreenerHits lastNScreenerHits 
-
             let pageTitle = (stock.ticker |> StockTicker.value) + " - " + stock.company
             view |> mainLayout pageTitle
         | None -> 
