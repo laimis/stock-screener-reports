@@ -6,6 +6,8 @@ let private RESULT_COUNT_THRESHOLD = 20
 let private PERCENT_CHECK_THRESHOLD = 0.5
 [<Literal>]
 let private INDUSTRY_PERCENT_CHECK_THRESHOLD = 0.4
+[<Literal>]
+let private RESULT_MINIMUM_THRESHOLD = 5
 
 let generate industrySizeMap screenersWithResults =
     
@@ -58,17 +60,20 @@ let generate industrySizeMap screenersWithResults =
     screenersWithResults
     |> List.map (fun (screener:Screener, results:ScreenerResultReportItem list) ->
         
-        results
-        |> List.groupBy (fun (r:ScreenerResultReportItem) -> r.industry)
-        |> List.map (fun (industry, industryResults) ->
-            [
-                countCheck industry screener industryResults
-                percentCheck industry screener industryResults results.Length
-                industryPercentCheck industry screener industryResults
-            ]
-        )
-        |> List.concat
-        |> List.choose id
+        match results.Length with
+        | x when x < RESULT_MINIMUM_THRESHOLD -> []
+        | _ ->
+            results
+            |> List.groupBy (fun (r:ScreenerResultReportItem) -> r.industry)
+            |> List.map (fun (industry, industryResults) ->
+                [
+                    countCheck industry screener industryResults
+                    percentCheck industry screener industryResults results.Length
+                    industryPercentCheck industry screener industryResults
+                ]
+            )
+            |> List.concat
+            |> List.choose id
     )
     |> List.concat
     

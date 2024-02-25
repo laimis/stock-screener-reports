@@ -120,3 +120,18 @@ type IndustryAlertGeneratorTests() =
         
         result.Length |> should equal 1
         result |> List.map _.industry |> should contain "industry1"
+        
+    [<Fact>]
+    let ``When result count is small, no alerts are generated``() =
+        
+        let list = [
+            yield! List.init 1 (fun _ -> generateScreenerResultForIndustry "industry1")
+        ]
+        
+        let screenerMap = [list] |> generateMapFromLists 25
+        
+        let input = [(screener,list)]
+        
+        let result = IndustryAlertGenerator.generate screenerMap input
+        
+        result.Length |> should equal 0
