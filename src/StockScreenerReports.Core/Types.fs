@@ -105,6 +105,8 @@ type ReportsConfig =
 
     static member getBackgroundColorDefault = "#FF6586"
     
+    static member ngtdDomain = "app.nightingaletrading.com"
+    
     static member getBackgroundColorForScreenerId id =
         match id with
             | NewHighsScreenerId -> "#3590F3" // new high (w/ sales)

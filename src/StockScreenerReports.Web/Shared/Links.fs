@@ -1,5 +1,7 @@
 namespace StockScreenerReports.Web.Shared
 
+open StockScreenerReports.Core
+
 module Links =
 
     // external links
@@ -80,10 +82,10 @@ module Links =
         let earningsCommaSeparated = earnings |> String.concat ","
         let titleCleaned = title |> System.Uri.EscapeDataString
 
-        $"https://ngtrading-3mun9.ondigitalocean.app/reports/outcomes?tickers={commaSeparated}&earnings={earningsCommaSeparated}&title={titleCleaned}&endDate={endDate}&startDate={startDate}"
+        $"https://{ReportsConfig.ngtdDomain}/reports/outcomes?tickers={commaSeparated}&earnings={earningsCommaSeparated}&title={titleCleaned}&endDate={endDate}&startDate={startDate}"
         
         
     let ngtdTradesReportLink (screenerId,tickers) =
         let commaSeparated = tickers |> String.concat ","
         
-        $"https://ngtrading-3mun9.ondigitalocean.app/reports/trades?screenerId={screenerId}&tickers={commaSeparated}"
+        $"https://{ReportsConfig.ngtdDomain}/reports/trades?screenerId={screenerId}&tickers={commaSeparated}"
