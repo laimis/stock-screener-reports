@@ -117,7 +117,7 @@ module ScreenerResults =
                     small [ _class "is-pulled-right"] [
                         generateHrefWithAttrs
                             "NGTD Trades"
-                            ((screener.id,freshTickers) |> Links.ngtdTradesReportLink)
+                            ((screener.id,screener.name,freshTickers) |> Links.ngtdTradesReportLink)
                             [(_class "button is-small is-primary mr-2"); (_target "_blank")]
                     ]
                     small [ _class "is-pulled-right mr-2"] [
@@ -158,7 +158,7 @@ module ScreenerResults =
                        
                     generateHrefWithAttrs
                         "NGTD Trades"
-                        ((screener.id,tickers) |> Links.ngtdTradesReportLink)
+                        ((screener.id,screener.name,tickers) |> Links.ngtdTradesReportLink)
                         [(_class "button is-primary mr-2"); (_target "_blank")]
 
                     button [

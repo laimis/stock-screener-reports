@@ -85,7 +85,8 @@ module Links =
         $"https://{ReportsConfig.ngtdDomain}/reports/outcomes?tickers={commaSeparated}&earnings={earningsCommaSeparated}&title={titleCleaned}&endDate={endDate}&startDate={startDate}"
         
         
-    let ngtdTradesReportLink (screenerId,tickers) =
+    let ngtdTradesReportLink (screenerId,title,tickers) =
         let commaSeparated = tickers |> String.concat ","
+        let titleCleaned = title |> System.Uri.EscapeDataString
         
-        $"https://{ReportsConfig.ngtdDomain}/reports/trades?screenerId={screenerId}&tickers={commaSeparated}"
+        $"https://{ReportsConfig.ngtdDomain}/reports/trades?screenerId={screenerId}&tickers={commaSeparated}&title={titleCleaned}"
