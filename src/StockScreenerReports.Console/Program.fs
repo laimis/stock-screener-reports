@@ -96,6 +96,28 @@ match runCyclesMigration() with
     
 | false ->
     ()
+    
+
+let detectTrend (industryBreakdowns:SMABreakdown seq) numDays shortPeriod longPeriod =
+    let calculateSMA (values: decimal[]) period =
+        values
+        |> Array.windowed period
+        |> Array.map (fun window -> window |> Array.average)
+        
+    let percentagesAboveSMA =
+        industryBreakdowns
+        |> Seq.map (fun breakdown -> breakdown.date, breakdown.percentAbove)
+        |> Seq.sortBy fst
+        |> Seq.map snd
+        |> Seq.toArray
+
+    let shortSMA = calculateSMA percentagesAboveSMA shortPeriod
+    let longSMA = calculateSMA percentagesAboveSMA longPeriod
+
+    let trend = if shortSMA.[numDays - 1] > longSMA.[numDays - 1] then "Rising" else "Falling"
+    let strength = abs (shortSMA.[numDays - 1] - longSMA.[numDays - 1])
+
+    (trend, strength)
 
 match runCountriesJob() with
 | true ->
@@ -110,10 +132,11 @@ match runTestReports() with
     let outputBreakdown (breakdown:IndustrySMABreakdown) =
         Console.WriteLine(breakdown.industry + " " + breakdown.breakdown.percentAbove.ToString())
         
-    let latestDate = Reports.getIndustrySMABreakdownLatestDate() |> Utils.convertToDateString
+    let latestDate = Reports.getIndustrySMABreakdownLatestDate()
+    let latestDateStr = latestDate |> Utils.convertToDateString
     
-    let industryBreakdownsSMA20 = Reports.getIndustrySMABreakdowns SMA.SMA20 latestDate
-    let industryBreakdownsSMA200 = Reports.getIndustrySMABreakdowns SMA.SMA200 latestDate
+    let industryBreakdownsSMA20 = Reports.getIndustrySMABreakdowns SMA.SMA20 latestDateStr
+    let industryBreakdownsSMA200 = Reports.getIndustrySMABreakdowns SMA.SMA200 latestDateStr
     
     Console.WriteLine("Industries sorted by 20 SMA:")
     industryBreakdownsSMA20
@@ -145,5 +168,21 @@ match runTestReports() with
     weightedAverageRanks
     |> Seq.truncate 5
     |> Seq.iter (fun (breakdown, rank) -> Console.WriteLine(breakdown.industry + " " + rank.ToString()))
+    
+    // sort by trend
+    let trendRanks =
+        industryBreakdownsSMA20
+        |> Seq.map (fun breakdown ->
+            // get the last 90 days
+            let numDays = 90
+            let smaBreakdowns = Reports.getIndustrySMABreakdownsForIndustry SMA.SMA20 (latestDate.AddDays(-numDays) |> Utils.convertToDateString, latestDateStr) breakdown.industry |> Seq.map _.breakdown
+            (breakdown, detectTrend smaBreakdowns 5 5 20))
+        |> Seq.sortBy (fun (_, (_, strength)) -> strength)
+        
+    Console.WriteLine("")
+    Console.WriteLine("Industries sorted by trend strength:")
+    trendRanks
+    |> Seq.truncate 5
+    |> Seq.iter (fun (breakdown, (trend, strength)) -> Console.WriteLine(breakdown.industry + " " + trend + " " + strength.ToString()))
 
 | false -> ()

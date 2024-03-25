@@ -1,5 +1,6 @@
 module ReportTests
 
+open StorageTests
 open Xunit
 open System
 open StockScreenerReports.Storage
@@ -9,8 +10,8 @@ open FsUnit
 type ReportTests() =
     // output:ITestOutputHelper - add this above if you need output
     do
-        Reports.configureConnectionString (Environment.GetEnvironmentVariable(StorageTests.dbEnvironmentVariableName))
-        Storage.configureConnectionString (Environment.GetEnvironmentVariable(StorageTests.dbEnvironmentVariableName))
+        Reports.configureConnectionString (SecretsHelper.getSecret(dbEnvironmentVariableName))
+        Storage.configureConnectionString (SecretsHelper.getSecret(dbEnvironmentVariableName))
 
     let getTestScreener = 
         Storage.getScreenerByName StorageTests.testScreenerName
@@ -354,7 +355,7 @@ type ReportTests() =
     let ``get industry trend works`` () =
         let dateToUseOpt = ReportsConfig.dateRangeAsStrings() |> snd |> Reports.getIndustryTrendsLastKnownDateAsOf
         let dateToUse = dateToUseOpt |> Option.get |> Utils.convertToDateString
-        let trend = Reports.getIndustryTrend SMA20 dateToUse StorageTests.testStockIndustry
+        let trend = Reports.getIndustryTrend SMA20 dateToUse testStockIndustry
         trend.IsSome |> should be True
 
     [<Fact>]
@@ -390,3 +391,74 @@ type ReportTests() =
         let results = Constants.NewHighsScreenerId |> Reports.getTickersWithScreenerResultsForDateRange dateRange
 
         results |> should not' (be Empty)
+        
+        
+    let detectTrend shortPeriod longPeriod (industryBreakdowns:SMABreakdown seq) =
+        let toSMA (prices:decimal array) interval =
+        
+            let sma = Array.create prices.Length None
+            
+            for i in 0..prices.Length-1 do
+                if i < interval then
+                    sma[i] <- None
+                else
+                    let sum = 
+                        [i-interval..i-1]
+                        |> Seq.map (fun j -> prices[j])
+                        |> Seq.sum
+                        
+                    sma[i] <- Some (Math.Round(sum / decimal interval, 2))
+                    
+            sma
+            
+        let percentagesAboveSMA =
+            industryBreakdowns
+            |> Seq.map (fun breakdown -> breakdown.date, breakdown.percentAbove)
+            |> Seq.sortBy fst
+            |> Seq.map snd
+            |> Seq.toArray
+
+        let shortSMA = toSMA percentagesAboveSMA shortPeriod |> Array.last |> Option.get
+        let longSMA = toSMA percentagesAboveSMA longPeriod |> Array.last |> Option.get
+
+        let trend = if shortSMA > longSMA then 1m else -1m
+        let strength = abs (shortSMA - longSMA)
+
+        trend * strength
+
+    [<Fact>]
+    let ``trend calculations work``() =
+        
+        // get industry breakdowns for the reference date
+        let referenceDate = "2024-03-22"
+        let breakdowns = Reports.getIndustrySMABreakdowns SMA20 referenceDate
+        
+        // from there we will get all the industries that have data
+        let industries = breakdowns |> List.map _.industry
+        
+        let industriesWithTrend =
+            industries
+            |> List.map (fun industry ->
+                let trend =
+                    industry
+                    |> Reports.getIndustrySMABreakdownsForIndustry SMA20 ("2024-01-01", referenceDate)
+                    |> TrendsCalculator.calculateSMACrossOverStrength 5 20
+                    
+                industry, trend
+            )
+            |> List.sortByDescending snd
+            
+        industriesWithTrend |> should not' (be Empty)
+        
+        // first should be the most positive
+        let first = industriesWithTrend |> List.head
+        let last = industriesWithTrend |> List.last
+        
+        first |> (fun (_,trend) -> trend > 0m) |> should be True
+        last |> (fun (_,trend) -> trend < 0m) |> should be True
+        
+        // we should have at least 10 industries
+        industriesWithTrend.Length |> should be (greaterThanOrEqualTo 10)
+        first |> fst |> should be (equal "Uranium")
+        last |> fst |> should be (equal "Paper & Paper Products")
+        

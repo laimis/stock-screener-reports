@@ -92,5 +92,37 @@ namespace StockScreenerReports.Core
             | _ -> trendCycleOption.Value
 
         let calculateForIndustry (smaBreakdowns:list<IndustrySMABreakdown>) =
-            let justBreakdowns = smaBreakdowns |> List.map (fun x -> x.breakdown)
+            let justBreakdowns = smaBreakdowns |> List.map _.breakdown
             calculate justBreakdowns
+            
+        let calculateSMACrossOverStrength shortPeriod longPeriod (smaBreakdowns:list<IndustrySMABreakdown>) =
+            
+            let toSMA (prices:decimal list) interval =
+        
+                let sma = Array.create prices.Length None    
+                for i in 0..prices.Length-1 do
+                    if i < interval then
+                        sma[i] <- None
+                    else
+                        let sum = 
+                            [i-interval..i-1]
+                            |> Seq.map (fun j -> prices[j])
+                            |> Seq.sum
+                            
+                        sma[i] <- Some (System.Math.Round(sum / decimal interval, 2))
+                        
+                sma
+                
+            let percentagesAboveSMA =
+                smaBreakdowns
+                |> List.map (fun breakdown -> breakdown.breakdown.date, breakdown.breakdown.percentAbove)
+                |> List.sortBy fst
+                |> List.map snd
+
+            let shortSMA = toSMA percentagesAboveSMA shortPeriod |> Array.last |> Option.get
+            let longSMA = toSMA percentagesAboveSMA longPeriod |> Array.last |> Option.get
+
+            let trend = if shortSMA > longSMA then 1m else -1m
+            let strength = abs (shortSMA - longSMA)
+
+            trend * strength

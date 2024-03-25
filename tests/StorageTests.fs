@@ -1,27 +1,49 @@
 module StorageTests
 
+open System
+open System.IO
 open Xunit
 open Xunit.Abstractions
 open StockScreenerReports.Core
 open StockScreenerReports.Storage
 open FsUnit
 
+[<Literal>]
 let testScreenerName    = "New Highs, 1.5x volume, >$10"
+[<Literal>]
 let screenerUrl         = "https://finviz.com/screener.ashx?v=111&s=ta_newhigh&f=fa_salesqoq_high,sh_avgvol_o200,sh_opt_optionshort,sh_price_o10,sh_relvol_o1.5,ta_perf_dup&ft=4&o=-volume"
+[<Literal>]
 let testStockName       = "Apple Inc."
+[<Literal>]
 let testStockSector     = "Technology"
+[<Literal>]
 let testStockIndustry   = "Computer Hardware"
+[<Literal>]
 let testStockCountry    = "USA"
+[<Literal>]
 let testStockIndustryWithSpecialCharacters = "Furnishings, Fixtures & Appliances"
-
+[<Literal>]
 let dbEnvironmentVariableName = "SSR_CONNECTIONSTRING"
 
+module SecretsHelper =
+    let getSecret key =
+        let variable = Environment.GetEnvironmentVariable(key)
+        match variable with
+        | null ->
+            // try to read it from file system
+            let path = Path.Combine("..\\..\\..\\..\\", $"{key}_secret.txt")
+            match File.Exists(path) with
+            | true -> File.ReadAllText(path)
+            | false -> variable
+        | _ ->
+            variable
+            
 type StorageTests(output:ITestOutputHelper) =
     do
-        let cnnString = System.Environment.GetEnvironmentVariable(dbEnvironmentVariableName)
+        let cnnString = SecretsHelper.getSecret(dbEnvironmentVariableName)
         Storage.configureConnectionString cnnString
         Reports.configureConnectionString cnnString
-        Storage.configureLogger (fun message -> output.WriteLine(message))
+        Storage.configureLogger output.WriteLine
 
     let generateTicker() =
         "stock" + System.Guid.NewGuid().ToString() |> StockTicker.create 

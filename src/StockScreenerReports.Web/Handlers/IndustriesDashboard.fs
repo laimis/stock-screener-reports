@@ -16,22 +16,33 @@ module IndustriesDashboard =
         | CycleScore
         | TrendScore
         | AverageAboveRank
+        | GeometricMeanRank
+        | WeightedRank
+        | SMACrossOverStrengthRank
+        
+        with static member All = [PercentAbove200; PercentAbove20; CycleScore; TrendScore; AverageAboveRank; GeometricMeanRank; WeightedRank; SMACrossOverStrengthRank]
         
     let sortAlgoToString sortAlgo =
         match sortAlgo with
-        | PercentAbove200 -> "percentAbove200"
-        | PercentAbove20 -> "percentAbove20"
-        | CycleScore -> "cycleScore"
-        | TrendScore -> "trendScore"
-        | AverageAboveRank -> "averageAboveRank"
+        | PercentAbove200 -> nameof PercentAbove200
+        | PercentAbove20 -> nameof PercentAbove20
+        | CycleScore -> nameof CycleScore
+        | TrendScore -> nameof TrendScore
+        | AverageAboveRank -> nameof AverageAboveRank
+        | GeometricMeanRank -> nameof GeometricMeanRank
+        | WeightedRank -> nameof WeightedRank
+        | SMACrossOverStrengthRank -> nameof SMACrossOverStrengthRank
         
     let stringToSortAlgo sortAlgoString =
         match sortAlgoString with
-        | "percentAbove200" -> PercentAbove200
-        | "percentAbove20" -> PercentAbove20
-        | "cycleScore" -> CycleScore
-        | "trendScore" -> TrendScore
-        | "averageAboveRank" -> AverageAboveRank
+        | nameof PercentAbove200 -> PercentAbove200
+        | nameof PercentAbove20 -> PercentAbove20
+        | nameof CycleScore -> CycleScore
+        | nameof TrendScore -> TrendScore
+        | nameof AverageAboveRank -> AverageAboveRank
+        | nameof GeometricMeanRank -> GeometricMeanRank
+        | nameof WeightedRank -> WeightedRank
+        | nameof SMACrossOverStrengthRank -> SMACrossOverStrengthRank
         | _ -> CycleScore
     
     let toBreakdownMap breakdowns =
@@ -189,13 +200,18 @@ module IndustriesDashboard =
         
     let private generateSortAndFilterSection selectedAlgo selectedMinimumNumberOfStocks =
         let sortOptions =
-            [
-                PercentAbove200, "200 SMA %"
-                PercentAbove20, "20 SMA %"
-                TrendScore, "Trend Score"
-                CycleScore, "Cycle Score"
-                AverageAboveRank, "Average SMA %"
-            ]
+            SortAlgo.All
+            |> List.map (fun x ->
+                match x with
+                | PercentAbove200 -> (x, "200 SMA %")
+                | PercentAbove20 -> (x, "20 SMA %")
+                | TrendScore -> (x, "Trend Score")
+                | CycleScore -> (x, "Cycle Score")
+                | AverageAboveRank -> (x, "Average SMA %")
+                | GeometricMeanRank -> (x, "Geometric Mean Rank")
+                | WeightedRank -> (x, "Weighted Rank")
+                | SMACrossOverStrengthRank -> (x, "SMA Cross Over Strength Rank")
+            ) 
 
         let filterOptions =
             [
@@ -339,6 +355,15 @@ module IndustriesDashboard =
                             let cycleScore = breakdowns |> MarketCycleScoring.cycleScore
                             (cycleScore, 0m)
                         | None -> raise (System.Exception("Could not find daily breakdowns for " + industry))
+                | SMACrossOverStrengthRank ->
+                    fun industry ->
+                        let breakdowns = dailySMABreakdown20Map |> Map.tryFind industry
+                        match breakdowns with
+                        | Some breakdowns ->
+                            let smaCrossOverStrength = breakdowns |> TrendsCalculator.calculateSMACrossOverStrength 5 20
+                            (smaCrossOverStrength, 0m)
+                        | None -> raise (System.Exception("Could not find daily breakdowns for " + industry))
+                        
                 | AverageAboveRank ->
                     fun industry ->
                         let update20 = industrySMABreakdowns20Map |> Map.tryFind industry
@@ -347,6 +372,24 @@ module IndustriesDashboard =
                             let update200 = industrySMABreakdowns200Map |> Map.find industry
                             let average = (update20.breakdown.percentAbove + update200.breakdown.percentAbove) / 2m
                             (average, 0m)
+                        | None -> raise (System.Exception("Could not find 20 day SMA breakdown for " + industry))
+                | GeometricMeanRank ->
+                    fun industry ->
+                        let update20 = industrySMABreakdowns20Map |> Map.tryFind industry
+                        match update20 with
+                        | Some update20 ->
+                            let update200 = industrySMABreakdowns200Map |> Map.find industry
+                            let geometricMean = System.Math.Sqrt(float (update20.breakdown.percentAbove * update200.breakdown.percentAbove)) |> decimal
+                            (geometricMean, 0m)
+                        | None -> raise (System.Exception("Could not find 20 day SMA breakdown for " + industry))
+                | WeightedRank ->
+                    fun industry ->
+                        let update20 = industrySMABreakdowns20Map |> Map.tryFind industry
+                        match update20 with
+                        | Some update20 ->
+                            let update200 = industrySMABreakdowns200Map |> Map.find industry
+                            let weighted = (update20.breakdown.percentAbove * 0.6m) + (update200.breakdown.percentAbove * 0.4m)
+                            (weighted, 0m)
                         | None -> raise (System.Exception("Could not find 20 day SMA breakdown for " + industry))
             
             let title = $"Industry SMA Breakdowns ({industrySMABreakdowns20Map.Count} industries) - {formattedDate}"
