@@ -105,26 +105,45 @@ match runCountriesJob() with
 | false -> ()
 
 match runTestReports() with
-| true -> 
-
-    let industry = "Lumber & Wood Production"
-
-    Console.WriteLine("Running calculations for " + industry)
-
-    let smaBreakdowns = 
-        industry
-        |> Reports.getIndustrySMABreakdownsForIndustry SMA20 (ReportsConfig.dateRangeAsStrings())
-
-    smaBreakdowns
-    |> List.iter (fun x -> Console.Write($"({x.breakdown.above}, {x.breakdown.above + x.breakdown.below});"))
-    Console.WriteLine("")
-
-    let trendWithCycle = 
-        smaBreakdowns
-        |> TrendsCalculator.calculateForIndustry
+| true ->
     
-    let trend = trendWithCycle.trend
+    let outputBreakdown (breakdown:IndustrySMABreakdown) =
+        Console.WriteLine(breakdown.industry + " " + breakdown.breakdown.percentAbove.ToString())
+        
+    let latestDate = Reports.getIndustrySMABreakdownLatestDate() |> Utils.convertToDateString
+    
+    let industryBreakdownsSMA20 = Reports.getIndustrySMABreakdowns SMA.SMA20 latestDate
+    let industryBreakdownsSMA200 = Reports.getIndustrySMABreakdowns SMA.SMA200 latestDate
+    
+    Console.WriteLine("Industries sorted by 20 SMA:")
+    industryBreakdownsSMA20
+    |> Seq.sortByDescending _.breakdown.percentAbove
+    |> Seq.truncate 5
+    |> Seq.iter outputBreakdown
+    
+    let sma20Ranks = industryBreakdownsSMA20 |> Seq.sortByDescending _.breakdown.percentAbove |> Seq.mapi (fun i breakdown -> breakdown.industry, i + 1 |> decimal) |> Map.ofSeq
+    let sma200Ranks = industryBreakdownsSMA200 |> Seq.sortByDescending _.breakdown.percentAbove |> Seq.mapi (fun i breakdown -> breakdown.industry, i + 1 |> decimal) |> Map.ofSeq
 
-    Console.WriteLine($"{industry} {20} days sma streak: {trend.streak} day {trend.direction} with change of {trend.change}")
+    let averageRanks = industryBreakdownsSMA20
+                       |> Seq.map (fun breakdown -> (breakdown, (sma20Ranks[breakdown.industry] + sma200Ranks[breakdown.industry]) / 2m))
+                       |> Seq.sortBy snd
+                       
+    Console.WriteLine("")
+    Console.WriteLine("Industries sorted by average rank:")
+    averageRanks
+    |> Seq.truncate 5
+    |> Seq.iter (fun (breakdown, rank) -> Console.WriteLine(breakdown.industry + " " + rank.ToString()))
+    
+    // sort by weighted average
+    let weightedAverageRanks =
+           industryBreakdownsSMA20
+           |> Seq.map (fun breakdown -> (breakdown, (sma20Ranks[breakdown.industry] * 0.65m + sma200Ranks[breakdown.industry] * 0.45m)))
+           |> Seq.sortBy snd
+                       
+    Console.WriteLine("")
+    Console.WriteLine("Industries sorted by weighted average rank:")
+    weightedAverageRanks
+    |> Seq.truncate 5
+    |> Seq.iter (fun (breakdown, rank) -> Console.WriteLine(breakdown.industry + " " + rank.ToString()))
 
 | false -> ()

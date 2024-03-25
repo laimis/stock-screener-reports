@@ -1,5 +1,7 @@
 namespace StockScreenerReports.Web.Handlers
 
+open Giraffe.ViewEngine.HtmlElements
+
 module IndustriesDashboard =
     open Giraffe
     open Giraffe.ViewEngine
@@ -182,60 +184,76 @@ module IndustriesDashboard =
         let href = $"?sortParam={sortAlgoAsString}&minimumStocks={minimumStocks}"
         href
         
-    let private generateSortSection selectedAlgo selectedMinimumNumberOfStocks =
-        
-        let sortLink sortAlgo =
-            let href = generateHref sortAlgo selectedMinimumNumberOfStocks
-            let classes =
-                match selectedAlgo = sortAlgo with
-                | true -> "button is-primary"
-                | false -> "button is-info is-light"
-                
-            let title =
-                match sortAlgo with
-                | PercentAbove200 -> "Sort by 200 SMA %"
-                | PercentAbove20 -> "Sort by 20 SMA %"
-                | TrendScore -> "Sort by Trend Score"
-                | CycleScore -> "Sort by Cycle Score"
-                
-            a [ _class classes; _href href ] [ str title ]
-            
-        let sortLinks =
+    let private generateSortAndFilterSection selectedAlgo selectedMinimumNumberOfStocks =
+        let sortOptions =
             [
-                PercentAbove200
-                PercentAbove20
-                TrendScore
-                CycleScore
-            ] |> List.map sortLink
+                PercentAbove200, "200 SMA %"
+                PercentAbove20, "20 SMA %"
+                TrendScore, "Trend Score"
+                CycleScore, "Cycle Score"
+            ]
+
+        let filterOptions =
+            [
+                0, "Any number of stocks"
+                5, "With at least 5 stocks"
+                10, "With at least 10 stocks"
+                20, "With at least 20 stocks"
+            ]
             
-        let sortLinks = sortLinks |> List.map (fun sortLink -> div [_class "level-item"] [sortLink])
-        
-        let sortSection = div [_class "level"] sortLinks
-            
-        sortSection
-        
-    let private filterSection selectedAlgo minimumSelected =
-        
-        let filterLink selection =
-            let href = generateHref selectedAlgo selection
-            let classes =
-                match minimumSelected = selection with
-                | true -> "button is-primary"
-                | false -> "button is-info is-light"
-                
-            let title =
-                match selection with
-                | x when x > 0 -> $"With at least {selection} stocks"
-                | 0 -> "Any number of stocks"
-                | _ -> raise (System.Exception("Invalid selection"))
-                
-            a [ _class classes; _href href ] [ str title ]
-            
-        let filterLinks = [0; 5; 10; 20] |> List.map filterLink
-            
-        let filterLinks = filterLinks |> List.map (fun sortLink -> div [_class "level-item"] [sortLink])
-        
-        div [_class "level"] filterLinks
+        let onChangeAttribute = XmlAttribute.KeyValue("onchange", "location = this.value;")
+
+        let sortDropdown =
+            div [ _class "select" ] [
+                select [ onChangeAttribute ] [
+                    for sortAlgo, title in sortOptions do
+                        let href = generateHref sortAlgo selectedMinimumNumberOfStocks
+                        let isSelected = selectedAlgo = sortAlgo
+                        option [
+                            _value href
+                            if isSelected then _selected
+                        ] [ str title ]
+                ]
+            ]
+
+        let filterDropdown =
+            div [ _class "select" ] [
+                select [ onChangeAttribute ] [
+                    for selection, title in filterOptions do
+                        let href = generateHref selectedAlgo selection
+                        let isSelected = selectedMinimumNumberOfStocks = selection
+                        option [
+                            _value href
+                            if isSelected then _selected
+                        ] [ str title ]
+                ]
+            ]
+
+        let sortAndFilterSection =
+            div [ _class "level" ] [
+                div [ _class "level-left" ] [
+                    div [ _class "level-item" ] [
+                        div [ _class "field" ] [
+                            label [ _class "label" ] [ str "Sort" ]
+                            div [ _class "control" ] [
+                                sortDropdown
+                            ]
+                        ]
+                    ]
+                ]
+                div [ _class "level-right" ] [
+                    div [ _class "level-item" ] [
+                        div [_class "field"] [
+                            label [ _class "label" ] [ str "Filter" ]
+                            div [ _class "control" ] [
+                                filterDropdown
+                            ]
+                        ]
+                    ]
+                ]
+            ]
+
+        sortAndFilterSection
 
     let handler : HttpHandler  =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
@@ -320,8 +338,7 @@ module IndustriesDashboard =
             
             let title = $"Industry SMA Breakdowns ({industrySMABreakdowns20Map.Count} industries) - {formattedDate}"
             
-            let sortSection = generateSortSection sortAlgo minimumStocks
-            let filterSection = filterSection sortAlgo minimumStocks
+            let sortAndFilterSection = generateSortAndFilterSection sortAlgo minimumStocks
             
             let table =
                 generateIndustriesView
@@ -333,6 +350,6 @@ module IndustriesDashboard =
                     dailySMABreakdown200Map
                     sortFunc
                     
-            let view = toSection title (div [] [sortSection; filterSection; table])
+            let view = toSection title (div [] [sortAndFilterSection; table])
             
             ([view] |> mainLayout $"Industries") next ctx
