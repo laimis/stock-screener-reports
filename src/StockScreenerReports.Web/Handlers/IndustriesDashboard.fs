@@ -15,6 +15,7 @@ module IndustriesDashboard =
         | PercentAbove20
         | CycleScore
         | TrendScore
+        | AverageAboveRank
         
     let sortAlgoToString sortAlgo =
         match sortAlgo with
@@ -22,6 +23,7 @@ module IndustriesDashboard =
         | PercentAbove20 -> "percentAbove20"
         | CycleScore -> "cycleScore"
         | TrendScore -> "trendScore"
+        | AverageAboveRank -> "averageAboveRank"
         
     let stringToSortAlgo sortAlgoString =
         match sortAlgoString with
@@ -29,6 +31,7 @@ module IndustriesDashboard =
         | "percentAbove20" -> PercentAbove20
         | "cycleScore" -> CycleScore
         | "trendScore" -> TrendScore
+        | "averageAboveRank" -> AverageAboveRank
         | _ -> CycleScore
     
     let toBreakdownMap breakdowns =
@@ -191,6 +194,7 @@ module IndustriesDashboard =
                 PercentAbove20, "20 SMA %"
                 TrendScore, "Trend Score"
                 CycleScore, "Cycle Score"
+                AverageAboveRank, "Average SMA %"
             ]
 
         let filterOptions =
@@ -335,6 +339,15 @@ module IndustriesDashboard =
                             let cycleScore = breakdowns |> MarketCycleScoring.cycleScore
                             (cycleScore, 0m)
                         | None -> raise (System.Exception("Could not find daily breakdowns for " + industry))
+                | AverageAboveRank ->
+                    fun industry ->
+                        let update20 = industrySMABreakdowns20Map |> Map.tryFind industry
+                        match update20 with
+                        | Some update20 ->
+                            let update200 = industrySMABreakdowns200Map |> Map.find industry
+                            let average = (update20.breakdown.percentAbove + update200.breakdown.percentAbove) / 2m
+                            (average, 0m)
+                        | None -> raise (System.Exception("Could not find 20 day SMA breakdown for " + industry))
             
             let title = $"Industry SMA Breakdowns ({industrySMABreakdowns20Map.Count} industries) - {formattedDate}"
             
