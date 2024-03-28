@@ -442,7 +442,7 @@ type ReportTests() =
                 let trend =
                     industry
                     |> Reports.getIndustrySMABreakdownsForIndustry SMA20 ("2024-01-01", referenceDate)
-                    |> TrendsCalculator.calculateSMACrossOverStrength 5 20
+                    |> TrendsCalculator.calculateSMACrossOverStrength
                     
                 industry, trend
             )
