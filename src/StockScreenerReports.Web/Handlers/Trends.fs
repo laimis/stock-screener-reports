@@ -190,8 +190,8 @@ module Trends =
                     alerts
                     |> List.map (fun (alert:IndustryAlert) ->
                         div [ _class "columns" ] [
-                            div [_class "column"] [ generateHref alert.screener.name (Links.screenerResultsLink alert.screener.id alert.date)  ]
-                            div [_class "column"] [ generateHref alert.industry (Links.industryLink alert.industry) ]
+                            div [_class "column"] [ generateHrefNewTab alert.screener.name (Links.screenerResultsLink alert.screener.id alert.date)  ]
+                            div [_class "column"] [ generateHrefNewTab alert.industry (Links.industryLink alert.industry) ]
                             div [_class "column is-two-thirds"] [ alert.description |> str ]
                         ]
                     )
