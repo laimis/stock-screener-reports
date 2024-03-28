@@ -19,8 +19,9 @@ module IndustriesDashboard =
         | GeometricMeanRank
         | WeightedRank
         | SMACrossOverStrengthRank
+        | EMACrossOverStrengthRank
         
-        with static member All = [PercentAbove200; PercentAbove20; CycleScore; TrendScore; AverageAboveRank; GeometricMeanRank; WeightedRank; SMACrossOverStrengthRank]
+        with static member All = [PercentAbove200; PercentAbove20; CycleScore; TrendScore; AverageAboveRank; GeometricMeanRank; WeightedRank; SMACrossOverStrengthRank; EMACrossOverStrengthRank]
         
     let sortAlgoToString sortAlgo =
         match sortAlgo with
@@ -32,6 +33,7 @@ module IndustriesDashboard =
         | GeometricMeanRank -> nameof GeometricMeanRank
         | WeightedRank -> nameof WeightedRank
         | SMACrossOverStrengthRank -> nameof SMACrossOverStrengthRank
+        | EMACrossOverStrengthRank -> nameof EMACrossOverStrengthRank
         
     let stringToSortAlgo sortAlgoString =
         match sortAlgoString with
@@ -43,6 +45,7 @@ module IndustriesDashboard =
         | nameof GeometricMeanRank -> GeometricMeanRank
         | nameof WeightedRank -> WeightedRank
         | nameof SMACrossOverStrengthRank -> SMACrossOverStrengthRank
+        | nameof EMACrossOverStrengthRank -> EMACrossOverStrengthRank
         | _ -> CycleScore
     
     let toBreakdownMap breakdowns =
@@ -54,9 +57,17 @@ module IndustriesDashboard =
         trends
         |> List.map (fun (x:IndustryTrend) -> (x.industry, x))
         |> Map.ofList
+        
+    let private smaCrossOverRank smaBreakdowns = 
+        let smaCrossOverStrength = smaBreakdowns |> TrendsCalculator.calculateSMACrossOverStrength 5 20
+        smaCrossOverStrength
+        
+    let private emaCrossOverRank smaBreakdowns =
+        let emaCrossOverStrength = smaBreakdowns |> TrendsCalculator.calculateEMACrossOverStrength 3 10
+        emaCrossOverStrength
 
-    let private generateDataRow index industrySMABreakdown20 industrySMABreakdown200 trend20 trend200 dailyBreakdowns =
-        let toSMACells (smaBreakdown:IndustrySMABreakdown) (trendOption:Option<IndustryTrend>) =
+    let private generateDataDiv industrySMABreakdown20 industrySMABreakdown200 trend20 trend200 =
+        let toSMACells (sma:SMA) (smaBreakdown:IndustrySMABreakdown) (trendOption:Option<IndustryTrend>) =
             
             let trend =
                 match trendOption with
@@ -64,84 +75,62 @@ module IndustriesDashboard =
                 | None -> Trend.blank()
 
             [
-                StringColumn($"{smaBreakdown.breakdown.above} / {smaBreakdown.breakdown.total}")
-                StringColumn(System.String.Format("{0:N2}%", smaBreakdown.breakdown.percentAbove))
-                StringColumn(trend.changeFormatted)
-                StringColumn(trend.streakFormatted)
-                StringColumn(trend.streakRateFormatted)
+                $"{sma.Interval} sma", $"{smaBreakdown.breakdown.above} / {smaBreakdown.breakdown.total}"
+                $"{sma.Interval} sma %%", System.String.Format("{0:N2}%", smaBreakdown.breakdown.percentAbove)
+                "Trend Change", trend.changeFormatted
+                "Trend Streak", trend.streakFormatted
+                "Rate", trend.streakRateFormatted
             ]
-
-        let sma20Cells = toSMACells industrySMABreakdown20 trend20
-        let sma200Cells = toSMACells industrySMABreakdown200 trend200
-
-        let industryLinks = div [] [
-            span [ _class "mr-2"] [
-                    industrySMABreakdown200.industry |> Links.industryLink |> generateHref industrySMABreakdown200.industry
+        
+        let toLevelItem title value =
+            div [_class "level-item has-text-centered"] [
+                div [] [
+                    div [_class "heading"] [str title]
+                    div [_class "title is-size-5"] [str value]
                 ]
-                
-            span [ _class "is-pulled-right"] [
-                industrySMABreakdown200.industry |> Links.industryFinvizLink |> generateHrefNewTab "finviz" 
             ]
+                
+        [
+            toSMACells SMA20 industrySMABreakdown20 trend20
+            toSMACells SMA200 industrySMABreakdown200 trend200
         ]
+        |>
+        List.map (fun pairs ->
+            pairs |> List.map (fun (title, value) -> toLevelItem title value) |> div [_class "level"]
+        )
+        |> div [_class "box"] 
+        
 
-        let commonCells = [
-            StringColumn((index+1).ToString())
-            NodeColumn(industryLinks)
-        ]
-
-        let scoreCells =
-            match dailyBreakdowns with
-            | None -> [StringColumn(""); StringColumn(""); StringColumn("")]
-            | Some dailyBreakdowns ->
+    let chartSection dailyBreakdowns20 dailyBreakdowns200 =
+        
+        match dailyBreakdowns20, dailyBreakdowns200 with
+        | Some dailyBreakdowns20, Some dailyBreakdowns200 ->
             
-                let trendScore = dailyBreakdowns |> MarketCycleScoring.trendScore
-                let cycleScore = dailyBreakdowns |> MarketCycleScoring.cycleScore
+            let generateSeries (sma:SMA) breakdowns : Charts.DataSet<decimal> =
+                let series = 
+                    breakdowns
+                    |> List.map (fun (u:IndustrySMABreakdown) -> System.Math.Round(u.breakdown.percentAbove, 0))
+                    
+                {
+                    data = series
+                    title = $"{sma.Interval} SMA Trend"
+                    color = sma.Color
+                }
                 
+            let dataSets =
                 [
-                    StringColumn(trendScore.ToString())
-                    StringColumn(cycleScore.ToString())
+                    generateSeries SMA20 dailyBreakdowns20
+                    generateSeries SMA200 dailyBreakdowns200
                 ]
-
-        commonCells @ sma20Cells @ sma200Cells @ scoreCells
-
-    let chartRow length dailyBreakdowns20 dailyBreakdowns200 =
-        
-        let contents =
-            match dailyBreakdowns20, dailyBreakdowns200 with
-            | Some dailyBreakdowns20, Some dailyBreakdowns200 ->
                 
-                let generateSeries sma breakdowns : Charts.DataSet<decimal> =
-                    let series = 
-                        breakdowns
-                        |> List.map (fun (u:IndustrySMABreakdown) -> System.Math.Round(u.breakdown.percentAbove, 0))
-                        
-                    {
-                        data = series
-                        title = $"{sma |> SMA.toInterval} SMA Trend"
-                        color = sma |> SMA.toColor
-                    }
-                    
-                let dataSets =
-                    [
-                        generateSeries SMA20 dailyBreakdowns20
-                        generateSeries SMA200 dailyBreakdowns200
-                    ]
-                    
-                    
-                let labels = dailyBreakdowns20 |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
-                
-                let chartElements =
-                    dataSets |> Charts.generateChartElements "sma breakdown chart" Charts.ChartType.Line (Some 100) Charts.smallChart labels
-                
-                div [] chartElements
-            | None, _ -> div [] [str "Missing sma 20 data "]
-            | _, None -> div [] [str "Missing sma 200 data "]
-        
-        tr [] [
-            td [_colspan (length.ToString())] [
-                contents
-            ]
-        ]
+            let labels = dailyBreakdowns20 |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
+            
+            let chartElements =
+                dataSets |> Charts.generateChartElements "sma breakdown chart" Charts.ChartType.Line (Some 100) Charts.smallChart labels
+            
+            div [] chartElements
+        | None, _ -> div [] [str "Missing sma 20 data "]
+        | _, None -> div [] [str "Missing sma 200 data "]
         
     let private generateIndustriesView
         industrySMABreakdowns20Map
@@ -151,7 +140,7 @@ module IndustriesDashboard =
         dailySMABreakdown20Map
         dailySMABreakdown200Map
         sortFunc =
-        
+            
         let industry20And200Rows =
             industrySMABreakdowns200Map.Keys
             |> Seq.sortByDescending sortFunc
@@ -165,33 +154,56 @@ module IndustriesDashboard =
                 let dailyBreakdowns20 = dailySMABreakdown20Map |> Map.tryFind industry
                 let dailyBreakdowns200 = dailySMABreakdown200Map |> Map.tryFind industry
                 
-                let dataCells = generateDataRow index industrySMABreakdown20 industrySMABreakdown200 trend20 trend200 dailyBreakdowns20
-                let chartRow = chartRow dataCells.Length dailyBreakdowns20 dailyBreakdowns200
+                let dataDiv = generateDataDiv industrySMABreakdown20 industrySMABreakdown200 trend20 trend200
+                let chartDiv = chartSection dailyBreakdowns20 dailyBreakdowns200
                 
-                [dataCells |> toTr; chartRow]
+                let trendScore, cycleScore, sortScore =
+                    match dailyBreakdowns20 with
+                    | None -> 0m, 0m, 0m
+                    | Some dailyBreakdowns ->
+                    
+                        let trendScore = dailyBreakdowns |> MarketCycleScoring.trendScore
+                        let cycleScore = dailyBreakdowns |> MarketCycleScoring.cycleScore
+                        let sortScore = sortFunc industry |> fst
+                        
+                        trendScore, cycleScore, sortScore
+                
+                div [_class "box"] [
+                    header [_class "title is-4"] [
+                        div [_class "level"] [
+                            
+                            div [_class "level-item"] [
+                                $"{index + 1}." |> str
+                            ]
+                            div [_class "level-item"] [
+                                industry |> Links.industryLink |> generateHref industry
+                            ]
+                            div [_class "level-item has-text-centered"] [
+                                $"{trendScoreTm} {trendScore}" |> str
+                            ]
+                            div [_class "level-item has-text-centered"] [
+                                $"{marketCycleScoreTm} {cycleScore}" |> str
+                            ]
+                            div [_class "level-item"] [
+                                $"Sort Score {sortScore}" |> str
+                            ]
+                            div [ _class "level-right is-size-6" ] [
+                                div [_class "level-item"] [
+                                    industry |> Links.industryFinvizLink |> generateHrefNewTab "finviz"
+                                ]
+                            ]
+                        ]
+                    ]
+                    div [_class "card-content"] [
+                        dataDiv
+                        chartDiv
+                    ]
+                ]
             )
-            |> Seq.concat
             |> Seq.toList
-
-        let industry20And200Header = [
-            ""
-            "Industry"
-            "20 sma"
-            "20 sma %"
-            "Trend Change"
-            "Trend Streak"
-            "Rate"
-            "200 sma"
-            "200 sma %"
-            "Trend Change"
-            "Trend Streak"
-            "Rate"
-            trendScoreTm
-            marketCycleScoreTm
-        ]
-
-        let table = industry20And200Rows |> fullWidthTableWithSortableHeaderCells industry20And200Header
-        table
+            
+        div [] industry20And200Rows
+        
     
     let private generateHref sortAlgo minimumStocks =
         let sortAlgoAsString = sortAlgoToString sortAlgo
@@ -211,6 +223,7 @@ module IndustriesDashboard =
                 | GeometricMeanRank -> (x, "Geometric Mean Rank")
                 | WeightedRank -> (x, "Weighted Rank")
                 | SMACrossOverStrengthRank -> (x, "SMA Cross Over Strength Rank")
+                | EMACrossOverStrengthRank -> (x, "EMA Cross Over Strength Rank")
             ) 
 
         let filterOptions =
@@ -359,9 +372,13 @@ module IndustriesDashboard =
                     fun industry ->
                         let breakdowns = dailySMABreakdown20Map |> Map.tryFind industry
                         match breakdowns with
-                        | Some breakdowns ->
-                            let smaCrossOverStrength = breakdowns |> TrendsCalculator.calculateSMACrossOverStrength 5 20
-                            (smaCrossOverStrength, 0m)
+                        | Some breakdowns -> (breakdowns |> smaCrossOverRank, 0m)
+                        | None -> raise (System.Exception("Could not find daily breakdowns for " + industry))
+                | EMACrossOverStrengthRank ->
+                    fun industry ->
+                        let breakdowns = dailySMABreakdown20Map |> Map.tryFind industry
+                        match breakdowns with
+                        | Some breakdowns -> (breakdowns |> emaCrossOverRank, 0m)
                         | None -> raise (System.Exception("Could not find daily breakdowns for " + industry))
                         
                 | AverageAboveRank ->
@@ -406,6 +423,6 @@ module IndustriesDashboard =
                     dailySMABreakdown200Map
                     sortFunc
                     
-            let view = toSection title (div [] [sortAndFilterSection; table])
+            let view = toSection title (div [_class "content"] [sortAndFilterSection; table])
             
             ([view] |> mainLayout $"Industries") next ctx

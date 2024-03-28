@@ -126,3 +126,40 @@ namespace StockScreenerReports.Core
             let strength = abs (shortSMA - longSMA)
 
             trend * strength
+            
+        let calculateEMACrossOverStrength shortPeriod longPeriod (smaBreakdowns:list<IndustrySMABreakdown>) =
+            let toEMA (prices:decimal list) interval =
+        
+                let ema =
+                    match prices.Length <= interval with
+                    | true ->
+                        Array.create prices.Length None
+                    | false ->
+                        let alpha = 2m / (decimal (interval + 1))
+                        let initialEMA = System.Math.Round(Seq.averageBy id prices[..(interval - 1)], 2)
+
+                        prices
+                        |> List.toArray
+                        |> Array.skip interval
+                        |> Array.scan
+                            (fun prevEMA price ->
+                                let newEMA = alpha * price + (1m - alpha) * (prevEMA |> Option.get)
+                                System.Math.Round(newEMA, 2) |> Some)
+                            (initialEMA |> Some)
+                        |> Array.append (Array.create (interval-1) None)
+                        
+                ema
+                
+            let percentagesAboveSMA =
+                smaBreakdowns
+                |> List.map (fun breakdown -> breakdown.breakdown.date, breakdown.breakdown.percentAbove)
+                |> List.sortBy fst
+                |> List.map snd
+
+            let shortEMA = toEMA percentagesAboveSMA shortPeriod |> Array.last |> Option.get
+            let longEMA = toEMA percentagesAboveSMA longPeriod |> Array.last |> Option.get
+
+            let trend = if shortEMA > longEMA then 1m else -1m
+            let strength = abs (shortEMA - longEMA)
+
+            trend * strength

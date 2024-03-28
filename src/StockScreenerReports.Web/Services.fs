@@ -85,7 +85,7 @@ module Services =
                 Storage.getCountries()
                 |> List.filter ReportsConfig.includeCountryInScans
             
-            let countrySmaPairs = countries |> Seq.map (fun country -> SMA.all |> List.map (fun sma -> (country, sma))) |> Seq.concat
+            let countrySmaPairs = countries |> List.map (fun country -> SMA.All |> List.map (fun sma -> (country, sma))) |> Seq.concat
             
             let countriesUpdated =
                 countrySmaPairs
@@ -125,7 +125,7 @@ module Services =
             // pull above and below 20 and 200 for each industry, and store the results
             let knownIndustries = Storage.getIndustries()
             
-            let industrySmaPairs = knownIndustries |> Seq.map (fun industry -> SMA.all |> List.map (fun sma -> (industry, sma))) |> Seq.concat
+            let industrySmaPairs = knownIndustries |> Seq.map (fun industry -> SMA.All |> List.map (fun sma -> (industry, sma))) |> Seq.concat
 
             let industriesUpdated =
                 industrySmaPairs
@@ -141,7 +141,7 @@ module Services =
                 )
                 |> Seq.length
 
-            SMA.all |> List.iter (fun sma -> Storage.updateIndustrySMABreakdowns date sma |> ignore)
+            SMA.All |> List.iter (fun sma -> Storage.updateIndustrySMABreakdowns date sma |> ignore)
 
             logger.LogInformation($"Calculating trends")
 

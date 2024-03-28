@@ -32,7 +32,7 @@ module Links =
     let searchLink = "/search"
 
     let screenerResultsLink screenerId date =
-         $"/screeners/{screenerId}/results/{date}"
+         $"/screeners/{screenerId}/results/{date |> Utils.convertToDateString}"
 
     let sectorLink sectorName =
         $"/sectors/{sectorName}"

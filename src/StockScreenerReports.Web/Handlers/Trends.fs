@@ -61,11 +61,11 @@ module Trends =
 
         let datasets:list<Charts.DataSet<decimal>> =
             smaBreakdownPairs
-            |> List.map (fun (sma,breakdowns) ->
+            |> List.map (fun (sma:SMA,breakdowns) ->
                 {
                     data = breakdowns |> List.map (fun breakdown -> breakdown.percentAboveRounded)
                     title = $"SMA {sma}"
-                    color = sma |> SMA.toColor 
+                    color = sma.Color 
                 }
             )
 
@@ -284,7 +284,7 @@ module Trends =
             ]::volumeCharts        
 
         let trends =
-            SMA.all
+            SMA.All
             |> List.map(fun sma -> 
                 (sma, sma |> getDailySMABreakdown dateRange)
             )
@@ -326,7 +326,7 @@ module Trends =
                     None
                 | Some d ->
                     let dateToUse = d |> Utils.convertToDateString
-                    SMA.all
+                    SMA.All
                     |> List.map (fun days -> days |> getIndustryTrendBreakdown dateToUse)
                     |> Some
                     

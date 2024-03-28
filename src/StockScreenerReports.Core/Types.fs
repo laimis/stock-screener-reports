@@ -43,25 +43,24 @@ type SMA =
         | SMA20
         | SMA200
         
-module SMA =
-    
-    let all = FSharpType.GetUnionCases typeof<SMA> |> Array.map (fun x -> FSharpValue.MakeUnion(x, [||]) :?> SMA) |> Array.toList
-    
-    let toColor sma =
-        match sma with
-        | SMA20 -> ColorRed
-        | SMA200 -> ColorBlue
-        
-    let toInterval sma =
-        match sma with
-        | SMA20 -> 20
-        | SMA200 -> 200
-        
-    let fromInterval interval =
-        match interval with
-        | 20 -> SMA20
-        | 200 -> SMA200
-        | _ -> failwith $"Invalid SMA interval {interval}"
+        member this.Interval =
+            match this with
+            | SMA20 -> 20
+            | SMA200 -> 200
+            
+        member this.Color =
+            match this with
+            | SMA20 -> ColorRed
+            | SMA200 -> ColorBlue
+            
+        static member FromInterval interval =
+            match interval with
+            | 20 -> SMA20
+            | 200 -> SMA200
+            | _ -> failwith $"Invalid SMA interval {interval}"
+            
+        static member All =
+            FSharpType.GetUnionCases typeof<SMA> |> Array.map (fun x -> FSharpValue.MakeUnion(x, [||]) :?> SMA) |> Array.toList
         
 module TimeFunctions =
     

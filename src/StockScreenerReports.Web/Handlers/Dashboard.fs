@@ -93,7 +93,7 @@ module Dashboard =
 
     let private generateSMATrendRows smaTrendCyclePairs =
         let mapTrendToHtml (sma:SMA) (trend:Trend) =
-            $"SMA <b>{sma |> SMA.toInterval}</b>: {trend |> Views.trendToHtml}"
+            $"SMA <b>{sma.Interval}</b>: {trend |> Views.trendToHtml}"
 
         let mapMarketCycleToHtml (cycle:MarketCycle) =
             $"{cycle |> Views.marketCycleToHtml}"
@@ -126,11 +126,11 @@ module Dashboard =
 
         let datasets:list<Charts.DataSet<decimal>> =
             breakdowns
-            |> List.map (fun (sma, smaBreakdown:list<SMABreakdown>) ->
+            |> List.map (fun (sma:SMA, smaBreakdown:list<SMABreakdown>) ->
                 {
                     data = smaBreakdown |> List.map (fun breakdown -> breakdown.percentAboveRounded)
                     title = $"SMA {sma}"
-                    color = sma |> SMA.toColor
+                    color = sma.Color
                 }   
             )
 
@@ -185,7 +185,7 @@ module Dashboard =
         // end sector trends
 
         let breakdowns =
-            SMA.all
+            SMA.All
             |> List.map (fun sma ->
                 let smaBreakdown = sma |> getDailySMABreakdown (ReportsConfig.dateRangeAsStrings())
                 (sma, smaBreakdown)

@@ -367,7 +367,9 @@ module Views =
             ]
         ]
 
+    [<Literal>]
     let marketCycleScoreTm = "Cycle Score\u2122"
+    [<Literal>]
     let trendScoreTm = "Trend Score\u2122"
 
     let getFilterSectionParams (ctx: Microsoft.AspNetCore.Http.HttpContext) =

@@ -59,15 +59,15 @@ module Countries =
             | None -> HtmlElements.div [] [ HtmlElements.str "No data available to chart"]
             | Some (sma20, sma200) ->
                 
-                let generateDataSet interval data : Charts.DataSet<decimal> =
+                let generateDataSet (sma:SMA) data : Charts.DataSet<decimal> =
                     let series = 
                         data
                         |> List.map (fun (u:CountrySMABreakdown) -> System.Math.Round(u.breakdown.percentAbove, 0))
                         
                     {
                         data = series
-                        title = $"{interval |> SMA.toInterval} SMA Trend"
-                        color = interval |> SMA.toColor
+                        title = $"{sma.Interval} SMA Trend"
+                        color = sma.Color
                     }
                     
                     

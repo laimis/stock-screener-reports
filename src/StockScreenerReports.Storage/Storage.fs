@@ -389,12 +389,12 @@ module Storage =
             "@below", Sql.int industrySmaBreakdown.breakdown.below;
             "@streak", Sql.int trend.streak;
             "@direction", trend.direction |> toTrendDirectionString |> Sql.string;
-            "@days", industrySmaBreakdown.breakdown.days |> SMA.toInterval |> Sql.int;
+            "@days", industrySmaBreakdown.breakdown.days.Interval |> Sql.int;
             "@change", Sql.decimal trend.change
         ]
         |> Sql.executeNonQuery
 
-    let updateIndustrySMABreakdowns date sma =
+    let updateIndustrySMABreakdowns date (sma:SMA) =
         let sql = @"SELECT sum(above) as above,sum(below) as below,@days
             FROM industrysmabreakdowns
             WHERE date = date(@date) AND days = @days"
@@ -405,7 +405,7 @@ module Storage =
             |> Sql.query sql
             |> Sql.parameters [
                 "@date", Sql.string date;
-                "@days", sma |> SMA.toInterval |> Sql.int
+                "@days", sma.Interval |> Sql.int
             ]
             |> Sql.executeRow (fun reader ->
                 ((reader.intOrNone "above"), (reader.intOrNone "below"))
@@ -426,12 +426,12 @@ module Storage =
                 "@date", Sql.string date;
                 "@above", Sql.int above;
                 "@below", Sql.int below;
-                "@days", sma |> SMA.toInterval |> Sql.int 
+                "@days", sma.Interval |> Sql.int 
             ]
             |> Sql.executeNonQuery
         | _ -> 0
 
-    let saveIndustryCycle sma (cycle:MarketCycle) industry =
+    let saveIndustryCycle (sma:SMA) (cycle:MarketCycle) industry =
 
         let sql = @"INSERT INTO industrycycles (industry,days,startDate,startValue,highDate,highValue,currentDate,currentValue)
             VALUES (@industry,@days,date(@start),@startValue,date(@highDate),@highValue,date(@currentDate),@currentValue)
@@ -448,7 +448,7 @@ module Storage =
         |> Sql.query sql
         |> Sql.parameters [
             "@industry", Sql.string industry;
-            "@days", sma |> SMA.toInterval |> Sql.int;
+            "@days", sma.Interval |> Sql.int;
             "@start", Sql.string cycle.startPointDateFormatted;
             "@startValue", Sql.decimal cycle.startPointValue;
             "@highDate", Sql.string cycle.highPointDateFormatted;
@@ -458,28 +458,28 @@ module Storage =
         ]
         |> Sql.executeNonQuery
 
-    let getIndustryCycle sma industry =
+    let getIndustryCycle (sma:SMA) industry =
         let sql = @"SELECT * FROM industrycycles WHERE industry = @industry AND days = @days"
         cnnString
         |> Sql.connect
         |> Sql.query sql
         |> Sql.parameters [
             "@industry", Sql.string industry;
-            "@days", sma |> SMA.toInterval |> Sql.int;
+            "@days", sma.Interval |> Sql.int;
         ]
         |> Sql.executeRow industryCycleMapper
 
-    let getIndustryCycles sma =
+    let getIndustryCycles (sma:SMA) =
         let sql = @"SELECT * FROM industrycycles WHERE days = @days"
         cnnString
         |> Sql.connect
         |> Sql.query sql
         |> Sql.parameters [
-            "@days", sma |> SMA.toInterval |> Sql.int;
+            "@days", sma.Interval |> Sql.int;
         ]
         |> Sql.execute industryCycleMapper
 
-    let saveIndustrySMABreakdowns date  (industry,sma,above:int,below:int) =
+    let saveIndustrySMABreakdowns date  (industry,sma:SMA,above:int,below:int) =
         let sql = @"
             DELETE FROM IndustrySMABreakdowns WHERE industry = @industry AND date = date(@date) AND days = @days;
 
@@ -494,13 +494,13 @@ module Storage =
         |> Sql.parameters [
             "@industry", Sql.string industry;
             "@date", Sql.string date;
-            "@days", sma |> SMA.toInterval |> Sql.int;
+            "@days", sma.Interval |> Sql.int;
             "@above", Sql.int above;
             "@below", Sql.int below;
         ]
         |> Sql.executeNonQuery
         
-    let saveCountrySMABreakdowns date  (country,sma,above:int,below:int) =
+    let saveCountrySMABreakdowns date  (country,sma:SMA,above:int,below:int) =
         let sql = @"
             DELETE FROM CountrySMABreakdowns WHERE country = @country AND date = date(@date) AND days = @days;
 
@@ -515,7 +515,7 @@ module Storage =
         |> Sql.parameters [
             "@country", Sql.string country;
             "@date", Sql.string date;
-            "@days", sma |> SMA.toInterval |> Sql.int;
+            "@days", sma.Interval |> Sql.int;
             "@above", Sql.int above;
             "@below", Sql.int below;
         ]

@@ -68,7 +68,7 @@ module CountryDashboard =
         
         let datasets =
             dailySMABreakdowns
-            |> List.map( fun (sma,breakdowns) ->
+            |> List.map( fun (sma:SMA,breakdowns) ->
                 let dataset : Charts.DataSet<decimal> =
                     let series = 
                         breakdowns
@@ -76,8 +76,8 @@ module CountryDashboard =
                         
                     {
                         data = series
-                        title = $"{sma} SMA Trend"
-                        color = sma |> SMA.toColor
+                        title = $"{sma.Interval} SMA Trend"
+                        color = sma.Color
                     }
                     
                 dataset
@@ -105,11 +105,11 @@ module CountryDashboard =
                 let total = mapped |> Map.fold (fun acc _ v -> acc + v) 0
                 let byDateHits =
                     businessDates
-                    |> Seq.map(fun (date) ->
+                    |> Seq.map(fun date ->
                         let found = mapped.TryFind date.Date
                         match found with
-                        | Some c -> (date,c)
-                        | None -> (date,0)
+                        | Some c -> date,c
+                        | None -> date,0
                     )
                 
                 {screener = screener; total = total; byDateHits = byDateHits;} 
@@ -120,7 +120,7 @@ module CountryDashboard =
         // render all data now
         
         let smaChart =
-            SMA.all
+            SMA.All
             |> List.map (fun sma -> sma, countryName)
             |> List.map (fun (sma, countryName) -> sma, countryName |> getCountrySMABreakdownsForCountry sma dateRangeAsStrings)
             |> renderSMAChart

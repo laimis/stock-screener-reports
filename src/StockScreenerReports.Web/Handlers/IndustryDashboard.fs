@@ -101,7 +101,7 @@ module IndustryDashboard =
             div [_class $"column {hasTextRight}"] [rawText description]
 
         let columns = div [_class "columns"] (
-                SMA.all
+                SMA.All
                 |> List.map createBreakdownColumnDiv
             )
             
@@ -177,11 +177,11 @@ module IndustryDashboard =
                 
             {
                 data = series
-                title = $"{sma |> SMA.toInterval} SMA Trend"
-                color = sma |> SMA.toColor
+                title = $"{sma.Interval} SMA Trend"
+                color = sma.Color
             }
 
-        let datasets = SMA.all |> List.map createDataset
+        let datasets = SMA.All |> List.map createDataset
 
         let smoothedDataSets = datasets |> Utils.smoothedDataSets 3
 
@@ -196,7 +196,7 @@ module IndustryDashboard =
             |> generateChartElements "sma breakdown chart" Line (Some 100) smallChart labels
 
         let trendDiv = div [_class "columns"] (
-            SMA.all
+            SMA.All
                 |> List.map (fun sma -> 
                     industryTrends |> Map.tryFind sma |> Option.defaultValue None |> createTrendDiv sma
                 )
@@ -323,7 +323,7 @@ module IndustryDashboard =
             let earningsSection = createEarningsSection industryName dateRange
             
             let dailySMABreakdowns =
-                SMA.all
+                SMA.All
                 |> List.map (fun sma -> 
                     let breakdowns =
                         industryName
@@ -333,7 +333,7 @@ module IndustryDashboard =
                 |> Map.ofList
                 
             let industryTrends =
-                SMA.all
+                SMA.All
                 |> List.map (fun sma -> 
                     let industryTrend =
                         industryName
@@ -363,7 +363,7 @@ module IndustryDashboard =
         >=>
             let rows = 
                 stocks
-                |> List.sortByDescending (fun s -> s.marketCap)
+                |> List.sortByDescending _.marketCap
                 |> List.map (fun s -> 
                     IndustryExportType.Row(
                         s.ticker |> StockTicker.value,

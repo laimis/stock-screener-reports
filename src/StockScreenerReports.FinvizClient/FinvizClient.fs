@@ -49,10 +49,10 @@ module FinvizClient =
     let getResultCount url =
         url |> fetchScreenerHtml |> FinvizParsing.parseResultCount
 
-    let getResultCountForIndustryAboveAndBelowSMA sma industry =
+    let getResultCountForIndustryAboveAndBelowSMA (sma:SMA) industry =
         let cleaned = industry |> Utils.cleanIndustry
 
-        let days = sma |> SMA.toInterval
+        let days = sma.Interval
         
         let fetchCountWithTA ta =
             let url = $"https://finviz.com/screener.ashx?v=111&f=ind_{cleaned},{ta}"
@@ -77,7 +77,7 @@ module FinvizClient =
             let url = $"https://finviz.com/screener.ashx?v=111&f=geo_{cleaned},{ta}"
             url |> getResultCount
             
-        let interval = sma |> SMA.toInterval
+        let interval = sma.Interval
         
         let above = $"ta_sma%i{interval}_pa" |> fetchCountWithTA
         let below = $"ta_sma%i{interval}_pb" |> fetchCountWithTA

@@ -37,7 +37,7 @@ module Reports =
             industry = reader.string "industry";
             breakdown = {
                             date = (reader.dateTime "date");
-                            days = (reader.int "days" |> SMA.fromInterval);
+                            days = (reader.int "days" |> SMA.FromInterval);
                             above = (reader.int "above");
                             below = (reader.int "below");
                         };
@@ -48,7 +48,7 @@ module Reports =
             country = reader.string "country";
             breakdown = {
                             date = (reader.dateTime "date");
-                            days = (reader.int "days" |> SMA.fromInterval);
+                            days = (reader.int "days" |> SMA.FromInterval);
                             above = (reader.int "above");
                             below = (reader.int "below");
                         };
@@ -78,7 +78,7 @@ module Reports =
     let private smaBreakdownMapper (reader:RowReader) : SMABreakdown =
         {
             date = (reader.dateTime "date");
-            days = (reader.int "days" |> SMA.fromInterval);
+            days = (reader.int "days" |> SMA.FromInterval);
             above = (reader.int "above");
             below = (reader.int "below");
         }
@@ -620,7 +620,7 @@ module Reports =
                 )
             )
 
-    let getDailySMABreakdown dateRange sma = 
+    let getDailySMABreakdown dateRange (sma:SMA) = 
             
             let sql = @$"
                SELECT date,days,above,below
@@ -633,13 +633,13 @@ module Reports =
                 |> Sql.connect
                 |> Sql.query sql
                 |> Sql.parameters [
-                    "@days", sma |> SMA.toInterval |> Sql.int;
+                    "@days", sma.Interval |> Sql.int;
                     "@startDate", dateRange |> fst |> Sql.string;
                     "@endDate", dateRange |> snd |> Sql.string;
                 ]
                 |> Sql.execute smaBreakdownMapper
 
-    let getStockSMABreakdown sma = 
+    let getStockSMABreakdown (sma:SMA) = 
 
         let sql = @$"
             SELECT 
@@ -653,7 +653,7 @@ module Reports =
             |> Sql.connect
             |> Sql.query sql
             |> Sql.parameters [
-                "@days", sma |> SMA.toInterval |> Sql.int;
+                "@days", sma.Interval |> Sql.int;
             ]
             |> Sql.execute (fun reader -> (reader.int "above", reader.int "below"))
             |> Storage.singleOrThrow "More than one SMA breakdown found"
@@ -662,7 +662,7 @@ module Reports =
             | Some (above,below) -> (above,below)
             | None -> (0,0)
             
-    let getCountrySMABreakdowns sma date =
+    let getCountrySMABreakdowns (sma:SMA) date =
         let sql = @"
             SELECT country,date,days,above,below
             FROM CountrySMABreakdowns
@@ -675,11 +675,11 @@ module Reports =
         |> Sql.query sql
         |> Sql.parameters [
             "@date", Sql.string date;
-            "@days", sma |> SMA.toInterval |> Sql.int;
+            "@days", sma.Interval |> Sql.int;
         ]
         |> Sql.execute countrySMABreakdownMapper
     
-    let getCountrySMABreakdownsForCountry sma dateRange country =
+    let getCountrySMABreakdownsForCountry (sma:SMA) dateRange country =
         let sql = @"
             SELECT country,date,days,above,below
             FROM CountrySMABreakdowns
@@ -693,7 +693,7 @@ module Reports =
         |> Sql.query sql
         |> Sql.parameters [
             "@country", Sql.string country;
-            "@days", sma |> SMA.toInterval |> Sql.int;
+            "@days", sma.Interval |> Sql.int;
             "@startDate", dateRange |> fst |> Sql.string;
             "@endDate", dateRange |> snd |> Sql.string;
         ]
@@ -705,7 +705,7 @@ module Reports =
         |> Sql.query "SELECT MAX(date) as date FROM CountrySMABreakdowns"
         |> Sql.executeRow (fun reader -> reader.dateTime "date")
         
-    let getIndustrySMABreakdownsForIndustry sma dateRange industry =
+    let getIndustrySMABreakdownsForIndustry (sma:SMA) dateRange industry =
         let sql = @"
             SELECT industry,date,days,above,below
             FROM IndustrySMABreakdowns
@@ -719,13 +719,13 @@ module Reports =
         |> Sql.query sql
         |> Sql.parameters [
             "@industry", Sql.string industry;
-            "@days", sma |> SMA.toInterval |> Sql.int ;
+            "@days", sma.Interval |> Sql.int ;
             "@startDate", dateRange |> fst |> Sql.string;
             "@endDate", dateRange |> snd |> Sql.string;
         ]
         |> Sql.execute industrySMABreakdownMapper
 
-    let getIndustrySMABreakdowns sma date =
+    let getIndustrySMABreakdowns (sma:SMA) date =
         let sql = @"
             SELECT industry,date,days,above,below FROM IndustrySMABreakdowns
             WHERE date = date(@date)
@@ -737,11 +737,11 @@ module Reports =
         |> Sql.query sql
         |> Sql.parameters [
             "@date", Sql.string date;
-            "@days", sma |> SMA.toInterval |> Sql.int;
+            "@days", sma.Interval |> Sql.int;
         ]
         |> Sql.execute industrySMABreakdownMapper
 
-    let getMostRecentIndustrySMABreakdown sma industry =
+    let getMostRecentIndustrySMABreakdown (sma:SMA) industry =
         let sql = @"
             SELECT industry,date,days,above,below FROM IndustrySMABreakdowns
             WHERE industry = @industry
@@ -753,7 +753,7 @@ module Reports =
         |> Sql.query sql
         |> Sql.parameters [
             "@industry", Sql.string industry;
-            "@days", sma |> SMA.toInterval |> Sql.int;
+            "@days", sma.Interval |> Sql.int;
         ]
         |> Sql.execute industrySMABreakdownMapper
         |> Storage.singleOrThrow "More than one industry sma breakdown for the same industry and days"
@@ -764,7 +764,7 @@ module Reports =
         |> Sql.query "SELECT MAX(date) as date FROM IndustrySMABreakdowns"
         |> Sql.executeRow (fun reader -> reader.dateTime "date")
 
-    let getIndustryTrends date sma =
+    let getIndustryTrends date (sma:SMA) =
         let sql = @"
             SELECT industry,date,above,below,streak,direction,change,days FROM industrytrends
             WHERE 
@@ -777,7 +777,7 @@ module Reports =
         |> Sql.query sql
         |> Sql.parameters [
             "@date", Sql.string date;
-            "@days", sma |> SMA.toInterval |> Sql.int;
+            "@days", sma.Interval |> Sql.int;
         ]
         |> Sql.execute industryTrendMapper
 
@@ -794,7 +794,7 @@ module Reports =
         ]
         |> Sql.executeRow (fun reader -> reader.dateTimeOrNone "date")
 
-    let getIndustryTrendBreakdown date sma =
+    let getIndustryTrendBreakdown date (sma:SMA) =
         let sql = @"
             SELECT
                 COALESCE(SUM(case WHEN direction = 'up' THEN 1 ELSE 0 END),0) up,
@@ -809,7 +809,7 @@ module Reports =
             |> Sql.connect
             |> Sql.query sql
             |> Sql.parameters [
-                "@days", sma |> SMA.toInterval |> Sql.int;
+                "@days", sma.Interval |> Sql.int;
                 "@date", Sql.string date;
             ]
             |> Sql.executeRow (fun reader -> (reader.int "up", reader.int "down"))
@@ -818,7 +818,7 @@ module Reports =
                 Console.WriteLine("Error: " + date + " " + sma.ToString())
                 reraise()
 
-    let getIndustryTrend sma date industry =
+    let getIndustryTrend (sma:SMA) date industry =
         let sql = @"
             SELECT industry,date,above,below,streak,direction,change,days FROM industrytrends
             WHERE industry = @industry AND days = @days
@@ -829,7 +829,7 @@ module Reports =
         |> Sql.query sql
         |> Sql.parameters [
             "@industry", Sql.string industry;
-            "@days", sma |> SMA.toInterval |> Sql.int;
+            "@days", sma.Interval |> Sql.int;
             "@date", Sql.string date;
         ]
         |> Sql.execute industryTrendMapper
