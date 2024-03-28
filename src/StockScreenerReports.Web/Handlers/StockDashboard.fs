@@ -40,11 +40,10 @@ module StockDashboard =
 
     let createScreenerResultsSection results =
         let screenerResultToRow (screenerResult:ScreenerResultReportItem) =
-            let dateStr = screenerResult.date |> Utils.convertToDateString
-            let screenerLink = dateStr |> screenerResultsLink screenerResult.screenerid
+            let screenerLink = screenerResult.date |> screenerResultsLink screenerResult.screenerid
 
             [
-                LinkColumn(dateStr, screenerLink)
+                LinkColumn(screenerResult.date |> Utils.convertToDateString, screenerLink)
                 NodeColumn((screenerResult.screenerid,screenerResult.screenername) |> generateScreenerTags)
                 StringColumn(screenerResult.marketCap |> marketCapFormatted)
                 StringColumn(screenerResult.price |> dollarFormatted )

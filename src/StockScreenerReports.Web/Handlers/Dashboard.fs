@@ -21,13 +21,11 @@ module Dashboard =
         ]
     let private generateScreenerResultSection (screener:ScreenerResultReport) = 
         
-        let screenerDate = screener.date |> Utils.convertToDateString
-        
         div [_class "column is-one-quarter"] [
             a [
                 _class "button is-primary is-fullwidth"
                 _style "justify-content: left;"
-                _href (Links.screenerResultsLink screener.screenerid screenerDate)] [
+                _href (Links.screenerResultsLink screener.screenerid screener.date)] [
                 span [
                     _style "font-size: 1.5em; font-weight: bold; padding-right: 10px"
                 ] [

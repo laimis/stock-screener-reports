@@ -279,7 +279,7 @@ type ReportTests() =
     [<Fact>]
     let ``get stock SMA breakdown works`` () =
         let breakdowns =
-            SMA.all |> List.map (fun sma -> Reports.getStockSMABreakdown sma)
+            SMA.All |> List.map (fun sma -> Reports.getStockSMABreakdown sma)
 
         // we collapse tuples into array and check each member to be above 0
         breakdowns
@@ -331,7 +331,7 @@ type ReportTests() =
             |> Reports.getIndustryTrendsLastKnownDateAsOf 
             |> Option.get |> Utils.convertToDateString
 
-        SMA.all
+        SMA.All
         |> List.iter (fun days ->
             let up, down = Reports.getIndustryTrendBreakdown dateToUse days
             up |> should be (greaterThan 0)
