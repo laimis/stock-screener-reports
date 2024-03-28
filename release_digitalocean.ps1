@@ -62,7 +62,7 @@ if ($message -eq "y")
 # ensure that $messsage has "'" escaped
 $message = $message -replace "'", "''"
 
-Invoke-Expression "dotnet build"
+Invoke-Expression "dotnet build -c Release"
 $exitCode = $LASTEXITCODE
 if ($exitCode -ne 0) {
     Exit-With-Error "Build failed"
