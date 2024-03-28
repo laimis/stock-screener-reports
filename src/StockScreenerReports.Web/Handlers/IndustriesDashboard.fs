@@ -20,8 +20,9 @@ module IndustriesDashboard =
         | WeightedRank
         | SMACrossOverStrengthRank
         | EMACrossOverStrengthRank
+        | ADXRank
         
-        with static member All = [PercentAbove200; PercentAbove20; CycleScore; TrendScore; AverageAboveRank; GeometricMeanRank; WeightedRank; SMACrossOverStrengthRank; EMACrossOverStrengthRank]
+        with static member All = [PercentAbove200; PercentAbove20; CycleScore; TrendScore; AverageAboveRank; GeometricMeanRank; WeightedRank; SMACrossOverStrengthRank; EMACrossOverStrengthRank; ADXRank]
         
     let sortAlgoToString sortAlgo =
         match sortAlgo with
@@ -34,6 +35,7 @@ module IndustriesDashboard =
         | WeightedRank -> nameof WeightedRank
         | SMACrossOverStrengthRank -> nameof SMACrossOverStrengthRank
         | EMACrossOverStrengthRank -> nameof EMACrossOverStrengthRank
+        | ADXRank -> nameof ADXRank
         
     let stringToSortAlgo sortAlgoString =
         match sortAlgoString with
@@ -46,7 +48,21 @@ module IndustriesDashboard =
         | nameof WeightedRank -> WeightedRank
         | nameof SMACrossOverStrengthRank -> SMACrossOverStrengthRank
         | nameof EMACrossOverStrengthRank -> EMACrossOverStrengthRank
+        | nameof ADXRank -> ADXRank
         | _ -> CycleScore
+        
+    let sortAlgoToLabel sortAlgo =
+        match sortAlgo with
+        | PercentAbove200 -> "200 SMA %"
+        | PercentAbove20 -> "20 SMA %"
+        | TrendScore -> "Trend Score"
+        | CycleScore -> "Cycle Score"
+        | AverageAboveRank -> "Average SMA %"
+        | GeometricMeanRank -> "Geometric Mean Rank"
+        | WeightedRank -> "Weighted Rank"
+        | SMACrossOverStrengthRank -> "SMA Cross Over Strength Rank"
+        | EMACrossOverStrengthRank -> "EMA Cross Over Strength Rank"
+        | ADXRank -> "ADX Rank"
     
     let toBreakdownMap breakdowns =
         (breakdowns:IndustrySMABreakdown list)
@@ -58,14 +74,6 @@ module IndustriesDashboard =
         |> List.map (fun (x:IndustryTrend) -> (x.industry, x))
         |> Map.ofList
         
-    let private smaCrossOverRank smaBreakdowns = 
-        let smaCrossOverStrength = smaBreakdowns |> TrendsCalculator.calculateSMACrossOverStrength 5 20
-        smaCrossOverStrength
-        
-    let private emaCrossOverRank smaBreakdowns =
-        let emaCrossOverStrength = smaBreakdowns |> TrendsCalculator.calculateEMACrossOverStrength 3 10
-        emaCrossOverStrength
-
     let private generateDataDiv industrySMABreakdown20 industrySMABreakdown200 trend20 trend200 =
         let toSMACells (sma:SMA) (smaBreakdown:IndustrySMABreakdown) (trendOption:Option<IndustryTrend>) =
             
@@ -139,6 +147,7 @@ module IndustriesDashboard =
         industryTrends200Map
         dailySMABreakdown20Map
         dailySMABreakdown200Map
+        sortAlgo
         sortFunc =
             
         let industry20And200Rows =
@@ -167,6 +176,8 @@ module IndustriesDashboard =
                         let sortScore = sortFunc industry |> fst
                         
                         trendScore, cycleScore, sortScore
+                        
+                let selectedScoreLabel = sortAlgoToLabel sortAlgo
                 
                 div [_class "box"] [
                     header [_class "title is-4"] [
@@ -185,7 +196,7 @@ module IndustriesDashboard =
                                 $"{marketCycleScoreTm} {cycleScore}" |> str
                             ]
                             div [_class "level-item"] [
-                                $"Sort Score {sortScore}" |> str
+                                $"{selectedScoreLabel} {sortScore}" |> str
                             ]
                             div [ _class "level-right is-size-6" ] [
                                 div [_class "level-item"] [
@@ -211,20 +222,7 @@ module IndustriesDashboard =
         href
         
     let private generateSortAndFilterSection selectedAlgo selectedMinimumNumberOfStocks =
-        let sortOptions =
-            SortAlgo.All
-            |> List.map (fun x ->
-                match x with
-                | PercentAbove200 -> (x, "200 SMA %")
-                | PercentAbove20 -> (x, "20 SMA %")
-                | TrendScore -> (x, "Trend Score")
-                | CycleScore -> (x, "Cycle Score")
-                | AverageAboveRank -> (x, "Average SMA %")
-                | GeometricMeanRank -> (x, "Geometric Mean Rank")
-                | WeightedRank -> (x, "Weighted Rank")
-                | SMACrossOverStrengthRank -> (x, "SMA Cross Over Strength Rank")
-                | EMACrossOverStrengthRank -> (x, "EMA Cross Over Strength Rank")
-            ) 
+        let sortOptions = SortAlgo.All |> List.map (fun x -> x, x |> sortAlgoToLabel) 
 
         let filterOptions =
             [
@@ -372,13 +370,21 @@ module IndustriesDashboard =
                     fun industry ->
                         let breakdowns = dailySMABreakdown20Map |> Map.tryFind industry
                         match breakdowns with
-                        | Some breakdowns -> (breakdowns |> smaCrossOverRank, 0m)
+                        | Some breakdowns -> (breakdowns |> TrendsCalculator.calculateSMACrossOverStrength, 0m)
                         | None -> raise (System.Exception("Could not find daily breakdowns for " + industry))
                 | EMACrossOverStrengthRank ->
                     fun industry ->
                         let breakdowns = dailySMABreakdown20Map |> Map.tryFind industry
                         match breakdowns with
-                        | Some breakdowns -> (breakdowns |> emaCrossOverRank, 0m)
+                        | Some breakdowns -> (breakdowns |> TrendsCalculator.calculateEMACrossOverStrength, 0m)
+                        | None -> raise (System.Exception("Could not find daily breakdowns for " + industry))
+                | ADXRank ->
+                    fun industry ->
+                        let breakdowns = dailySMABreakdown20Map |> Map.tryFind industry
+                        match breakdowns with
+                        | Some breakdowns ->
+                            let adxRank = breakdowns |> TrendsCalculator.calculateADXTrend
+                            (adxRank, 0m)
                         | None -> raise (System.Exception("Could not find daily breakdowns for " + industry))
                         
                 | AverageAboveRank ->
@@ -421,6 +427,7 @@ module IndustriesDashboard =
                     industryTrends200Map
                     dailySMABreakdown20Map
                     dailySMABreakdown200Map
+                    sortAlgo
                     sortFunc
                     
             let view = toSection title (div [_class "content"] [sortAndFilterSection; table])

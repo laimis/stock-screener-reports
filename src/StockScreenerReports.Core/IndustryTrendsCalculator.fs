@@ -95,7 +95,7 @@ namespace StockScreenerReports.Core
             let justBreakdowns = smaBreakdowns |> List.map _.breakdown
             calculate justBreakdowns
             
-        let calculateSMACrossOverStrength shortPeriod longPeriod (smaBreakdowns:list<IndustrySMABreakdown>) =
+        let calculateSMACrossOverStrengthWithPeriods shortPeriod longPeriod (smaBreakdowns:list<IndustrySMABreakdown>) =
             
             let toSMA (prices:decimal list) interval =
         
@@ -127,7 +127,9 @@ namespace StockScreenerReports.Core
 
             trend * strength
             
-        let calculateEMACrossOverStrength shortPeriod longPeriod (smaBreakdowns:list<IndustrySMABreakdown>) =
+        let calculateSMACrossOverStrength = calculateSMACrossOverStrengthWithPeriods 5 20
+            
+        let calculateEMACrossOverStrengthWithPeriods shortPeriod longPeriod (smaBreakdowns:list<IndustrySMABreakdown>) =
             let toEMA (prices:decimal list) interval =
         
                 let ema =
@@ -163,3 +165,57 @@ namespace StockScreenerReports.Core
             let strength = abs (shortEMA - longEMA)
 
             trend * strength
+            
+        let calculateEMACrossOverStrength = calculateEMACrossOverStrengthWithPeriods 3 10
+        
+        
+        let private calculateTrueRange percentages =
+            percentages
+            |> Seq.pairwise
+            |> Seq.map (fun (prev, curr) -> abs (curr - prev))
+            |> Seq.toList
+
+        let private calculateDirectionalIndicator (percentages:decimal seq) isPositive =
+            percentages
+            |> Seq.pairwise
+            |> Seq.map (fun (prev, curr) ->
+                let diff = curr - prev
+                if isPositive then
+                    if diff > 0.0m then diff else 0.0m
+                else
+                    if diff < 0.0m then -diff else 0.0m)
+            |> Seq.toList
+
+        let private calculateADX period (percentages:decimal seq) =
+            let trueRange = calculateTrueRange percentages
+            let positiveMovement = calculateDirectionalIndicator percentages true
+            let negativeMovement = calculateDirectionalIndicator percentages false
+
+            let trAverages = trueRange |> Seq.windowed period |> Seq.map Seq.average |> Seq.toList
+            let pmAverages = positiveMovement |> Seq.windowed period |> Seq.map Seq.average |> Seq.toList
+            let nmAverages = negativeMovement |> Seq.windowed period |> Seq.map Seq.average |> Seq.toList
+
+            let diPlusList = List.map2 (fun t1 t2 -> match t1, t2 with | 0m, 0m -> 0m | _, 0m -> 0m | 0m, _ -> 0m | _, _ -> t1/t2 ) pmAverages trAverages
+            let diMinusList = List.map2 (fun t1 t2 -> match t1, t2 with | 0m, 0m -> 0m | _, 0m -> 0m | 0m, _ -> 0m | _, _ -> t1/t2 ) nmAverages trAverages
+
+            let diDiffList = List.map2 (-) diPlusList diMinusList
+            let diSumList = List.map2 (+) diPlusList diMinusList
+            let dxList = List.map2 (fun t1 t2 -> match t1, t2 with | 0m, 0m -> 0m | _, 0m -> 0m | 0m, _ -> 0m | _, _ -> t1/t2 ) (List.map abs diDiffList) diSumList
+
+            let adx = dxList |> Seq.windowed period |> Seq.map Seq.average |> Seq.tryLast
+
+            match adx with
+            | Some value -> value * 100.0m
+            | None -> 0.0m
+
+        let calculateADXTrendWithPeriod period (smaBreakdowns:IndustrySMABreakdown seq) =
+            let percentagesAboveSMA = smaBreakdowns |> Seq.map (_.breakdown.percentAbove)
+            
+            let adx = System.Math.Round(percentagesAboveSMA |> calculateADX period, 2)
+
+            let strength = 
+                if Seq.last percentagesAboveSMA > Seq.head percentagesAboveSMA then adx * 1m else adx * -1m
+
+            strength
+            
+        let calculateADXTrend (smaBreakdowns:IndustrySMABreakdown seq) = calculateADXTrendWithPeriod 10 smaBreakdowns
