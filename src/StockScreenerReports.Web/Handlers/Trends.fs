@@ -133,11 +133,12 @@ module Trends =
                 [(Up, "Industries Trending Up"); (Down, "Industries Trending Down")]
                 |> List.map (fun (direction, title) ->
                     
+                    let trendScore (t:IndustryTrend) = t.trend.change/(t.trend.streak |> decimal)
+                    
                     let func =
                         match direction with
-                        | Up -> fun (s:IndustryTrend list) -> s |> List.sortByDescending (fun t -> t.trend.change/(t.trend.streak |> decimal))
-                        | Down -> fun (s:IndustryTrend list) -> s |> List.sortBy (fun t -> t.trend.change/(t.trend.streak |> decimal))
-                        
+                        | Up -> fun (s:IndustryTrend list) -> s |> List.sortByDescending trendScore
+                        | Down -> fun (s:IndustryTrend list) -> s |> List.sortBy trendScore
                     
                     let topIndustries =
                         match industries with

@@ -419,7 +419,7 @@ module IndustriesDashboard =
             
             let sortAndFilterSection = generateSortAndFilterSection sortAlgo minimumStocks
             
-            let table =
+            let view =
                 generateIndustriesView
                     industrySMABreakdowns20Map
                     industrySMABreakdowns200Map
@@ -430,6 +430,6 @@ module IndustriesDashboard =
                     sortAlgo
                     sortFunc
                     
-            let view = toSection title (div [_class "content"] [sortAndFilterSection; table])
+            let view = toSection title (div [_class "content"] [sortAndFilterSection; view])
             
             ([view] |> mainLayout $"Industries") next ctx
