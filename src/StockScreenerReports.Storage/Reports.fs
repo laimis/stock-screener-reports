@@ -724,6 +724,23 @@ module Reports =
             "@endDate", dateRange |> snd |> Sql.string;
         ]
         |> Sql.execute industrySMABreakdownMapper
+        
+    let getAllIndustrySMABreakdowns (sma:SMA) industry =
+        let sql = @"
+            SELECT industry,date,days,above,below
+            FROM IndustrySMABreakdowns
+            WHERE industry = @industry
+            AND days = @days
+            ORDER BY date"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@industry", Sql.string industry
+            "@days", sma.Interval |> Sql.int
+        ]
+        |> Sql.execute industrySMABreakdownMapper
 
     let getIndustrySMABreakdowns (sma:SMA) date =
         let sql = @"
