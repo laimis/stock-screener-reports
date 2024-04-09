@@ -197,7 +197,7 @@ module Trends =
                         ]
                     )
                     
-            h4 [] ["Industry Trend Alerts" |> str]
+            h4 [ _class "mt-5" ] ["Industry Trend Alerts" |> str]
             yield!
                 match trendAlerts with
                 | [] ->
