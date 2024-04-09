@@ -39,6 +39,12 @@ module Links =
 
     let industryLink industryName =
         $"/industries/{industryName}"
+        
+    let industryLinkWithStartAndEndDate startDate endDate industryName =
+        let startFormatted = startDate |> Utils.convertToDateString
+        let endFormatted = endDate |> Utils.convertToDateString
+        
+        $"/industries/{industryName}?startDate={startFormatted}&endDate={endFormatted}"
 
     let industryExportLink industryName =
         $"/industries/{industryName}/export"
@@ -60,6 +66,7 @@ module Links =
     let adhocReportExport = "/reports/adhoc/export"
     
     let trends = "/trends"
+    let industryTrendsSummary = "/industrytrendssummary"
     let industries = "/industries"
     let countries = "/countries"
     let earnings = "/earnings"

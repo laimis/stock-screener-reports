@@ -1,5 +1,6 @@
 namespace StockScreenerReports.Web.Handlers
 
+open StockScreenerReports.Web.Shared
 open XPlot.Plotly
 
 module IndustryTrendsSummary =
@@ -9,13 +10,15 @@ module IndustryTrendsSummary =
     open StockScreenerReports.Web.Shared.Views
     open StockScreenerReports.Core
 
-    let private describeDurations (durations:int list) =
-        let count = durations.Length
+    let private describeDurations (sequences:SMABreakdown list list) =
+        let count = sequences.Length
+        
+        let lengths = sequences |> List.map _.Length
 
-        let averageDuration = if count > 0 then (durations |> List.sum |> decimal) / (decimal count) else 0m
-        let medianDuration = if count > 0 then durations |> List.sort |> (fun l -> l[l.Length / 2]) else 0
-        let maxDuration = if count > 0 then durations |> List.max else 0
-        let minDuration = if count > 0 then durations |> List.min else 0
+        let averageDuration = if count > 0 then (lengths |> List.sum |> decimal) / (decimal count) else 0m
+        let medianDuration = if count > 0 then lengths |> List.sort |> (fun l -> l[l.Length / 2]) else 0
+        let maxDuration = if count > 0 then lengths |> List.max else 0
+        let minDuration = if count > 0 then lengths |> List.min else 0
 
         {|
             Count = count
@@ -23,42 +26,42 @@ module IndustryTrendsSummary =
             MedianDuration = medianDuration
             MaxDuration = maxDuration
             MinDuration = minDuration
-            Durations = durations
+            Sequences = sequences
+            Lengths = lengths
         |}
 
-    let private analyzeSequence (values: decimal list) =
-        let folder (prevDuration, durations) current =
-            if current >= 90m then
-                let newDuration = prevDuration + 1
-                (newDuration, durations)
+    let private analyzeSequence (values: SMABreakdown list) =
+        let folder (prevSequence, sequences) (current:SMABreakdown) =
+            if current.percentAbove >= 90m then
+                let updatedSequence = current :: prevSequence
+                (updatedSequence, sequences)
             else
-                let updatedDurations = if prevDuration > 0 then prevDuration :: durations else durations
-                (0, updatedDurations)
+                let updatedSequences = if prevSequence <> [] then prevSequence :: sequences else sequences
+                ([], updatedSequences)
 
-        let initialState = (0, [])
-        let lastDuration, durations = List.fold folder initialState values
+        let initialState = ([], [])
+        let lastSequence, sequences = List.fold folder initialState values
 
-        if lastDuration > 0 then lastDuration :: durations else durations
+        if lastSequence <> [] then lastSequence :: sequences else sequences
 
     let private view (industryBreakdowns: IndustrySMABreakdown list list) =
         let stats =
             industryBreakdowns
             |> List.map (fun breakdownList ->
                     breakdownList
-                    |> List.map (fun r -> r.breakdown.percentAbove)
+                    |> List.map (_.breakdown)
                     |> analyzeSequence
                     |> describeDurations, breakdownList.Head.industry
             )
             |> List.filter (fun (l,_) -> l.Count > 2)
             
-        let combined = stats |> List.collect (fun (s,_) -> s.Durations) |> describeDurations
+        let combined = stats |> List.collect (fun (s,_) -> s.Sequences) |> describeDurations
         let combinedStats = combined, "All Industries"
-        
             
         let industryBoxes =
             [combinedStats] @ stats
             |> List.map(fun (stats, industry) ->
-                let columnData = stats.Durations |> List.sort |> List.mapi (fun i d -> (i, d))
+                let columnData = stats.Lengths |> List.sort |> List.mapi (fun i d -> (i, d))
                 
                 let columnChart =
                     Chart.Column(columnData)
@@ -66,29 +69,24 @@ module IndustryTrendsSummary =
                 
                 let layout = Layout(bargap= 0.1, bargroupgap = 0.1)
                 let histogram =
-                    Histogram(x = stats.Durations, nbinsx = 10)
+                    Histogram(x = stats.Lengths, nbinsx = 10)
                     |> Chart.Plot
                     |> Chart.WithLayout layout
                     |> Chart.WithSize (400, 300)
                 
-                
                 div [_class "box"] [
                     div [_class "media"] [
                         div [_class "media-content"] [
-                            p [_class "title is-4"] [str industry]
+                            p [_class "title is-4"] [industry |> Links.industryLink |> generateHref industry]
                         ]
                     ]
                     div [_class "content"] [
                         table [_class "table is-bordered is-striped is-narrow is-hoverable"] [
                             thead [] [
-                                tr [] [
-                                    th [] [str "Metric"]
-                                    th [] [str "Value"]
-                                ]
+                                tr [] (["Metric"; "Value"] |> List.map toHeaderCell)
                             ]
                             tbody [] [
                                 tr [] [
-                                    
                                     td [] [str "Durations"]
                                     td [] [str (stats.Count.ToString())]
                                 ]
@@ -114,6 +112,31 @@ module IndustryTrendsSummary =
                                 ]
                             ]
                         ]
+                        
+                        // list all sequences by date, but only if the industry is not "All Industries"
+                        if industry <> "All Industries" then
+                            table [_class "table is-bordered is-striped is-narrow is-hoverable"] [
+                                thead [] [
+                                    tr [] (["Start"; "End"; ""] |> List.map toHeaderCell)
+                                ]
+                                tbody []
+                                    (
+                                        stats.Sequences
+                                        |> List.map (fun seq ->
+                                            tr [] [
+                                                let start = seq[seq.Length-1].date
+                                                let end' = seq.Head.date
+                                                let link = industry |> Links.industryLinkWithStartAndEndDate (start.AddDays(-30)) (end'.AddDays(30))
+                                                
+                                                td [] [link |> generateHrefNewTab (start.ToString("yyyy-MM-dd"))]
+                                                td [] [link |> generateHrefNewTab (end'.ToString("yyyy-MM-dd"))]
+                                                td [] [
+                                                    div [_style $"background-color: #1f77b4; height: 20px; width: {seq.Length * 20}px"] []
+                                                ]
+                                            ]
+                                        )
+                                    )
+                            ]
                     ]
                 ])
 

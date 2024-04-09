@@ -87,7 +87,21 @@ module Trends =
             |> List.map (fun breakdown -> breakdown.date.ToString("MM/dd"))
 
         [
-            div [_class "content"] [h4 [] [ "SMA Trends" |> str ]]
+            div [_class "content"] [h4 [] [
+                "SMA Trends" |> str
+                small [
+                    _class "is-pulled-right"
+                ] [
+                    generateHrefWithAttrs
+                            "Trends Summary"
+                            Links.industryTrendsSummary
+                            [(_class "button is-small is-primary mr-2"); (_target "_blank")]
+                ]
+                
+                // span [_class "float-end"] [
+                //     button |> industrytrendssummary
+                // ]
+            ]]
             div [_class "columns"] smaDirectionColumns
             div [_class "block"]
                 (Charts.generateChartElements "SMA breakdown" Charts.ChartType.Line (Some 100) Charts.smallChart labels datasets)
