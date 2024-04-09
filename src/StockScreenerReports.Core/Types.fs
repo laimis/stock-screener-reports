@@ -407,12 +407,18 @@ type EarningsTime =
     | BeforeMarket
     | AfterMarket
     
+type Sentiment = 
+    | Positive
+    | Negative
+    | Neutral
+    
 type IndustryScreenerAlert = {
     date: DateTime
     industry: string
     alertType: string
     description: string
     screener: Screener
+    sentiment: Sentiment
 }
 
 type IndustryAlert = {
@@ -420,4 +426,5 @@ type IndustryAlert = {
     industry : string
     alertType : string
     description : string
+    sentiment : Sentiment
 }

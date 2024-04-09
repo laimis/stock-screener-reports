@@ -21,6 +21,7 @@ let screenerAlerts industrySizeMap screenersWithResults =
                 description = industryName + " has large participation, " + x.ToString() + " results"
                 screener = screener
                 date = results.Head.date
+                sentiment = Positive
             }
             Some alert
         | _ -> None
@@ -35,6 +36,7 @@ let screenerAlerts industrySizeMap screenersWithResults =
                 description = $"{industryName} has " + x.ToString("P2") + $" percent of the results {industryResults.Length}/{totalResults}"
                 screener = screener
                 date = industryResults.Head.date
+                sentiment = Positive
             }
             Some alert
         | _ -> None
@@ -50,7 +52,8 @@ let screenerAlerts industrySizeMap screenersWithResults =
                 alertType = "IndustryPercent"
                 description = $"{industryName} has " + x.ToString("P2") + $" of the industry participants {industryResults.Length}/{industryTotal}"
                 screener = screener
-                date = industryResults.Head.date 
+                date = industryResults.Head.date
+                sentiment = Positive 
             }
             Some alert
         | _ -> None
@@ -81,6 +84,9 @@ let screenerAlerts industrySizeMap screenersWithResults =
 [<Literal>]
 let private SMA_ALERT_HIGH_PERCENT_THRESHOLD = 90
 
+[<Literal>]
+let private SMA_ALERT_LOW_PERCENT_THRESHOLD = 20
+
 let industryTrendAlerts (industryTrends:IndustryTrend list) =
     
     industryTrends
@@ -91,5 +97,20 @@ let industryTrendAlerts (industryTrends:IndustryTrend list) =
             alertType = "SMA"
             description = $"{industryTrend.industry} has {industryTrend.percentAboveFormatted} of stocks above {industryTrend.days.Interval} day SMA"
             date = industryTrend.date
+            sentiment = Positive 
         }
+    )
+    
+    |> List.append
+        (industryTrends
+        |> List.filter (fun (industryTrend:IndustryTrend) -> industryTrend.percentAbove <= decimal SMA_ALERT_LOW_PERCENT_THRESHOLD)
+        |> List.map (fun (industryTrend:IndustryTrend) ->
+            {
+                industry = industryTrend.industry
+                alertType = "SMA"
+                description = $"{industryTrend.industry} has {industryTrend.percentAboveFormatted} of stocks below {industryTrend.days.Interval} day SMA"
+                date = industryTrend.date
+                sentiment = Negative 
+            }
+        )
     )

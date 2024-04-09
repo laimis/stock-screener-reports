@@ -139,34 +139,26 @@ type IndustryAlertGeneratorTests() =
     [<Fact>]
     let ``When industry SMA breakdown has 90% or above, it generates an alert``() =
         
-        let meetsThreshold = {
-            industry = "Sample"
-            trend = {
-                change = 0m
-                direction = Up
-                streak = 0
-                value = 0m 
+        let generateTrendData industry above below =
+            {
+                industry = industry
+                trend = {
+                    change = 0m
+                    direction = Up
+                    streak = 0
+                    value = 0m 
+                }
+                above = above
+                below = below
+                date = DateTime.UtcNow
+                days = SMA20 
             }
-            above = 9
-            below = 1
-            date = DateTime.UtcNow
-            days = SMA20 
-        }
         
-        let failsThreshold = {
-            industry = "Sample 2"
-            trend = {
-                change = 0m
-                direction = Up
-                streak = 0
-                value = 0m 
-            }
-            above = 9
-            below = 2
-            date = DateTime.UtcNow
-            days = SMA20 
-        }
+        let meetsThreshold = generateTrendData "Sample" 9 1
+        let failsThreshold = generateTrendData "Sample 2" 9 2
+        let meetsDownThreshold = generateTrendData "Sample 3" 2 8
+        let failsDownThreshold = generateTrendData "Sample 4" 3 7
         
-        let result = IndustryAlertGenerator.industryTrendAlerts [meetsThreshold; failsThreshold]
+        let result = IndustryAlertGenerator.industryTrendAlerts [meetsThreshold; failsThreshold; failsDownThreshold; meetsDownThreshold]
         
-        result.Length |> should equal 1
+        result.Length |> should equal 2

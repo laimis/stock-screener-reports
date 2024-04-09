@@ -181,6 +181,23 @@ module Trends =
             
     let private generateAlertsSection screenerAlerts trendAlerts =
         
+        let sentimentClass sentiment =
+            match sentiment with
+            | Positive -> "has-text-success"
+            | Negative -> "has-text-danger"
+            | Neutral -> "has-text-warning"
+            
+        let sentimentText sentiment =
+            match sentiment with
+            | Positive -> "📈"
+            | Negative -> "📉"
+            | Neutral -> "➖"
+            
+        let toSentimentSpan sentiment =
+            span [sentiment |> sentimentClass |> _class] [
+                sentiment |> sentimentText  |> str
+            ]
+            
         div [ _class "content" ] [
             h4 [] ["Industry Screener Alerts" |> str]
             yield!
@@ -193,7 +210,10 @@ module Trends =
                         div [ _class "columns" ] [
                             div [_class "column"] [ generateHrefNewTab alert.screener.name (Links.screenerResultsLink alert.screener.id alert.date)  ]
                             div [_class "column"] [ generateHrefNewTab alert.industry (Links.industryLink alert.industry) ]
-                            div [_class "column is-two-thirds"] [ alert.description |> str ]
+                            div [_class "column is-two-thirds"] [
+                                alert.sentiment |> toSentimentSpan
+                                alert.description |> str
+                            ]
                         ]
                     )
                     
@@ -207,7 +227,10 @@ module Trends =
                     |> List.map (fun (alert:IndustryAlert) ->
                         div [ _class "columns" ] [
                             div [_class "column"] [ generateHrefNewTab alert.industry (Links.industryLink alert.industry) ]
-                            div [_class "column"] [ alert.description |> str ]
+                            div [_class "column"] [
+                                alert.sentiment |> toSentimentSpan
+                                alert.description |> str
+                            ]
                         ]
                     )
         ]
