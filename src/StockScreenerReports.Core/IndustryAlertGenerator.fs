@@ -9,7 +9,7 @@ let private INDUSTRY_PERCENT_CHECK_THRESHOLD = 0.4
 [<Literal>]
 let private RESULT_MINIMUM_THRESHOLD = 5
 
-let generate industrySizeMap screenersWithResults =
+let screenerAlerts industrySizeMap screenersWithResults =
     
     let countCheck industryName screener (results:ScreenerResultReportItem list) =
         
@@ -77,3 +77,19 @@ let generate industrySizeMap screenersWithResults =
     )
     |> List.concat
     
+    
+[<Literal>]
+let private SMA_ALERT_HIGH_PERCENT_THRESHOLD = 90
+
+let industryTrendAlerts (industryTrends:IndustryTrend list) =
+    
+    industryTrends
+    |> List.filter (fun (industryTrend:IndustryTrend) -> industryTrend.percentAbove >= decimal SMA_ALERT_HIGH_PERCENT_THRESHOLD)
+    |> List.map (fun (industryTrend:IndustryTrend) ->
+        {
+            industry = industryTrend.industry
+            alertType = "SMA"
+            description = $"{industryTrend.industry} has {industryTrend.percentAbove:P2} of stocks above SMA"
+            date = industryTrend.date
+        }
+    )

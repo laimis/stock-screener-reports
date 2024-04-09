@@ -66,7 +66,7 @@ type IndustryAlertGeneratorTests() =
         
         let input = [(screener,firstList); (screener,secondList)]
         
-        let result = IndustryAlertGenerator.generate screenerMap input
+        let result = IndustryAlertGenerator.screenerAlerts screenerMap input
         
         let industries = result |> List.map _.industry
         
@@ -97,7 +97,7 @@ type IndustryAlertGeneratorTests() =
         
         let screenerMap = [firstList; secondList] |> generateMapFromLists 10
         
-        let result = IndustryAlertGenerator.generate screenerMap input
+        let result = IndustryAlertGenerator.screenerAlerts screenerMap input
         
         result.Length |> should equal 1
         result.Head.industry |> should equal "industry1"
@@ -116,7 +116,7 @@ type IndustryAlertGeneratorTests() =
         
         let input = [(screener,list)]
         
-        let result = IndustryAlertGenerator.generate screenerMap input
+        let result = IndustryAlertGenerator.screenerAlerts screenerMap input
         
         result.Length |> should equal 1
         result |> List.map _.industry |> should contain "industry1"
@@ -132,6 +132,41 @@ type IndustryAlertGeneratorTests() =
         
         let input = [(screener,list)]
         
-        let result = IndustryAlertGenerator.generate screenerMap input
+        let result = IndustryAlertGenerator.screenerAlerts screenerMap input
         
         result.Length |> should equal 0
+        
+    [<Fact>]
+    let ``When industry SMA breakdown has 90% or above, it generates an alert``() =
+        
+        let meetsThreshold = {
+            industry = "Sample"
+            trend = {
+                change = 0m
+                direction = Up
+                streak = 0
+                value = 0m 
+            }
+            above = 9
+            below = 1
+            date = DateTime.UtcNow
+            days = SMA20 
+        }
+        
+        let failsThreshold = {
+            industry = "Sample 2"
+            trend = {
+                change = 0m
+                direction = Up
+                streak = 0
+                value = 0m 
+            }
+            above = 9
+            below = 2
+            date = DateTime.UtcNow
+            days = SMA20 
+        }
+        
+        let result = IndustryAlertGenerator.industryTrendAlerts [meetsThreshold; failsThreshold]
+        
+        result.Length |> should equal 1

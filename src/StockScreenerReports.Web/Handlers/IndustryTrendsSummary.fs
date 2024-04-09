@@ -1,6 +1,5 @@
 namespace StockScreenerReports.Web.Handlers
 
-open StockScreenerReports.Web.Shared
 open XPlot.Plotly
 
 module IndustryTrendsSummary =
@@ -42,7 +41,7 @@ module IndustryTrendsSummary =
         if lastDuration > 0 then lastDuration :: durations else durations
 
     let private view (industryBreakdowns: IndustrySMABreakdown list list) =
-        let industryBoxes =
+        let stats =
             industryBreakdowns
             |> List.map (fun breakdownList ->
                     breakdownList
@@ -51,6 +50,13 @@ module IndustryTrendsSummary =
                     |> describeDurations, breakdownList.Head.industry
             )
             |> List.filter (fun (l,_) -> l.Count > 2)
+            
+        let combined = stats |> List.collect (fun (s,_) -> s.Durations) |> describeDurations
+        let combinedStats = combined, "All Industries"
+        
+            
+        let industryBoxes =
+            [combinedStats] @ stats
             |> List.map(fun (stats, industry) ->
                 let columnData = stats.Durations |> List.sort |> List.mapi (fun i d -> (i, d))
                 
@@ -82,6 +88,7 @@ module IndustryTrendsSummary =
                             ]
                             tbody [] [
                                 tr [] [
+                                    
                                     td [] [str "Durations"]
                                     td [] [str (stats.Count.ToString())]
                                 ]
@@ -107,12 +114,6 @@ module IndustryTrendsSummary =
                                 ]
                             ]
                         ]
-                        // div [_class "chart-container"] [
-                        //     rawText (columnChart.GetInlineHtml())
-                        // ]
-                        // div [_class "chart-container"] [
-                        //     rawText (histogram.GetInlineHtml())
-                        // ]
                     ]
                 ])
 
@@ -120,7 +121,6 @@ module IndustryTrendsSummary =
             h1 [_class "title"] [str "Industry Trend Sequences"]
             div [_class "box-container"] industryBoxes
         ]
-        
 
     let handler () =
         

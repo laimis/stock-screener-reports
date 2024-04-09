@@ -71,7 +71,7 @@ module Reports =
                     };
             above = reader.int "above";
             below = reader.int "below";
-            days = reader.int "days";
+            days = reader.int "days" |> SMA.FromInterval;
             date = reader.dateTime "date";
         }
 
