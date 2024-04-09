@@ -71,7 +71,7 @@ module Reports =
                     };
             above = reader.int "above";
             below = reader.int "below";
-            days = reader.int "days";
+            days = reader.int "days" |> SMA.FromInterval;
             date = reader.dateTime "date";
         }
 
@@ -722,6 +722,23 @@ module Reports =
             "@days", sma.Interval |> Sql.int ;
             "@startDate", dateRange |> fst |> Sql.string;
             "@endDate", dateRange |> snd |> Sql.string;
+        ]
+        |> Sql.execute industrySMABreakdownMapper
+        
+    let getAllIndustrySMABreakdowns (sma:SMA) industry =
+        let sql = @"
+            SELECT industry,date,days,above,below
+            FROM IndustrySMABreakdowns
+            WHERE industry = @industry
+            AND days = @days
+            ORDER BY date"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@industry", Sql.string industry
+            "@days", sma.Interval |> Sql.int
         ]
         |> Sql.execute industrySMABreakdownMapper
 

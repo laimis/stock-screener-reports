@@ -155,7 +155,7 @@ module Trends =
                                 StringColumn(trend.trend.streakRateFormatted)
                                 StringColumn(trend.above.ToString())
                                 StringColumn((trend.above + trend.below).ToString())
-                                StringColumn(trend.abovePercentageFormatted())
+                                StringColumn(trend.percentAboveFormatted)
                             ] |> toTr
                         )
                         |> List.ofSeq
@@ -179,30 +179,44 @@ module Trends =
 
             div [_class "content"] content
             
-    let private generateAlertsSection alerts =
+    let private generateAlertsSection screenerAlerts trendAlerts =
         
         div [ _class "content" ] [
             h4 [] ["Industry Screener Alerts" |> str]
             yield!
-                match alerts with
+                match screenerAlerts with
                 | [] ->
                     [div [] ["No alerts" |> str]]
                 | _ ->
-                    alerts
-                    |> List.map (fun (alert:IndustryAlert) ->
+                    screenerAlerts
+                    |> List.map (fun (alert:IndustryScreenerAlert) ->
                         div [ _class "columns" ] [
                             div [_class "column"] [ generateHrefNewTab alert.screener.name (Links.screenerResultsLink alert.screener.id alert.date)  ]
                             div [_class "column"] [ generateHrefNewTab alert.industry (Links.industryLink alert.industry) ]
                             div [_class "column is-two-thirds"] [ alert.description |> str ]
                         ]
                     )
+                    
+            h4 [] ["Industry Trend Alerts" |> str]
+            yield!
+                match trendAlerts with
+                | [] ->
+                    [div [] ["No alerts" |> str]]
+                | _ ->
+                    trendAlerts
+                    |> List.map (fun (alert:IndustryAlert) ->
+                        div [ _class "columns" ] [
+                            div [_class "column"] [ generateHrefNewTab alert.industry (Links.industryLink alert.industry) ]
+                            div [_class "column"] [ alert.description |> str ]
+                        ]
+                    )
         ]
         
-    let generateElementsToRender missedJobs screeners industries upAndDowns alerts dateRange =
+    let generateElementsToRender missedJobs screeners industries upAndDowns screenerAlerts trendAlerts dateRange =
         
         let warningSection = jobAlertSection missedJobs
         
-        let alertsSection = generateAlertsSection alerts
+        let alertsSection = generateAlertsSection screenerAlerts trendAlerts
 
         let filters = generateFilterSection dateRange
 
@@ -350,8 +364,9 @@ module Trends =
                 
             let industrySize = industries.Value |> List.map (fun i -> i.industry,i.above+ i.below) |> Map.ofList
             
-            let alerts = IndustryAlertGenerator.generate industrySize screenersWithResults
+            let screenerAlerts = IndustryAlertGenerator.screenerAlerts industrySize screenersWithResults
+            let trendAlerts = IndustryAlertGenerator.industryTrendAlerts industries.Value
 
-            let elementsToRender = generateElementsToRender missedJobs screeners industries upAndDowns alerts dateRange
+            let elementsToRender = generateElementsToRender missedJobs screeners industries upAndDowns screenerAlerts trendAlerts dateRange
 
             (elementsToRender |> mainLayout "All Screener Trends") next ctx

@@ -306,14 +306,21 @@ type IndustryTrend =
         trend: Trend;
         above: int;
         below: int;
-        days: int;
+        days: SMA;
         date: DateTime;
     }
+    
+    member this.total = this.above + this.below
+    
+    member this.percentAbove =
+        match this.total with
+            | 0 -> 0.0m
+            | _ -> (decimal this.above ) * 100.0m / (decimal this.total)
 
-    member this.abovePercentageFormatted() =
+    member this.percentAboveFormatted =
         String.Format(
             "{0:N2}%",
-            ((decimal this.above) / (decimal (this.below + this.above)) * 100m)
+            this.percentAbove
         )
 
 type CyclePoint =
@@ -400,10 +407,17 @@ type EarningsTime =
     | BeforeMarket
     | AfterMarket
     
-type IndustryAlert = {
+type IndustryScreenerAlert = {
     date: DateTime
     industry: string
     alertType: string
     description: string
     screener: Screener
+}
+
+type IndustryAlert = {
+    date : DateTime
+    industry : string
+    alertType : string
+    description : string
 }
