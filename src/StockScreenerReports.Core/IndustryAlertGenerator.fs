@@ -89,7 +89,7 @@ let industryTrendAlerts (industryTrends:IndustryTrend list) =
         {
             industry = industryTrend.industry
             alertType = "SMA"
-            description = $"{industryTrend.industry} has {industryTrend.percentAbove:P2} of stocks above SMA"
+            description = $"{industryTrend.industry} has {industryTrend.percentAboveFormatted} of stocks above SMA"
             date = industryTrend.date
         }
     )
