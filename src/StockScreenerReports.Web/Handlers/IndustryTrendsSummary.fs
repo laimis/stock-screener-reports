@@ -1,6 +1,7 @@
 namespace StockScreenerReports.Web.Handlers
 
 open StockScreenerReports.Web.Shared
+open XPlot.Plotly
 
 module IndustryTrendsSummary =
 
@@ -23,6 +24,7 @@ module IndustryTrendsSummary =
             MedianDuration = medianDuration
             MaxDuration = maxDuration
             MinDuration = minDuration
+            Durations = durations
         |}
 
     let private analyzeSequence (values: decimal list) =
@@ -39,34 +41,91 @@ module IndustryTrendsSummary =
 
         if lastDuration > 0 then lastDuration :: durations else durations
 
-    let private view (industries: string list) =
-        let industryRows =
-            industries
-            |> List.sort
-            |> List.map (fun industry ->
-                    industry
-                    |> Reports.getAllIndustrySMABreakdowns SMA.SMA20
+    let private view (industryBreakdowns: IndustrySMABreakdown list list) =
+        let industryBoxes =
+            industryBreakdowns
+            |> List.map (fun breakdownList ->
+                    breakdownList
                     |> List.map (fun r -> r.breakdown.percentAbove)
                     |> analyzeSequence
-                    |> describeDurations, industry
+                    |> describeDurations, breakdownList.Head.industry
             )
             |> List.filter (fun (l,_) -> l.Count > 2)
             |> List.map(fun (stats, industry) ->
-                tr [] [
-                    LinkColumn(industry, industry |> Links.industryLink) |> toTd
-                    td [] [str (stats.Count.ToString())]
-                    td [] [str (stats.AverageDuration.ToString("F2"))]
-                    td [] [str (stats.MedianDuration.ToString())]
-                    td [] [str (stats.MaxDuration.ToString())]
-                    td [] [str (stats.MinDuration.ToString())]
+                let columnData = stats.Durations |> List.sort |> List.mapi (fun i d -> (i, d))
+                
+                let columnChart =
+                    Chart.Column(columnData)
+                    |> Chart.WithSize (400, 300)
+                
+                let layout = Layout(bargap= 0.1, bargroupgap = 0.1)
+                let histogram =
+                    Histogram(x = stats.Durations, nbinsx = 10)
+                    |> Chart.Plot
+                    |> Chart.WithLayout layout
+                    |> Chart.WithSize (400, 300)
+                
+                
+                div [_class "box"] [
+                    div [_class "media"] [
+                        div [_class "media-content"] [
+                            p [_class "title is-4"] [str industry]
+                        ]
+                    ]
+                    div [_class "content"] [
+                        table [_class "table is-bordered is-striped is-narrow is-hoverable"] [
+                            thead [] [
+                                tr [] [
+                                    th [] [str "Metric"]
+                                    th [] [str "Value"]
+                                ]
+                            ]
+                            tbody [] [
+                                tr [] [
+                                    td [] [str "Durations"]
+                                    td [] [str (stats.Count.ToString())]
+                                ]
+                                tr [] [
+                                    td [] [str "Min"]
+                                    td [] [str (stats.MinDuration.ToString())]
+                                ]
+                                tr [] [
+                                    td [] [str "Max"]
+                                    td [] [str (stats.MaxDuration.ToString())]
+                                ]
+                                tr [] [
+                                    td [] [str "Mean"]
+                                    td [] [str (stats.AverageDuration.ToString("F2"))]
+                                ]
+                                tr [] [
+                                    td [] [str "Median"]
+                                    td [] [str (stats.MedianDuration.ToString())]
+                                ]
+                                tr [] [
+                                    td [] [columnChart.GetInlineHtml() |> rawText]
+                                    td [] [histogram.GetInlineHtml() |> rawText]
+                                ]
+                            ]
+                        ]
+                        // div [_class "chart-container"] [
+                        //     rawText (columnChart.GetInlineHtml())
+                        // ]
+                        // div [_class "chart-container"] [
+                        //     rawText (histogram.GetInlineHtml())
+                        // ]
+                    ]
                 ])
 
-        let headers = ["Industry"; "Occurrences"; "Avg Duration"; "Median Duration"; "Max Duration"; "Min Duration"]
-
-        fullWidthTableWithSortableHeaderCells headers industryRows
+        div [_class "container"] [
+            h1 [_class "title"] [str "Industry Trend Sequences"]
+            div [_class "box-container"] industryBoxes
+        ]
         
 
     let handler () =
-        let industries = Storage.getIndustries()
-        let view = view industries
-        [view] |> mainLayout "Industry SMA Breakdown Trends"
+        
+        Storage.getIndustries()
+        |> List.map (Reports.getAllIndustrySMABreakdowns SMA20)
+        |> view
+        |> List.singleton
+        |> mainLayout "Industry SMA Breakdown Trends"

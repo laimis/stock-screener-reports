@@ -320,6 +320,7 @@ module Views =
                 script [ Links.chartJsDatalabelsLink |> _src ] []
                 script [ Links.sortingJsLink |> _src ] []
                 script [ Links.hidingJsLink |> _src ] []
+                script ["https://cdn.plot.ly/plotly-latest.min.js" |> _src ] []
 
                 meta [
                     _name "viewport"
