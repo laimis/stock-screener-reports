@@ -131,7 +131,7 @@ module IndustryTrendsSummary =
                                                 td [] [link |> generateHrefNewTab (start.ToString("yyyy-MM-dd"))]
                                                 td [] [link |> generateHrefNewTab (end'.ToString("yyyy-MM-dd"))]
                                                 td [] [
-                                                    div [_style $"background-color: #1f77b4; height: 20px; width: {seq.Length * 20}px"] []
+                                                    div [_style $"display: inline-block; background-color: #1f77b4; height: 20px; width: {seq.Length * 20}px"] []
                                                     span [] [str $" {seq.Length} days"]
                                                 ]
                                             ]
