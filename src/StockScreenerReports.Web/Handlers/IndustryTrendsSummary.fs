@@ -60,8 +60,8 @@ module IndustryTrendsSummary =
             
         let industryBoxes =
             [combinedStats] @ stats
-            |> List.map(fun (stats, industry) ->
-                let columnData = stats.Lengths |> List.sort |> List.mapi (fun i d -> (i, d))
+            |> List.map(fun (industryStats, industry) ->
+                let columnData = industryStats.Lengths |> List.sort |> List.mapi (fun i d -> (i, d))
                 
                 let columnChart =
                     Chart.Column(columnData)
@@ -69,7 +69,7 @@ module IndustryTrendsSummary =
                 
                 let layout = Layout(bargap= 0.1, bargroupgap = 0.1)
                 let histogram =
-                    Histogram(x = stats.Lengths, nbinsx = 10)
+                    Histogram(x = industryStats.Lengths, nbinsx = 10)
                     |> Chart.Plot
                     |> Chart.WithLayout layout
                     |> Chart.WithSize (400, 300)
@@ -88,23 +88,23 @@ module IndustryTrendsSummary =
                             tbody [] [
                                 tr [] [
                                     td [] [str "Durations"]
-                                    td [] [str (stats.Count.ToString())]
+                                    td [] [str (industryStats.Count.ToString())]
                                 ]
                                 tr [] [
                                     td [] [str "Min"]
-                                    td [] [str (stats.MinDuration.ToString())]
+                                    td [] [str (industryStats.MinDuration.ToString())]
                                 ]
                                 tr [] [
                                     td [] [str "Max"]
-                                    td [] [str (stats.MaxDuration.ToString())]
+                                    td [] [str (industryStats.MaxDuration.ToString())]
                                 ]
                                 tr [] [
                                     td [] [str "Mean"]
-                                    td [] [str (stats.AverageDuration.ToString("F2"))]
+                                    td [] [str (industryStats.AverageDuration.ToString("F2"))]
                                 ]
                                 tr [] [
                                     td [] [str "Median"]
-                                    td [] [str (stats.MedianDuration.ToString())]
+                                    td [] [str (industryStats.MedianDuration.ToString())]
                                 ]
                                 tr [] [
                                     td [] [columnChart.GetInlineHtml() |> rawText]
@@ -121,7 +121,7 @@ module IndustryTrendsSummary =
                                 ]
                                 tbody []
                                     (
-                                        stats.Sequences
+                                        industryStats.Sequences
                                         |> List.map (fun seq ->
                                             tr [] [
                                                 let start = seq[seq.Length-1].date
@@ -130,6 +130,37 @@ module IndustryTrendsSummary =
                                                 
                                                 td [] [link |> generateHrefNewTab (start.ToString("yyyy-MM-dd"))]
                                                 td [] [link |> generateHrefNewTab (end'.ToString("yyyy-MM-dd"))]
+                                                td [] [
+                                                    div [_style $"display: inline-block; background-color: #1f77b4; height: 20px; width: {seq.Length * 20}px"] []
+                                                    span [] [str $" {seq.Length} days"]
+                                                ]
+                                            ]
+                                        )
+                                    )
+                            ]
+                        else
+                            // for all case, get the 10 longest sequences and show industry and start date
+                            table [_class "table is-bordered is-striped is-narrow is-hoverable"] [
+                                thead [] [
+                                    tr [] (["Industry"; "Start"; ""] |> List.map toHeaderCell)
+                                ]
+                                tbody []
+                                    (
+                                        stats
+                                        |> List.map  (fun (s,industry) ->
+                                            s.Sequences |> List.map (fun seq -> seq, industry)
+                                        )
+                                        |> List.concat
+                                        |> List.sortByDescending (fun (s,_) -> s.Length)
+                                        |> List.take 20
+                                        |> List.map (fun (seq,industry) ->
+                                            tr [] [
+                                                let start = seq[seq.Length-1].date
+                                                let end' = seq.Head.date
+                                                let link = industry |> Links.industryLinkWithStartAndEndDate (start.AddDays(-30)) (end'.AddDays(30))
+                                                
+                                                td [] [link |> generateHrefNewTab industry]
+                                                td [] [link |> generateHrefNewTab (start.ToString("yyyy-MM-dd"))]
                                                 td [] [
                                                     div [_style $"display: inline-block; background-color: #1f77b4; height: 20px; width: {seq.Length * 20}px"] []
                                                     span [] [str $" {seq.Length} days"]
