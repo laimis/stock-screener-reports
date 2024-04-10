@@ -18,7 +18,7 @@ module CountryDashboard =
     
     let private renderCharts screenerCountryResults =
         
-        let labels = screenerCountryResults |> List.head |> fun x -> x.byDateHits |> Seq.map (fun (date,_) -> date.ToString("MMM/dd")) |> Seq.toList
+        let labels = screenerCountryResults |> List.head |> fun x -> x.byDateHits |> Seq.map (fun (date,_) -> date |> Utils.formatDateForChart) |> Seq.toList
         
         let datasets:list<Charts.DataSet<int>> = 
             screenerCountryResults
@@ -85,7 +85,7 @@ module CountryDashboard =
             
         let _, breakdowns = dailySMABreakdowns[0]
 
-        let labels = breakdowns |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
+        let labels = breakdowns |> List.map (fun u -> u.breakdown.date |> Utils.formatDateForChart)
             
         let chartElements =
             datasets |> Charts.generateChartElements "sma breakdown chart" Charts.ChartType.Line (Some 100) Charts.smallChart labels

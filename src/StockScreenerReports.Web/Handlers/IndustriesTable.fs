@@ -131,7 +131,7 @@ module IndustriesTable =
                     generateSeries SMA200 dailyBreakdowns200
                 ]
                 
-            let labels = dailyBreakdowns20 |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
+            let labels = dailyBreakdowns20 |> List.map (fun u -> u.breakdown.date |> Utils.formatDateForChart)
             
             let chartElements =
                 dataSets |> Charts.generateChartElements "sma breakdown chart" Charts.ChartType.Line (Some 100) Charts.smallChart labels

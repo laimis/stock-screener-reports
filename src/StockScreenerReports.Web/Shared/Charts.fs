@@ -148,8 +148,8 @@ module Charts =
         color
         listOfNameCountPairs =
 
-        let labels = listOfNameCountPairs |> Seq.map (fun ((name:DateTime),_) -> name.ToString("MMM/dd"))
-        let data = listOfNameCountPairs |> Seq.map (fun (_,count) -> count) |> Seq.toList
+        let labels = listOfNameCountPairs |> Seq.map (fun (name:DateTime,_) -> name.ToString("yyyy-MM-dd"))
+        let data = listOfNameCountPairs |> Seq.map snd |> Seq.toList
 
         let datasets = [
             {

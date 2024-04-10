@@ -420,6 +420,7 @@ type IndustryScreenerAlert = {
     description: string
     screener: Screener
     sentiment: Sentiment
+    strength: decimal
 }
 
 type IndustryAlert = {
@@ -428,4 +429,5 @@ type IndustryAlert = {
     alertType : string
     description : string
     sentiment : Sentiment
+    strength: decimal
 }

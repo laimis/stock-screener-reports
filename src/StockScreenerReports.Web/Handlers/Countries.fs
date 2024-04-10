@@ -71,7 +71,7 @@ module Countries =
                     }
                     
                     
-                let labels = sma20 |> List.map (_.breakdown.date.ToString("MMM/dd"))
+                let labels = sma20 |> List.map (fun cb -> cb.breakdown.date |> Utils.formatDateForChart)
                 
                 let datasets = 
                     [

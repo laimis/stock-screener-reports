@@ -33,6 +33,9 @@ namespace StockScreenerReports.Core
         
         let convertToDateStringForOffset (date:DateTimeOffset) =
             date.ToString("yyyy-MM-dd")
+            
+        let formatDateForChart (date:DateTime) =
+            date.ToString("yyyy-MM-dd")
 
         let convertToDateTime (dateString:string) =
             DateTime.ParseExact(dateString, "yyyy-MM-dd", null)

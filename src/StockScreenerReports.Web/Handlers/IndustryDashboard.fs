@@ -185,7 +185,7 @@ module IndustryDashboard =
 
         let smoothedDataSets = datasets |> Utils.smoothedDataSets 3
 
-        let labels = dailySMABreakdowns |> Map.tryFind SMA20 |> Option.defaultValue [] |> List.map (fun u -> u.breakdown.date.ToString("MMM/dd"))
+        let labels = dailySMABreakdowns |> Map.tryFind SMA20 |> Option.defaultValue [] |> List.map (fun u -> u.breakdown.date |> Utils.formatDateForChart)
         
         let charts =
             datasets 
@@ -219,7 +219,7 @@ module IndustryDashboard =
             // load charts for each screener
             let tradingDates = (startDate,endDate) |> ReportsConfig.listOfBusinessDates
 
-            let labels = tradingDates |> Seq.map (fun u -> u.ToString("MMM/dd"))
+            let labels = tradingDates |> Seq.map (fun u -> u |> Utils.formatDateForChart)
 
             let screeners = Storage.getScreeners()
             let datasets = 
