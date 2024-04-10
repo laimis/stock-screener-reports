@@ -505,6 +505,10 @@ module Views =
                     p [] [
                             str $"Job {job.name} has not run since {job.timestamp}"
                     ]
+                | Warning -> 
+                    p [ _class "has-text-warning" ] [
+                        str $"Job {job.name} warning: {job.timestamp}"
+                    ]
                 | Failure -> 
                     p [] [
                         str $"Job {job.name} failed with message: {job.message}"

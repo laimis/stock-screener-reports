@@ -387,6 +387,7 @@ type IndustryWithCycle = string * MarketCycle
 
 type JobStatus =
     | Success
+    | Warning
     | Failure
 
 type JobName =

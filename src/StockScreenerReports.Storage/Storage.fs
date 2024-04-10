@@ -73,13 +73,15 @@ module Storage =
     let private toJobStatusString status =
         match status with
             | Success -> "success"
+            | Warning -> "warning"
             | Failure -> "failure"
 
     let private toJobStatus status =
         match status with
             | "success" -> Success
             | "failure" -> Failure
-            | _ -> raise (new System.Exception($"Unknown job status: {status}"))
+            | "warning" -> Warning
+            | _ -> raise (System.Exception($"Unknown job status: {status}"))
 
     let jobMapper (reader:RowReader) : Job =
 
@@ -104,7 +106,7 @@ module Storage =
         match results with
         | [] -> None
         | [x] -> Some x
-        | _ -> raise (new System.Exception(message))
+        | _ -> raise (System.Exception(message))
 
     let getStockByTickers (tickers:string seq) =
         let sql = $"{stockSelect} WHERE ticker = ANY(@tickers)"

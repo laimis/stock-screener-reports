@@ -22,7 +22,7 @@ module IndustryTrendsSummary =
 
         {|
             Count = count
-            AverageDuration = averageDuration
+            AverageDuration = System.Math.Round(averageDuration, 2)
             MedianDuration = medianDuration
             MaxDuration = maxDuration
             MinDuration = minDuration
@@ -86,29 +86,17 @@ module IndustryTrendsSummary =
                                 tr [] (["Metric"; "Value"] |> List.map toHeaderCell)
                             ]
                             tbody [] [
+                                let toRow name value = tr [] [td [] [str name]; td [] [value.ToString() |> str]]
+                                 
+                                toRow "Durations" industryStats.Count
+                                toRow "Min" industryStats.MinDuration
+                                toRow "Max" industryStats.MaxDuration
+                                toRow "Mean" industryStats.AverageDuration
+                                toRow "Median" industryStats.MedianDuration
+                                
                                 tr [] [
-                                    td [] [str "Durations"]
-                                    td [] [str (industryStats.Count.ToString())]
-                                ]
-                                tr [] [
-                                    td [] [str "Min"]
-                                    td [] [str (industryStats.MinDuration.ToString())]
-                                ]
-                                tr [] [
-                                    td [] [str "Max"]
-                                    td [] [str (industryStats.MaxDuration.ToString())]
-                                ]
-                                tr [] [
-                                    td [] [str "Mean"]
-                                    td [] [str (industryStats.AverageDuration.ToString("F2"))]
-                                ]
-                                tr [] [
-                                    td [] [str "Median"]
-                                    td [] [str (industryStats.MedianDuration.ToString())]
-                                ]
-                                tr [] [
-                                    td [] [columnChart.GetInlineHtml() |> rawText]
-                                    td [] [histogram.GetInlineHtml() |> rawText]
+                                    columnChart.GetInlineHtml() |> rawText |> toTdWithNode
+                                    histogram.GetInlineHtml() |> rawText |> toTdWithNode
                                 ]
                             ]
                         ]

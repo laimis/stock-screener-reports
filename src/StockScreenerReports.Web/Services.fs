@@ -46,8 +46,8 @@ module Services =
                     let screenerNamesWithNoResults = emptyResults |> List.map (fun (screener,_) -> screener.name) |> String.concat ", "
                     
                     (
-                        Failure,
-                        $"Ran {results.Length} screeners successfully, but {screenerNamesWithNoResults} screeners had no results"
+                        Warning,
+                        $"Ran {results.Length} screeners successfully, but {screenerNamesWithNoResults} screener(s) had no results"
                     )
             
             Storage.saveJobStatus ScreenerJob (ReportsConfig.nowUtcNow()) status message |> ignore

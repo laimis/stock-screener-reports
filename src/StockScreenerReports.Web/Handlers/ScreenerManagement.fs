@@ -353,6 +353,7 @@ module ScreenerManagement =
                 let classToSet = 
                     match job.status with
                     | Success -> ""
+                    | Warning -> "has-text-warning-dark"
                     | Failure -> "has-text-danger-dark"
 
                 tr [_class classToSet] [
