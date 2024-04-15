@@ -323,7 +323,7 @@ type IndustryTrend =
             this.percentAbove
         )
 
-type CyclePoint =
+type DataPoint =
     {
         date: DateTime;
         value: decimal;
@@ -337,9 +337,9 @@ type CyclePoint =
 
 type MarketCycle =
     {
-        startPoint: CyclePoint;
-        highPoint: CyclePoint;
-        currentPoint: CyclePoint;
+        startPoint: DataPoint;
+        highPoint: DataPoint;
+        currentPoint: DataPoint;
     }
 
     member this.ageInMarketDays =
@@ -431,3 +431,15 @@ type IndustryAlert = {
     sentiment : Sentiment
     strength: decimal
 }
+
+type IndustrySequence = {
+        industry: string
+        values: DataPoint list
+        open': bool
+    }
+    with
+        member this.start = this.values |> List.last
+        member this.end' = this.values.Head
+        member this.length = this.values.Length
+        member this.age = this.end'.date - this.start.date
+        member this.ageInDays = this.age.TotalDays |> Math.Floor |> int

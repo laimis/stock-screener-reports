@@ -10,9 +10,9 @@ namespace StockScreenerReports.Core
                 | None ->
                     let trend = {streak = 0; direction = Up; change = 0m; value = breakdown.percentAbove}
                     let cycle = {
-                        startPoint = breakdown |> CyclePoint.create;
-                        highPoint = breakdown |> CyclePoint.create;
-                        currentPoint = breakdown |> CyclePoint.create;
+                        startPoint = breakdown |> DataPoint.create;
+                        highPoint = breakdown |> DataPoint.create;
+                        currentPoint = breakdown |> DataPoint.create;
                     }
 
                     Some {
@@ -49,7 +49,7 @@ namespace StockScreenerReports.Core
                             | x when x = trend.direction -> trend.streak + 1
                             | _ -> 1
 
-                    let currentPoint = breakdown |> CyclePoint.create
+                    let currentPoint = breakdown |> DataPoint.create
 
                     let lowPoint = 
                         match cycle.startPointValue with
@@ -219,3 +219,21 @@ namespace StockScreenerReports.Core
             strength
             
         let calculateADXTrend (smaBreakdowns:IndustrySMABreakdown seq) = calculateADXTrendWithPeriod 10 smaBreakdowns
+        
+        let calculateSequences (smaBreakdowns:IndustrySMABreakdown list) =
+            smaBreakdowns
+            |> List.fold (fun (acc, currentSeq) (point:IndustrySMABreakdown) ->
+                if point.breakdown.percentAbove >= 90m then
+                    let pt = {value = point.breakdown.percentAbove; date = point.breakdown.date}
+                    match currentSeq with
+                    | Some seq -> (acc, Some { seq with values = pt :: seq.values })
+                    | None -> (acc, Some { industry = smaBreakdowns.Head.industry; values = [pt]; open' = true })
+                else
+                    match currentSeq with
+                    | Some seq -> ({seq with open' = false} :: acc, None)
+                    | None -> (acc, None)
+            ) ([], None)
+            |> fun (acc, currentSeq) ->
+                match currentSeq with
+                | Some seq -> seq :: acc
+                | None -> acc

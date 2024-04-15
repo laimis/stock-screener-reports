@@ -161,3 +161,23 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
         trend.streak |> should equal 1
         trend.direction |> should equal Up
         Math.Round(trend.change, 2) |> should equal 20m
+        
+        
+    [<Fact>]
+    let ``industry sequence detection works`` () =
+        let sequences = TrendsCalculator.calculateSequences sampleResidentialConstructionTrend
+        
+        sequences |> should haveLength 2
+        
+        let underTest = sequences |> List.last
+        
+        underTest.length |> should equal 7
+        underTest.start.value |> should be (greaterThanOrEqualTo 90)
+        underTest.start.date.Date |> should equal (DateTime.Parse("2024-03-19"))
+        underTest.end'.value |> should be (greaterThanOrEqualTo 90)
+        underTest.end'.date.Date |> should equal (DateTime.Parse("2024-03-25"))
+        underTest.age.TotalDays |> int |> should equal 6
+        underTest.length |> should equal 7
+        underTest.open' |> should be False
+        underTest.values |> List.forall (fun x -> x.value >= 90m) |> should be True
+        

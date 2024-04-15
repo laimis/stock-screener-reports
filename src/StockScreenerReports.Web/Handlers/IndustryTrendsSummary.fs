@@ -10,10 +10,10 @@ module IndustryTrendsSummary =
     open StockScreenerReports.Web.Shared.Views
     open StockScreenerReports.Core
 
-    let private describeDurations (sequences:SMABreakdown list list) =
+    let private describeDurations (sequences:IndustrySequence list) =
         let count = sequences.Length
         
-        let lengths = sequences |> List.map _.Length
+        let lengths = sequences |> List.map _.values.Length
 
         let averageDuration = if count > 0 then (lengths |> List.sum |> decimal) / (decimal count) else 0m
         let medianDuration = if count > 0 then lengths |> List.sort |> (fun l -> l[l.Length / 2]) else 0
@@ -30,27 +30,12 @@ module IndustryTrendsSummary =
             Lengths = lengths
         |}
 
-    let private analyzeSequence (values: SMABreakdown list) =
-        let folder (prevSequence, sequences) (current:SMABreakdown) =
-            if current.percentAbove >= 90m then
-                let updatedSequence = current :: prevSequence
-                (updatedSequence, sequences)
-            else
-                let updatedSequences = if prevSequence <> [] then prevSequence :: sequences else sequences
-                ([], updatedSequences)
-
-        let initialState = ([], [])
-        let lastSequence, sequences = List.fold folder initialState values
-
-        if lastSequence <> [] then lastSequence :: sequences else sequences
-
     let private view (industryBreakdowns: IndustrySMABreakdown list list) =
         let stats =
             industryBreakdowns
             |> List.map (fun breakdownList ->
                     breakdownList
-                    |> List.map (_.breakdown)
-                    |> analyzeSequence
+                    |> TrendsCalculator.calculateSequences
                     |> describeDurations, breakdownList.Head.industry
             )
             |> List.filter (fun (l,_) -> l.Count > 2)
@@ -101,6 +86,18 @@ module IndustryTrendsSummary =
                             ]
                         ]
                         
+                        let sequenceToDurationBarChart (seq:IndustrySequence) =
+                            // background color should vary based on if the sequence is open or not
+                            let backgroundColor =
+                                match seq.open' with
+                                | true -> "#ff7f0e"
+                                | false -> "#1f77b4"
+                            
+                            [
+                                div [_style $"display: inline-block; background-color: {backgroundColor}; height: 20px; width: {seq.length * 20}px"] []
+                                span [] [str $" {seq.length} bars, {seq.ageInDays} days"]
+                            ]
+                        
                         // list all sequences by date, but only if the industry is not "All Industries"
                         if industry <> "All Industries" then
                             table [_class "table is-bordered is-striped is-narrow is-hoverable"] [
@@ -112,16 +109,13 @@ module IndustryTrendsSummary =
                                         industryStats.Sequences
                                         |> List.map (fun seq ->
                                             tr [] [
-                                                let start = seq[seq.Length-1].date
-                                                let end' = seq.Head.date
+                                                let start = seq.start.date
+                                                let end' = seq.end'.date
                                                 let link = industry |> Links.industryLinkWithStartAndEndDate (start.AddDays(-30)) (end'.AddDays(30))
                                                 
                                                 td [] [link |> generateHrefNewTab (start.ToString("yyyy-MM-dd"))]
                                                 td [] [link |> generateHrefNewTab (end'.ToString("yyyy-MM-dd"))]
-                                                td [] [
-                                                    div [_style $"display: inline-block; background-color: #1f77b4; height: 20px; width: {seq.Length * 20}px"] []
-                                                    span [] [str $" {seq.Length} days"]
-                                                ]
+                                                td [] (sequenceToDurationBarChart seq)
                                             ]
                                         )
                                     )
@@ -139,20 +133,17 @@ module IndustryTrendsSummary =
                                             s.Sequences |> List.map (fun seq -> seq, industry)
                                         )
                                         |> List.concat
-                                        |> List.sortByDescending (fun (s,_) -> s.Length)
+                                        |> List.sortByDescending (fun (s,_) -> s.values.Length)
                                         |> List.take 20
                                         |> List.map (fun (seq,industry) ->
                                             tr [] [
-                                                let start = seq[seq.Length-1].date
-                                                let end' = seq.Head.date
+                                                let start = seq.start.date
+                                                let end' = seq.end'.date
                                                 let link = industry |> Links.industryLinkWithStartAndEndDate (start.AddDays(-30)) (end'.AddDays(30))
                                                 
                                                 td [] [link |> generateHrefNewTab industry]
                                                 td [] [link |> generateHrefNewTab (start.ToString("yyyy-MM-dd"))]
-                                                td [] [
-                                                    div [_style $"display: inline-block; background-color: #1f77b4; height: 20px; width: {seq.Length * 20}px"] []
-                                                    span [] [str $" {seq.Length} days"]
-                                                ]
+                                                td [] (sequenceToDurationBarChart seq)
                                             ]
                                         )
                                     )
