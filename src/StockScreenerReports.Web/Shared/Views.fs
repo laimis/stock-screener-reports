@@ -232,89 +232,69 @@ module Views =
         $"Market cycle started on <b>{cycle.startPointDateFormatted}</b>, <b>{cycle.ageFormatted}</b> ago ({cycle.ageInMarketDays} market days), high of <b>{cycle.highPointValueFormatted} {cycle.highPointAgeFormatted} ago</b>"
 
     let private generateHeaderRow =
-        let titleDiv = div [ _class "column" ] [
-            h1 [_class "title is-spaced"] [ 
-                generateHrefWithAttr "NG Screeners" Links.home (_class "has-text-primary")
-            ]
-        ]
+        nav [ _class "navbar"; KeyValue("role", "navigation"); attr "aria-label" "main navigation" ] [
+            div [ _class "navbar-brand" ] [
+                a [ _class "navbar-item"; _href "/" ] [
+                    encodedText "NGTD Screeners"
+                ]
 
-        let searchDiv = div [ _class "column is-three-quarters" ] [
-            div [ _class "columns" ] [
-                div [ _class "column" ] [
-                    form [_action Links.searchLink; _method "GET"] [
-                        div [ _class "field has-addons" ] [
-                            div [ _class "control has-icons-left is-expanded" ] [
-                                input [
-                                    _class "input"
-                                    _type "text"
-                                    _placeholder "Search for stock or industry"
-                                    _name "query"
+                a [ KeyValue("role", "button"); _class "navbar-burger"; attr "aria-label" "menu"; attr "aria-expanded" "false"; attr "data-target" "navbarMenu" ] [
+                    span [ attr "aria-hidden" "true" ] []
+                    span [ attr "aria-hidden" "true" ] []
+                    span [ attr "aria-hidden" "true" ] []
+                ]
+            ]
+
+            div [ _id "navbarMenu"; _class "navbar-menu" ] [
+                div [ _class "navbar-start" ] [
+                    
+                ]
+                
+                div [_class "navbar-end"] [
+                    div [_class "navbar-item"] [
+                        form [ _action Links.searchLink; _method "GET"; _class "navbar-item" ] [
+                            div [ _class "field has-addons" ] [
+                                div [ _class "control has-icons-left is-expanded" ] [
+                                    input [
+                                        _class "input"
+                                        _type "text"
+                                        _placeholder "Search for stock or industry"
+                                        _name "query"
+                                    ]
+                                    span [ _class "icon is-small is-left" ] [
+                                        i [ _class "fas fa-search" ] []
+                                    ]
                                 ]
-                                span [ _class "icon is-small is-left" ] [
-                                    i [ _class "fas fa-search" ] []
-                                ]
-                            ]
-                            div [ _class "control" ] [
-                                button [ _class "button is-primary" ] [
-                                    encodedText "Search"
+                                div [ _class "control" ] [
+                                    button [ _class "button is-primary" ] [
+                                        encodedText "Search"
+                                    ]
                                 ]
                             ]
                         ]
                     ]
-                ]
-                div [ _class "column" ] [
-                    generateHrefWithAttr
-                        "Trends"
-                        Links.trends
-                        (_class "button is-primary mr-2")
+                    generateHrefWithAttr "Trends" Links.trends (_class "navbar-item")
+                    generateHrefWithAttr "Cycles" Links.cycles (_class "navbar-item")
 
-                    generateHrefWithAttr
-                        "Cycles"
-                        Links.cycles
-                        (_class "button is-primary mr-2")
-
-                    div [ _class "dropdown is-hoverable is-right" ] [
-                        div [ _class "dropdown-trigger" ] [
-                            button [ _class "button is-primary" ] [
-                                span [] [ encodedText "Market Data" ]
-                                span [ _class "icon is-small" ] [
-                                    i [ _class "fas fa-angle-down" ] []
-                                ]
-                            ]
+                    div [ _class "navbar-item has-dropdown is-hoverable" ] [
+                        a [ _class "navbar-link" ] [
+                            encodedText "Market Data"
                         ]
-                        div [ _class "dropdown-menu" ] [
-                            div [ _class "dropdown-content" ] [
-                                generateHrefWithAttr
-                                    "Industries"
-                                    Links.industries
-                                    (_class "dropdown-item")
 
-                                generateHrefWithAttr
-                                    "Countries"
-                                    Links.countries
-                                    (_class "dropdown-item")
-
-                                generateHrefWithAttr
-                                    "Earnings"
-                                    Links.earnings
-                                    (_class "dropdown-item")
-                            ]
+                        div [ _class "navbar-dropdown" ] [
+                            generateHrefWithAttr "Industries" Links.industries (_class "navbar-item")
+                            generateHrefWithAttr "Countries" Links.countries (_class "navbar-item")
+                            generateHrefWithAttr "Earnings" Links.earnings (_class "navbar-item")
                         ]
                     ]
                 ]
             ]
-        ]
-
-        div [ _class "columns mb-5" ] [
-            titleDiv
-            searchDiv
         ]
 
     let mainLayout pageTitle (content: XmlNode list) =
     
         let header = generateHeaderRow
-        let fullBodyContent = header::content
-
+        
         html [] [
             head [] [
                 title []  [ encodedText pageTitle ]
@@ -346,9 +326,8 @@ module Views =
                 ]
             ]
             body [] [
-                section [_class "section"] [
-                    div [_class "container"] fullBodyContent
-                ]
+                header
+                div [_class "container p-3"; _style "background-color: white"] content
             ]
         ] |> htmlView
     

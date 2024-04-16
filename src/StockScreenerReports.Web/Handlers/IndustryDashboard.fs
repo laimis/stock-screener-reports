@@ -128,12 +128,12 @@ module IndustryDashboard =
             div [ _class "column"] [
                 h1 [] [ str $"{industryName} - {stocks.Length} stocks" ]
 
-                div [_class "card-container"] [
-                    div [_class $"card {trendCardClass}"] [
+                div [_class "score-container"] [
+                    div [_class $"score-card {trendCardClass}"] [
                         div [_class "score-title"] [ "Trend" |> str ] 
                         div [_class "score-number"] [ $"{trendScore}" |> str ] 
                     ]
-                    div [_class $"card {cycleCardClass}"] [
+                    div [_class $"score-card {cycleCardClass}"] [
                         div [_class "score-title"] [ "Cycle" |> str ] 
                         div [_class "score-number"] [ $"{cycleScore}" |> str ] 
                     ]
