@@ -233,56 +233,74 @@ module Views =
 
     let private generateHeaderRow =
         let titleDiv = div [ _class "column" ] [
-            h1 [_class "title"] [ 
+            h1 [_class "title is-spaced"] [ 
                 generateHrefWithAttr "NG Screeners" Links.home (_class "has-text-primary")
             ]
         ]
 
         let searchDiv = div [ _class "column is-three-quarters" ] [
-            div [ _class "columns"] [
+            div [ _class "columns" ] [
                 div [ _class "column" ] [
-                    form [
-                        _action Links.searchLink
-                        _method "GET"
-                    ] [
-                        input [
-                            _class "input"
-                            _type "text"
-                            _placeholder "Search for stock"
-                            _name "query"
+                    form [_action Links.searchLink; _method "GET"] [
+                        div [ _class "field has-addons" ] [
+                            div [ _class "control has-icons-left is-expanded" ] [
+                                input [
+                                    _class "input"
+                                    _type "text"
+                                    _placeholder "Search for stock or industry"
+                                    _name "query"
+                                ]
+                                span [ _class "icon is-small is-left" ] [
+                                    i [ _class "fas fa-search" ] []
+                                ]
+                            ]
+                            div [ _class "control" ] [
+                                button [ _class "button is-primary" ] [
+                                    encodedText "Search"
+                                ]
+                            ]
                         ]
                     ]
                 ]
                 div [ _class "column" ] [
                     generateHrefWithAttr
-                        "Earnings"
-                        Links.earnings
-                        (_class "button is-small is-primary is-pulled-right mx-1")
-                        
-                    generateHrefWithAttr
-                        "Countries"
-                        Links.countries
-                        (_class "button is-small is-primary is-pulled-right mx-1")
+                        "Trends"
+                        Links.trends
+                        (_class "button is-primary mr-2")
 
                     generateHrefWithAttr
                         "Cycles"
                         Links.cycles
-                        (_class "button is-small is-primary is-pulled-right mx-1")
+                        (_class "button is-primary mr-2")
 
-                    generateHrefWithAttr
-                        "Trends"
-                        Links.trends
-                        (_class "button is-small is-primary is-pulled-right mx-1")
+                    div [ _class "dropdown is-hoverable is-right" ] [
+                        div [ _class "dropdown-trigger" ] [
+                            button [ _class "button is-primary" ] [
+                                span [] [ encodedText "Market Data" ]
+                                span [ _class "icon is-small" ] [
+                                    i [ _class "fas fa-angle-down" ] []
+                                ]
+                            ]
+                        ]
+                        div [ _class "dropdown-menu" ] [
+                            div [ _class "dropdown-content" ] [
+                                generateHrefWithAttr
+                                    "Industries"
+                                    Links.industries
+                                    (_class "dropdown-item")
 
-                    generateHrefWithAttr
-                        "Industries"
-                        Links.industries
-                        (_class "button is-small is-primary is-pulled-right mx-1")
+                                generateHrefWithAttr
+                                    "Countries"
+                                    Links.countries
+                                    (_class "dropdown-item")
 
-                    generateHrefWithAttr
-                        "Admin"
-                        Links.screeners
-                        (_class "button is-small is-primary is-pulled-right mx-1")
+                                generateHrefWithAttr
+                                    "Earnings"
+                                    Links.earnings
+                                    (_class "dropdown-item")
+                            ]
+                        ]
+                    ]
                 ]
             ]
         ]
