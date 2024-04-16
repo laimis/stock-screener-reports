@@ -232,7 +232,7 @@ module Views =
         $"Market cycle started on <b>{cycle.startPointDateFormatted}</b>, <b>{cycle.ageFormatted}</b> ago ({cycle.ageInMarketDays} market days), high of <b>{cycle.highPointValueFormatted} {cycle.highPointAgeFormatted} ago</b>"
 
     let private generateHeaderRow =
-        nav [ _class "navbar"; KeyValue("role", "navigation"); attr "aria-label" "main navigation" ] [
+        nav [ _class "navbar header"; KeyValue("role", "navigation"); attr "aria-label" "main navigation" ] [
             div [ _class "navbar-brand" ] [
                 a [ _class "navbar-item"; _href "/" ] [
                     encodedText "NGTD Screeners"
@@ -319,8 +319,7 @@ module Views =
                 ]
             ]
             body [] [
-                header
-                div [_class "container p-3"; _style "background-color: white"] content
+                div [_class "container p-3"; _style "background-color: white"] (header::content)
             ]
         ] |> htmlView
     

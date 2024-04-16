@@ -68,7 +68,7 @@ type IndustryAlertGeneratorTests() =
         
         let result = IndustryAlertGenerator.screenerAlerts screenerMap input
         
-        let industries = result |> List.map _.industry
+        let industries = result |> List.map Alert.getIndustry
         
         industries |> should contain "industry1"
         industries |> should contain "industry3"
@@ -100,7 +100,7 @@ type IndustryAlertGeneratorTests() =
         let result = IndustryAlertGenerator.screenerAlerts screenerMap input
         
         result.Length |> should equal 1
-        result.Head.industry |> should equal "industry1"
+        result.Head |> Alert.getIndustry |> should equal "industry1"
         
     [<Fact>]
     let ``When industry results are dominating industry breakdown, it ends up on alerts``() =
@@ -119,7 +119,7 @@ type IndustryAlertGeneratorTests() =
         let result = IndustryAlertGenerator.screenerAlerts screenerMap input
         
         result.Length |> should equal 1
-        result |> List.map _.industry |> should contain "industry1"
+        result |> List.map Alert.getIndustry |> should contain "industry1"
         
     [<Fact>]
     let ``When result count is small, no alerts are generated``() =

@@ -412,25 +412,32 @@ type Sentiment =
     | Positive
     | Negative
     | Neutral
-    
-type IndustryScreenerAlert = {
-    date: DateTime
-    industry: string
-    alertType: string
-    description: string
-    screener: Screener
-    sentiment: Sentiment
-    strength: decimal
-}
 
-type IndustryAlert = {
-    date : DateTime
-    industry : string
-    alertType : string
-    description : string
-    sentiment : Sentiment
-    strength: decimal
-}
+type AlertType =
+    | Industry of string
+    | ScreenerId of int
+    | IndustryScreener of string * int
+    
+type Alert =
+    {
+        date: DateTime
+        sentiment: Sentiment
+        description: string
+        strength: decimal
+        alertType: AlertType
+    }
+    with
+        static member getIndustry alert =
+            match alert.alertType with
+            | Industry industry -> industry
+            | IndustryScreener(industry,_) -> industry
+            | _ -> failwith "Invalid alert type"
+            
+        static member getScreenerId alert =
+            match alert.alertType with
+            | ScreenerId id -> id
+            | IndustryScreener(_,id) -> id
+            | _ -> failwith "Invalid alert type"
 
 type IndustrySequenceType =
     | High

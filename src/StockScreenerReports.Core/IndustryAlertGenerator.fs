@@ -16,13 +16,11 @@ let screenerAlerts industrySizeMap screenersWithResults =
         match results |> List.length with
         | x when x >= RESULT_COUNT_THRESHOLD ->
             let alert = {
-                industry = industryName
-                alertType = "Count"
                 description = industryName + " has large participation, " + x.ToString() + " results"
-                screener = screener
                 date = results.Head.date
                 sentiment = Positive
-                strength = x |> decimal 
+                strength = x |> decimal
+                alertType = IndustryScreener(industryName,screener.id)
             }
             Some alert
         | _ -> None
@@ -32,13 +30,11 @@ let screenerAlerts industrySizeMap screenersWithResults =
         match (decimal industryResults.Length) / (decimal totalResults) with
         | x when x >= PERCENT_CHECK_THRESHOLD ->
             let alert = {
-                industry = industryName
-                alertType = "Percent"
                 description = $"{industryName} has " + x.ToString("P2") + $" percent of the results {industryResults.Length}/{totalResults}"
-                screener = screener
                 date = industryResults.Head.date
                 sentiment = Positive
                 strength = x
+                alertType = IndustryScreener(industryName,screener.id)
             }
             Some alert
         | _ -> None
@@ -50,13 +46,11 @@ let screenerAlerts industrySizeMap screenersWithResults =
         match (decimal industryResults.Length) / (decimal industryTotal) with
         | x when x >= INDUSTRY_PERCENT_CHECK_THRESHOLD ->
             let alert = {
-                industry = industryName
-                alertType = "IndustryPercent"
                 description = $"{industryName} has " + x.ToString("P2") + $" of the industry participants {industryResults.Length}/{industryTotal}"
-                screener = screener
                 date = industryResults.Head.date
                 sentiment = Positive
-                strength = x 
+                strength = x
+                alertType = IndustryScreener(industryName,screener.id)
             }
             Some alert
         | _ -> None
@@ -96,12 +90,11 @@ let industryTrendAlerts (industryTrends:IndustryTrend list) =
     |> List.filter (fun (industryTrend:IndustryTrend) -> industryTrend.percentAbove >= decimal SMA_ALERT_HIGH_PERCENT_THRESHOLD)
     |> List.map (fun (industryTrend:IndustryTrend) ->
         {
-            industry = industryTrend.industry
-            alertType = "SMA"
             description = $"{industryTrend.industry} has {industryTrend.percentAboveFormatted} of stocks above {industryTrend.days.Interval} day SMA"
             date = industryTrend.date
             sentiment = Positive
             strength = industryTrend.percentAbove
+            alertType = Industry(industryTrend.industry)
         }
     )
     |> List.append
@@ -109,15 +102,14 @@ let industryTrendAlerts (industryTrends:IndustryTrend list) =
         |> List.filter (fun (industryTrend:IndustryTrend) -> industryTrend.percentAbove <= decimal SMA_ALERT_LOW_PERCENT_THRESHOLD)
         |> List.map (fun (industryTrend:IndustryTrend) ->
             {
-                industry = industryTrend.industry
-                alertType = "SMA"
                 description = $"{industryTrend.industry} has {industryTrend.percentAboveFormatted} of stocks below {industryTrend.days.Interval} day SMA"
                 date = industryTrend.date
                 sentiment = Negative
                 strength = industryTrend.percentAbove
+                alertType = Industry(industryTrend.industry)
             }
         )
     )
-    |> List.sortByDescending (fun (alert:IndustryAlert) -> alert.strength)
+    |> List.sortByDescending (fun (alert:Alert) -> alert.strength)
     
     

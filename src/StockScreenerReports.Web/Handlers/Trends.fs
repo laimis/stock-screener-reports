@@ -193,7 +193,7 @@ module Trends =
 
             div [_class "content"] content
             
-    let private generateAlertsSection screenerAlerts =
+    let private generateAlertsSection screeners screenerAlerts =
         
         let toSentimentSpan sentiment =
             span [sentiment |> sentimentClass |> _class] [
@@ -208,10 +208,13 @@ module Trends =
                     [div [] ["No alerts" |> str]]
                 | _ ->
                     screenerAlerts
-                    |> List.map (fun (alert:IndustryScreenerAlert) ->
+                    |> List.map (fun (alert:Alert) ->
+                        let industry = Alert.getIndustry alert
+                        let screenerId = Alert.getScreenerId alert
+                        let screenerName = screeners |> List.find (fun s -> s.id = screenerId) |> _.name
                         div [ _class "columns" ] [
-                            div [_class "column"] [ generateHrefNewTab alert.screener.name (Links.screenerResultsLink alert.screener.id alert.date)  ]
-                            div [_class "column"] [ generateHrefNewTab alert.industry (Links.industryLink alert.industry) ]
+                            div [_class "column"] [ generateHrefNewTab screenerName (Links.screenerResultsLink screenerId alert.date)  ]
+                            div [_class "column"] [ generateHrefNewTab industry (Links.industryLink industry) ]
                             div [_class "column is-two-thirds"] [
                                 alert.sentiment |> toSentimentSpan
                                 alert.description |> str
@@ -250,7 +253,7 @@ module Trends =
         
         let warningSection = jobAlertSection missedJobs
         
-        let alertsSection = generateAlertsSection screenerAlerts
+        let alertsSection = generateAlertsSection screeners screenerAlerts
         
         let activeIndustrySequencesSection = generateActiveIndustrySequencesSection activeIndustrySequences
 
