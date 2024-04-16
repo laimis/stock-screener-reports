@@ -533,3 +533,15 @@ module Views =
             div [_style $"display: inline-block; background-color: {backgroundColor}; height: 20px; width: {seq.length * 20}px"] []
             span [_class "ml-3"] [str $"{seq.ageInDays} days"]
         ]
+    
+    let sentimentClass sentiment =
+            match sentiment with
+            | Positive -> "has-text-success"
+            | Negative -> "has-text-danger"
+            | Neutral -> "has-text-warning"
+            
+    let sentimentText sentiment =
+        match sentiment with
+        | Positive -> "📈"
+        | Negative -> "📉"
+        | Neutral -> "➖"

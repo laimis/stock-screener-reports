@@ -220,7 +220,9 @@ module IndustryDashboard =
             let tradingDates = (startDate,endDate) |> ReportsConfig.listOfBusinessDates
 
             let labels = tradingDates |> Seq.map (fun u -> u |> Utils.formatDateForChart)
-
+            
+            let sequences = industryName |> Storage.getIndustrySequencesForIndustry
+            
             let screeners = Storage.getScreeners()
             let datasets = 
                 screeners
@@ -246,6 +248,18 @@ module IndustryDashboard =
                     }
                 )
 
+            let sequencesSection =
+                sequences |> List.map( fun sequence ->
+                    [
+                        DateColumn(sequence.start.date)
+                        DateColumn(sequence.end'.date)
+                        NodeColumn(sequence |> fun s -> (match s.type' with | High -> Positive | Low -> Negative) |> sentimentText |> str)
+                        NodeColumn(div [] (sequence |> sequenceToDurationBarChart))
+                    ] |> toTr
+                )
+                |> fullWidthTableWithSortableHeaderCells ["Start"; "End"; "Type"; "Duration"]
+                |> toSection "Trend Sequences"
+                
             let screenerChart = 
                 div [] (generateChartElements "screener chart" Bar None smallChart labels datasets)
                 |> toSection "Screener Counts"
@@ -345,7 +359,7 @@ module IndustryDashboard =
             let smaBreakdownsAndChartSections = smaBreakdownsAndSMACharts dailySMABreakdowns industryTrends
 
             let contentSections =
-                [smaBreakdownsAndChartSections; screenerChart; earningsSection; stocksSection; screenerResultsTable]
+                [smaBreakdownsAndChartSections; sequencesSection; screenerChart; earningsSection; stocksSection; screenerResultsTable]
                 |> List.append topLevel
 
             let view = div [_class "content"] contentSections

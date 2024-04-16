@@ -41,19 +41,7 @@ module Trends =
             )
 
         (screener,data)
-        
-    let private sentimentClass sentiment =
-            match sentiment with
-            | Positive -> "has-text-success"
-            | Negative -> "has-text-danger"
-            | Neutral -> "has-text-warning"
-            
-    let private sentimentText sentiment =
-        match sentiment with
-        | Positive -> "📈"
-        | Negative -> "📉"
-        | Neutral -> "➖"
-
+    
     let internal generateSMADirectionColumns smaBreakdownPairs =
         smaBreakdownPairs
         |> List.map(fun (sma, breakdowns) ->
@@ -239,7 +227,7 @@ module Trends =
             span [sentiment |> sentimentClass |> _class] [
                 sentiment |> sentimentText  |> str
             ]
-            
+        
         div [ _class "content" ] [
             h4 [ _class "mt-5" ] ["Active Industry Sequences" |> str]
             yield!
@@ -256,9 +244,9 @@ module Trends =
                             )
                         ]
                     )
-        ]
+                ]
         
-    let generateElementsToRender missedJobs screeners industries upAndDowns screenerAlerts trendAlerts activeIndustrySequences dateRange =
+    let generateElementsToRender missedJobs screeners industries upAndDowns screenerAlerts activeIndustrySequences dateRange =
         
         let warningSection = jobAlertSection missedJobs
         
@@ -414,9 +402,8 @@ module Trends =
             let industrySize = industries.Value |> List.map (fun i -> i.industry,i.above+ i.below) |> Map.ofList
             
             let screenerAlerts = IndustryAlertGenerator.screenerAlerts industrySize screenersWithResults
-            let trendAlerts = IndustryAlertGenerator.industryTrendAlerts industries.Value
             let activeIndustrySequences = Storage.getActiveIndustrySequences()
 
-            let elementsToRender = generateElementsToRender missedJobs screeners industries upAndDowns screenerAlerts trendAlerts activeIndustrySequences dateRange
+            let elementsToRender = generateElementsToRender missedJobs screeners industries upAndDowns screenerAlerts activeIndustrySequences dateRange
 
             (elementsToRender |> mainLayout "All Screener Trends") next ctx

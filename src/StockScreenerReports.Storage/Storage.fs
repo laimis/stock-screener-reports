@@ -654,7 +654,7 @@ module Storage =
         )
         
     let getIndustrySequencesForIndustry industry =
-        let sequenceSql = "SELECT * FROM industrysequences WHERE industry = @industry ORDER BY startdate"
+        let sequenceSql = "SELECT * FROM industrysequences WHERE industry = @industry ORDER BY startdate DESC"
         let sequenceParams = ["@industry", Sql.string industry]
         
         getIndustrySequencesWithQuery sequenceSql sequenceParams
