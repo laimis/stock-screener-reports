@@ -237,17 +237,10 @@ module Views =
                 a [ _class "navbar-item"; _href "/" ] [
                     encodedText "NGTD Screeners"
                 ]
-
-                a [ KeyValue("role", "button"); _class "navbar-burger"; attr "aria-label" "menu"; attr "aria-expanded" "false"; attr "data-target" "navbarMenu" ] [
-                    span [ attr "aria-hidden" "true" ] []
-                    span [ attr "aria-hidden" "true" ] []
-                    span [ attr "aria-hidden" "true" ] []
-                ]
             ]
 
             div [ _id "navbarMenu"; _class "navbar-menu" ] [
                 div [ _class "navbar-start" ] [
-                    
                 ]
                 
                 div [_class "navbar-end"] [
