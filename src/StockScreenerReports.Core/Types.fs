@@ -432,7 +432,12 @@ type IndustryAlert = {
     strength: decimal
 }
 
+type IndustrySequenceType =
+    | High
+    | Low
+    
 type IndustrySequence = {
+        type': IndustrySequenceType
         industry: string
         values: DataPoint list
         open': bool

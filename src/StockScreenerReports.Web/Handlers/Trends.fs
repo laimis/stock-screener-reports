@@ -41,6 +41,18 @@ module Trends =
             )
 
         (screener,data)
+        
+    let private sentimentClass sentiment =
+            match sentiment with
+            | Positive -> "has-text-success"
+            | Negative -> "has-text-danger"
+            | Neutral -> "has-text-warning"
+            
+    let private sentimentText sentiment =
+        match sentiment with
+        | Positive -> "📈"
+        | Negative -> "📉"
+        | Neutral -> "➖"
 
     let internal generateSMADirectionColumns smaBreakdownPairs =
         smaBreakdownPairs
@@ -193,20 +205,8 @@ module Trends =
 
             div [_class "content"] content
             
-    let private generateAlertsSection screenerAlerts trendAlerts =
+    let private generateAlertsSection screenerAlerts =
         
-        let sentimentClass sentiment =
-            match sentiment with
-            | Positive -> "has-text-success"
-            | Negative -> "has-text-danger"
-            | Neutral -> "has-text-warning"
-            
-        let sentimentText sentiment =
-            match sentiment with
-            | Positive -> "📈"
-            | Negative -> "📉"
-            | Neutral -> "➖"
-            
         let toSentimentSpan sentiment =
             span [sentiment |> sentimentClass |> _class] [
                 sentiment |> sentimentText  |> str
@@ -230,30 +230,41 @@ module Trends =
                             ]
                         ]
                     )
-                    
-            h4 [ _class "mt-5" ] ["Industry Trend Alerts" |> str]
+        ]
+        
+    let private generateActiveIndustrySequencesSection (sequences:IndustrySequence list) =
+        let toSentimentSpan sequenceType =
+            let sentiment = match sequenceType with | High -> Positive | Low -> Negative
+            
+            span [sentiment |> sentimentClass |> _class] [
+                sentiment |> sentimentText  |> str
+            ]
+            
+        div [ _class "content" ] [
+            h4 [ _class "mt-5" ] ["Active Industry Sequences" |> str]
             yield!
-                match trendAlerts with
+                match sequences with
                 | [] ->
-                    [div [] ["No alerts" |> str]]
+                    [div [] ["No active sequences" |> str]]
                 | _ ->
-                    trendAlerts
-                    |> List.map (fun (alert:IndustryAlert) ->
+                    sequences
+                    |> List.map (fun (sequence:IndustrySequence) ->
                         div [ _class "columns" ] [
-                            div [_class "column"] [ generateHrefNewTab alert.industry (Links.industryLink alert.industry) ]
-                            div [_class "column"] [
-                                alert.sentiment |> toSentimentSpan
-                                alert.description |> str
-                            ]
+                            div [_class "column"] [ generateHrefNewTab sequence.industry (Links.industryLink sequence.industry) ]
+                            div [_class "column is-flex is-align-items-center"] (
+                                (sequence.type' |> toSentimentSpan) :: (sequence |> sequenceToDurationBarChart)
+                            )
                         ]
                     )
         ]
         
-    let generateElementsToRender missedJobs screeners industries upAndDowns screenerAlerts trendAlerts dateRange =
+    let generateElementsToRender missedJobs screeners industries upAndDowns screenerAlerts trendAlerts activeIndustrySequences dateRange =
         
         let warningSection = jobAlertSection missedJobs
         
-        let alertsSection = generateAlertsSection screenerAlerts trendAlerts
+        let alertsSection = generateAlertsSection screenerAlerts
+        
+        let activeIndustrySequencesSection = generateActiveIndustrySequencesSection activeIndustrySequences
 
         let filters = generateFilterSection dateRange
 
@@ -347,6 +358,7 @@ module Trends =
             [filters]
             trends
             [alertsSection]
+            [activeIndustrySequencesSection]
             [trendingUpAndDownIndustries]
             numberOfHitsPartial
             [highsMinusLowsChart]
@@ -403,7 +415,8 @@ module Trends =
             
             let screenerAlerts = IndustryAlertGenerator.screenerAlerts industrySize screenersWithResults
             let trendAlerts = IndustryAlertGenerator.industryTrendAlerts industries.Value
+            let activeIndustrySequences = Storage.getActiveIndustrySequences()
 
-            let elementsToRender = generateElementsToRender missedJobs screeners industries upAndDowns screenerAlerts trendAlerts dateRange
+            let elementsToRender = generateElementsToRender missedJobs screeners industries upAndDowns screenerAlerts trendAlerts activeIndustrySequences dateRange
 
             (elementsToRender |> mainLayout "All Screener Trends") next ctx

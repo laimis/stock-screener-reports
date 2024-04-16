@@ -521,3 +521,15 @@ module Views =
                 div [_class "notification is-danger mb-5"] 
                     (missedJobs |> List.map jobFailureContent)
             ]
+            
+    let sequenceToDurationBarChart (seq:IndustrySequence) =
+        // background color should vary based on if the sequence is open or not
+        let backgroundColor =
+            match seq.open' with
+            | true -> "#ff7f0e" // gold
+            | false -> "#1f77b4" // blue
+        
+        [
+            div [_style $"display: inline-block; background-color: {backgroundColor}; height: 20px; width: {seq.length * 20}px"] []
+            span [_class "ml-3"] [str $"{seq.ageInDays} days"]
+        ]

@@ -553,7 +553,118 @@ module Storage =
             "@message", Sql.string message;
         ]
         |> Sql.executeNonQuery
+    
+    let private sequenceTypeToString (t:IndustrySequenceType) =
+        match t with
+        | High -> "High"
+        | Low -> "Low"
+        
+    let private sequenceTypeFromString (s:string) =
+        match s with
+        | nameof(High) -> High
+        | nameof(Low) -> Low
+        | _ -> failwith $"Invalid IndustrySequenceType {s}"
+        
+    let saveIndustrySequenceWithPoints (sequence: IndustrySequence) =
+        let upsertSequenceSql = @"INSERT INTO industrysequences (industry, sequencetype, startdate, enddate, open)
+                                  VALUES (@industry, @sequencetype, @startdate, @enddate, @open)
+                                  ON CONFLICT (industry, sequencetype, startdate) DO UPDATE
+                                  SET enddate = @enddate, open = @open
+                                  RETURNING id"
 
+        let deletePointsSql = @"DELETE FROM industrysequencepoints WHERE sequenceid = @sequenceid"
+
+        let insertPointSql = @"INSERT INTO industrysequencepoints (sequenceid, date, value)
+                               VALUES (@sequenceid, @date, @value)"
+
+        let sequenceId =
+            cnnString
+            |> Sql.connect
+            |> Sql.query upsertSequenceSql
+            |> Sql.parameters [
+                "@industry", Sql.string sequence.industry
+                "@sequencetype", sequence.type' |> sequenceTypeToString |> Sql.string
+                "@startdate", Sql.timestamp sequence.start.date;
+                "@enddate", Sql.timestamp sequence.end'.date;
+                "@open", Sql.bool sequence.open'
+            ]
+            |> Sql.executeRow (fun reader -> reader.int64 "id")
+            
+        cnnString
+        |> Sql.connect
+        |> Sql.query deletePointsSql
+        |> Sql.parameters [
+            "@sequenceid", Sql.int64 sequenceId
+        ]
+        |> Sql.executeNonQuery |> ignore
+        
+        sequence.values
+        |> Seq.iter (fun pt ->
+            cnnString
+            |> Sql.connect
+            |> Sql.query insertPointSql
+            |> Sql.parameters [
+                "@sequenceid", Sql.int64 sequenceId;
+                "@date", Sql.timestamp pt.date;
+                "@value", Sql.decimal pt.value
+            ]
+            |> Sql.executeNonQuery |> ignore
+        )
+    
+    let private getIndustrySequencesWithQuery querySql queryParams =
+        
+        let sequenceMapper (reader:RowReader) =
+            (
+                reader.int64 "id",
+                reader.string "industry",
+                reader.string "sequencetype",
+                reader.bool "open"
+            )
+
+        let pointMapper (reader:RowReader) =
+            {
+                date = reader.dateTime "date";
+                value = reader.decimal "value"
+            }
+
+        let sequences =
+            cnnString
+            |> Sql.connect
+            |> Sql.query querySql
+            |> Sql.parameters queryParams
+            |> Sql.execute sequenceMapper
+
+        let pointSql = "SELECT * FROM industrysequencepoints WHERE sequenceid = @sequenceid ORDER BY id"
+
+        sequences
+        |> List.map (fun (sequenceId, industry, sequenceType, open') ->
+            let points =
+                cnnString
+                |> Sql.connect
+                |> Sql.query pointSql
+                |> Sql.parameters ["@sequenceid", Sql.int64 sequenceId]
+                |> Sql.execute pointMapper
+
+            {
+                industry = industry
+                type' = sequenceType |> sequenceTypeFromString
+                values = points
+                open' = open' 
+            }
+        )
+        
+    let getIndustrySequencesForIndustry industry =
+        let sequenceSql = "SELECT * FROM industrysequences WHERE industry = @industry ORDER BY startdate"
+        let sequenceParams = ["@industry", Sql.string industry]
+        
+        getIndustrySequencesWithQuery sequenceSql sequenceParams
+        
+    let getActiveIndustrySequences () =
+        let sequenceSql = "SELECT * FROM industrysequences WHERE open = true ORDER BY startdate"
+        let sequenceParams = []
+        
+        getIndustrySequencesWithQuery sequenceSql sequenceParams
+        
     let migrateDates fromDate toDate =
         
         let sql = @"

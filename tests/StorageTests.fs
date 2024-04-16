@@ -320,3 +320,39 @@ type StorageTests(output:ITestOutputHelper) =
         let stocks = Storage.findStocksByTickerOrName "Advanced"
 
         stocks |> List.map (fun x -> x.ticker |> StockTicker.value) |> should contain "AMD"
+        
+    
+    [<Fact>]
+    let ``storing industry sequences works``() =
+        
+        let industry = "Technology"
+        let sequences = [
+            {
+                industry = industry
+                values = [
+                    { date = DateTime(2023, 1, 10); value = 92m }
+                    { date = DateTime(2023, 1, 5); value = 98m }
+                    { date = DateTime(2023, 1, 1); value = 95m }
+                ]
+                open' = false 
+            }
+            {
+                industry = industry
+                open' = true
+                values = [
+                    { date = DateTime(2023, 2, 10); value = 96m }
+                    { date = DateTime(2023, 2, 5); value = 93m }
+                    { date = DateTime(2023, 2, 1); value = 90m }
+                ]
+            }
+        ]
+
+        // Save the sequences
+        sequences |> List.iter Storage.saveIndustrySequenceWithPoints
+        
+        // Get the sequences
+        let savedSequences = Storage.getIndustrySequencesForIndustry industry
+        
+        // Check the sequences
+        savedSequences |> List.length |> should equal 2
+        savedSequences |> List.map (_.industry) |> should contain industry

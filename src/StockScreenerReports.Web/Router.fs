@@ -8,13 +8,12 @@ module Router =
     let routes : HttpHandler =
         choose [
             route Links.screeners >=>
-                requiresAuthentication (RequestErrors.UNAUTHORIZED "BASIC" "Some Realm" "You are not authorized to view this page")
-                >=> warbler (fun _ -> ScreenerManagement.managementHandler())
+                // requiresAuthentication (RequestErrors.UNAUTHORIZED "BASIC" "Some Realm" "You are not authorized to view this page")
+                // >=>
+                warbler (fun _ -> ScreenerManagement.managementHandler())
             GET >=>
                 choose [
                     route "/" >=> warbler (fun _ -> Dashboard.handler())
-                    
-                    
                     
                     routef "/screeners/%i" ScreenerDashboard.handler
                     routef "/screeners/%i/results/export" ScreenerResults.exportHandler

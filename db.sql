@@ -158,3 +158,23 @@ create table countrysmabreakdowns (
     below numeric not null,
     UNIQUE(country, days, "date")
 );
+
+CREATE TABLE industrysequences
+(
+    id           SERIAL PRIMARY KEY,
+    industry     TEXT      NOT NULL,
+    startdate    TIMESTAMP NOT NULL,
+    enddate      TIMESTAMP,
+    open         BOOLEAN   NOT NULL,
+    sequencetype TEXT      NOT NULL,
+    UNIQUE (industry, sequencetype, startdate)
+);
+
+CREATE TABLE industrysequencepoints
+(
+    id         SERIAL PRIMARY KEY,
+    sequenceid INTEGER   NOT NULL,
+    date       TIMESTAMP NOT NULL,
+    value      NUMERIC   NOT NULL,
+    FOREIGN KEY (sequenceid) REFERENCES industrysequences (id) ON DELETE CASCADE
+);

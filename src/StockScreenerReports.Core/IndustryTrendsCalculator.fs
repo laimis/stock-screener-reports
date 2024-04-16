@@ -227,7 +227,7 @@ namespace StockScreenerReports.Core
                     let pt = {value = point.breakdown.percentAbove; date = point.breakdown.date}
                     match currentSeq with
                     | Some seq -> (acc, Some { seq with values = pt :: seq.values })
-                    | None -> (acc, Some { industry = smaBreakdowns.Head.industry; values = [pt]; open' = true })
+                    | None -> (acc, Some { type' = High; industry = smaBreakdowns.Head.industry; values = [pt]; open' = true })
                 else
                     match currentSeq with
                     | Some seq -> ({seq with open' = false} :: acc, None)

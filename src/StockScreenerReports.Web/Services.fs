@@ -155,8 +155,16 @@ module Services =
                     let lastBreakdown = breakdowns |> List.last
                     logger.LogInformation($"Saving industry {industry} trend: {trend.direction} {trend.streak} days with change of {trend.change}")
                     Storage.updateIndustryTrend lastBreakdown trend |> ignore
+                    
+                    // store sequences but only if days is SMA20
+                    if days = SMA.SMA20 then
+                        let sequences = breakdowns |> TrendsCalculator.calculateSequences
+                        logger.LogInformation($"Saving industry {industry} sequences")
+                        sequences |> List.iter Storage.saveIndustrySequenceWithPoints
+                    
                     let cycle = trendAndCycle.cycle
                     Storage.saveIndustryCycle days cycle industry
+                    
                 ) |> Seq.sum
 
             Storage.saveJobStatus

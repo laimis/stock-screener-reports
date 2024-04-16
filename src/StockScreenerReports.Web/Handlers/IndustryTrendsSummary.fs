@@ -86,18 +86,6 @@ module IndustryTrendsSummary =
                             ]
                         ]
                         
-                        let sequenceToDurationBarChart (seq:IndustrySequence) =
-                            // background color should vary based on if the sequence is open or not
-                            let backgroundColor =
-                                match seq.open' with
-                                | true -> "#ff7f0e"
-                                | false -> "#1f77b4"
-                            
-                            [
-                                div [_style $"display: inline-block; background-color: {backgroundColor}; height: 20px; width: {seq.length * 20}px"] []
-                                span [] [str $" {seq.length} bars, {seq.ageInDays} days"]
-                            ]
-                        
                         // list all sequences by date, but only if the industry is not "All Industries"
                         if industry <> "All Industries" then
                             table [_class "table is-bordered is-striped is-narrow is-hoverable"] [
