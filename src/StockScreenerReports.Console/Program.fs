@@ -43,8 +43,8 @@ let runScreeners() =
 let runTestReports() =
     containsArgument "--test-reports"
 
-let runCyclesMigration() =
-    containsArgument "--cycles-migration"
+let runSequencesMigration() =
+    containsArgument "--sequences-migration"
 
 let runCountriesJob() =
     containsArgument "--countries-job"
@@ -78,19 +78,17 @@ match runSMAUpdates() with
     StockScreenerReports.Web.Services.trendsRun (DummyLogger())
 | false -> ()
 
-match runCyclesMigration() with
+match runSequencesMigration() with
 | true ->
     let knownIndustries = Storage.getIndustries()
 
     knownIndustries
     |> Seq.iter (fun industry -> 
         
-        let range = ReportsConfig.dateRangeAsStrings()
-        let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry SMA20 range
-        let trendWithCycle = breakdowns |> TrendsCalculator.calculateForIndustry
-        let cycle = trendWithCycle.cycle
-        industry |> Storage.saveIndustryCycle SMA20 cycle |> ignore
-
+        industry
+        |> Reports.getAllIndustrySMABreakdowns SMA20
+        |> TrendsCalculator.calculateSequences
+        |> List.iter Storage.saveIndustrySequenceWithPoints
     )
     
 | false ->
