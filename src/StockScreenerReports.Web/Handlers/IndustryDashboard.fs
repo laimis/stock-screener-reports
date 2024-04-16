@@ -205,7 +205,7 @@ module IndustryDashboard =
         div [] [
             trendDiv
             div [] charts |> toSection "SMA Trend Charts"
-            div [] smoothedCharts |> toSection "SMA Trend Charts (Smoothed)"
+            // div [] smoothedCharts |> toSection "SMA Trend Charts (Smoothed)" <-- takes up space, can't make up my mind if I want to use smoothed version or not
         ]
 
     let handler industryName : HttpHandler =
