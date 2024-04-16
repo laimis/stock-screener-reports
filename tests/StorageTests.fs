@@ -334,7 +334,8 @@ type StorageTests(output:ITestOutputHelper) =
                     { date = DateTime(2023, 1, 5); value = 98m }
                     { date = DateTime(2023, 1, 1); value = 95m }
                 ]
-                open' = false 
+                open' = false
+                type' = High 
             }
             {
                 industry = industry
@@ -344,6 +345,17 @@ type StorageTests(output:ITestOutputHelper) =
                     { date = DateTime(2023, 2, 5); value = 93m }
                     { date = DateTime(2023, 2, 1); value = 90m }
                 ]
+                type' = High
+            }
+            {
+                industry = industry
+                open' = true
+                values = [
+                    { date = DateTime(2023, 3, 10); value = 0m }
+                    { date = DateTime(2023, 3, 5); value = 7m }
+                    { date = DateTime(2023, 3, 1); value = 8m }
+                ]
+                type' = Low
             }
         ]
 
@@ -354,5 +366,7 @@ type StorageTests(output:ITestOutputHelper) =
         let savedSequences = Storage.getIndustrySequencesForIndustry industry
         
         // Check the sequences
-        savedSequences |> List.length |> should equal 2
+        savedSequences |> List.length |> should equal 3
         savedSequences |> List.map (_.industry) |> should contain industry
+        savedSequences |> List.map (_.type') |> should contain High
+        savedSequences |> List.map (_.type') |> should contain Low
