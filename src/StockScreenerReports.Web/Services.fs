@@ -101,30 +101,15 @@ module Services =
                 |> List.map Storage.saveAlert
                 |> List.sum
             
-            // let's load industry sequences and see if there are any recent ones
-            let sequenceAlerts =
+            let industriesWithSequences =
                 industries
                 |> List.map (fun industry ->
-                    industry
-                    |> Storage.getIndustrySequencesForIndustry
-                    |> List.filter( fun (s:IndustrySequence) ->
-                        // is this recent run?
-                        let today = ReportsConfig.now().Date
-                        let diff = today.Subtract(s.end'.date).TotalDays |> int
-                        diff <= 1)
-                    |> List.tryHead
-                )
-                |> List.choose id
-                |> List.map (fun (sequence:IndustrySequence) ->
-                    {
-                        date = sequence.start.date
-                        alertType = IndustryAlert(sequence.industry)
-                        acknowledged = false
-                        description = $"{sequence.industry} has entered {sequence.type'} sequence"
-                        sentiment = match sequence.type' with | High -> Positive | Low -> Negative
-                        strength = sequence.end'.value
-                    }
-                )
+                    industry, industry |> Storage.getIndustrySequencesForIndustry)
+                |> Map.ofList
+            
+            // let's load industry sequences and see if there are any recent ones
+            let sequenceAlerts =
+                IndustryAlertGenerator.industrySequenceAlerts (ReportsConfig.now()) industriesWithSequences
                 |> List.map Storage.saveAlert
                 |> List.sum
                 

@@ -87,34 +87,53 @@ let private SMA_ALERT_HIGH_PERCENT_THRESHOLD = 90
 [<Literal>]
 let private SMA_ALERT_LOW_PERCENT_THRESHOLD = 20
 
-let industryTrendAlerts (industryTrends:IndustryTrend list) =
+let industrySequenceAlerts (referenceDate:System.DateTime) (industryTrends:Map<string, IndustrySequence list>) =
     
-    industryTrends
-    |> List.filter (fun (industryTrend:IndustryTrend) -> industryTrend.percentAbove >= decimal SMA_ALERT_HIGH_PERCENT_THRESHOLD)
-    |> List.map (fun (industryTrend:IndustryTrend) ->
-        {
-            acknowledged = false
-            description = $"{industryTrend.industry} has {industryTrend.percentAboveFormatted} of stocks above {industryTrend.days.Interval} day SMA"
-            date = industryTrend.date
-            sentiment = Positive
-            strength = industryTrend.percentAbove
-            alertType = IndustryAlert(industryTrend.industry)
-        }
-    )
-    |> List.append
-        (industryTrends
-        |> List.filter (fun (industryTrend:IndustryTrend) -> industryTrend.percentAbove <= decimal SMA_ALERT_LOW_PERCENT_THRESHOLD)
-        |> List.map (fun (industryTrend:IndustryTrend) ->
+    let startAlerts =
+        industryTrends
+        |> Map.toList
+        |> List.map(fun (_,sequences) ->
+            sequences
+            |> List.filter(fun (sequence:IndustrySequence) ->
+                let today = referenceDate.Date
+                sequence.start.date = today 
+            )
+            |> List.tryHead
+        )
+        |> List.choose id
+        |> List.map( fun (sequence:IndustrySequence) ->
             {
+                date = sequence.start.date
+                alertType = IndustryAlert(sequence.industry)
                 acknowledged = false
-                description = $"{industryTrend.industry} has {industryTrend.percentAboveFormatted} of stocks below {industryTrend.days.Interval} day SMA"
-                date = industryTrend.date
-                sentiment = Negative
-                strength = industryTrend.percentAbove
-                alertType = IndustryAlert(industryTrend.industry)
+                description = $"{sequence.industry} has entered {sequence.type'} sequence"
+                sentiment = match sequence.type' with | High -> Positive | Low -> Negative
+                strength = sequence.end'.value
             }
         )
-    )
-    |> List.sortByDescending (fun (alert:Alert) -> alert.strength)
-    
+        
+    let endAlerts =
+        industryTrends
+        |> Map.toList
+        |> List.map(fun (_,sequences) ->
+            sequences
+            |> List.filter(fun (sequence:IndustrySequence) ->
+                let today = referenceDate.Date
+                today.Subtract(sequence.end'.date).TotalDays |> int <= 1
+            )
+            |> List.tryHead
+        )
+        |> List.choose id
+        |> List.map( fun (sequence:IndustrySequence) ->
+            {
+                date = sequence.end'.date
+                alertType = IndustryAlert(sequence.industry)
+                acknowledged = false
+                description = $"{sequence.industry} has exited {sequence.type'} sequence"
+                sentiment = match sequence.type' with | High -> Negative | Low -> Positive
+                strength = sequence.end'.value
+            }
+        )
+        
+    startAlerts @ endAlerts
     
