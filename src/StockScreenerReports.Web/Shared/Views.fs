@@ -241,6 +241,30 @@ module Views =
 
             div [ _id "navbarMenu"; _class "navbar-menu" ] [
                 div [ _class "navbar-start" ] [
+                    div [ _class "navbar-item has-dropdown is-hoverable" ] [
+                        a [ _class "navbar-link" ] [
+                            encodedText "Industries"
+                        ]
+                        
+                        div [ _class "navbar-dropdown" ] [
+                            generateHrefWithAttr "Industries" Links.industries (_class "navbar-item")
+                            generateHrefWithAttr "Industries Table" Links.industriestable (_class "navbar-item")
+                            generateHrefWithAttr "Industry Sequence Analysis" Links.industrySequenceAnalysis (_class "navbar-item")
+                        ]
+                    ]
+                    
+                    generateHrefWithAttr "Cycles" Links.cycles (_class "navbar-item")
+
+                    div [ _class "navbar-item has-dropdown is-hoverable" ] [
+                        a [ _class "navbar-link" ] [
+                            encodedText "Market Data"
+                        ]
+
+                        div [ _class "navbar-dropdown" ] [
+                            generateHrefWithAttr "Countries" Links.countries (_class "navbar-item")
+                            generateHrefWithAttr "Earnings" Links.earnings (_class "navbar-item")
+                        ]
+                    ]
                 ]
                 
                 div [_class "navbar-end"] [
@@ -264,31 +288,6 @@ module Views =
                                     ]
                                 ]
                             ]
-                        ]
-                    ]
-                    
-                    div [ _class "navbar-item has-dropdown is-hoverable" ] [
-                        a [ _class "navbar-link" ] [
-                            encodedText "Industries"
-                        ]
-                        
-                        div [ _class "navbar-dropdown" ] [
-                            generateHrefWithAttr "Industries" Links.industries (_class "navbar-item")
-                            generateHrefWithAttr "Industries Table" Links.industriestable (_class "navbar-item")
-                            generateHrefWithAttr "Industry Sequence Analysis" Links.industrySequenceAnalysis (_class "navbar-item")
-                        ]
-                    ]
-                    
-                    generateHrefWithAttr "Cycles" Links.cycles (_class "navbar-item")
-
-                    div [ _class "navbar-item has-dropdown is-hoverable" ] [
-                        a [ _class "navbar-link" ] [
-                            encodedText "Market Data"
-                        ]
-
-                        div [ _class "navbar-dropdown" ] [
-                            generateHrefWithAttr "Countries" Links.countries (_class "navbar-item")
-                            generateHrefWithAttr "Earnings" Links.earnings (_class "navbar-item")
                         ]
                     ]
                 ]
