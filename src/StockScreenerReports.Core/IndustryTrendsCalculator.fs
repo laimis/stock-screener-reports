@@ -221,19 +221,30 @@ namespace StockScreenerReports.Core
         let calculateADXTrend (smaBreakdowns:IndustrySMABreakdown seq) = calculateADXTrendWithPeriod 10 smaBreakdowns
         
         let calculateSequences (smaBreakdowns:IndustrySMABreakdown list) =
-            smaBreakdowns
-            |> List.fold (fun (acc, currentSeq) (point:IndustrySMABreakdown) ->
-                if point.breakdown.percentAbove >= 90m then
+            let folder condition sequenceType (acc, currentSeq) (point:IndustrySMABreakdown) =
+                if point |> condition then
                     let pt = {value = point.breakdown.percentAbove; date = point.breakdown.date}
                     match currentSeq with
                     | Some seq -> (acc, Some { seq with values = pt :: seq.values })
-                    | None -> (acc, Some { type' = High; industry = smaBreakdowns.Head.industry; values = [pt]; open' = true })
+                    | None -> (acc, Some { type' = sequenceType; industry = smaBreakdowns.Head.industry; values = [pt]; open' = true })
                 else
                     match currentSeq with
                     | Some seq -> ({seq with open' = false} :: acc, None)
                     | None -> (acc, None)
-            ) ([], None)
-            |> fun (acc, currentSeq) ->
-                match currentSeq with
-                | Some seq -> seq :: acc
-                | None -> acc
+                    
+            let highFolder = folder (fun (point:IndustrySMABreakdown) -> point.breakdown.percentAbove >= 90m) High
+            let lowFolder = folder (fun (point:IndustrySMABreakdown) -> point.breakdown.percentAbove <= 10m) Low
+            
+            let funcsToApply = [highFolder; lowFolder]
+            
+            funcsToApply
+            |> List.map( fun folder ->
+                smaBreakdowns
+                |> List.fold folder ([], None)
+                |> fun (acc, currentSeq) ->
+                    match currentSeq with
+                    | Some seq -> seq :: acc
+                    | None -> acc
+            )
+            |> List.concat
+                

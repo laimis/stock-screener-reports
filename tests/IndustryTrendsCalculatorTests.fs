@@ -171,11 +171,14 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
         
         let underTest = sequences |> List.last
         
+        let expectedStart = ReportsConfig.now().AddDays(-27).Date
+        let expectedEnd = expectedStart.AddDays(6)
+        
         underTest.length |> should equal 7
         underTest.start.value |> should be (greaterThanOrEqualTo 90)
-        underTest.start.date.Date |> should equal (DateTime.Parse("2024-03-19"))
+        underTest.start.date.Date |> should equal expectedStart
         underTest.end'.value |> should be (greaterThanOrEqualTo 90)
-        underTest.end'.date.Date |> should equal (DateTime.Parse("2024-03-25"))
+        underTest.end'.date.Date |> should equal expectedEnd
         underTest.age.TotalDays |> int |> should equal 6
         underTest.length |> should equal 7
         underTest.open' |> should be False

@@ -457,6 +457,12 @@ type IndustrySequenceType =
     | High
     | Low
     
+    static member fromString str =
+        match str with
+        | "High" -> High
+        | "Low" -> Low
+        | _ -> failwith $"Invalid IndustrySequenceType {str}"
+    
 type IndustrySequence = {
         type': IndustrySequenceType
         industry: string

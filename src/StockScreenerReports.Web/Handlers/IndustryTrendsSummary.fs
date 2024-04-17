@@ -1,16 +1,18 @@
 namespace StockScreenerReports.Web.Handlers
 
+open StockScreenerReports.Core
 open StockScreenerReports.Web.Shared
 open XPlot.Plotly
 
 module IndustryTrendsSummary =
 
+    open Giraffe
     open Giraffe.ViewEngine
     open StockScreenerReports.Storage
     open StockScreenerReports.Web.Shared.Views
-    open StockScreenerReports.Core
 
-    let private describeDurations (sequences:IndustrySequence list) =
+    let private describeDurations selectedType (allsequences:IndustrySequence list) =
+        let sequences = allsequences |> List.filter (fun s -> s.type' = selectedType)
         let count = sequences.Length
         
         let lengths = sequences |> List.map _.values.Length
@@ -30,17 +32,18 @@ module IndustryTrendsSummary =
             Lengths = lengths
         |}
 
-    let private view (industryBreakdowns: IndustrySMABreakdown list list) =
+    let private view selectedSequenceType (industryBreakdowns: IndustrySMABreakdown list list) =
         let stats =
             industryBreakdowns
             |> List.map (fun breakdownList ->
                     breakdownList
                     |> TrendsCalculator.calculateSequences
-                    |> describeDurations, breakdownList.Head.industry
+                    |> describeDurations selectedSequenceType, breakdownList.Head.industry
             )
             |> List.filter (fun (l,_) -> l.Count > 2)
             
-        let combined = stats |> List.collect (fun (s,_) -> s.Sequences) |> describeDurations
+            
+        let combined = stats |> List.collect (fun (s,_) -> s.Sequences) |> describeDurations selectedSequenceType
         let combinedStats = combined, "All Industries"
             
         let industryBoxes =
@@ -139,15 +142,34 @@ module IndustryTrendsSummary =
                     ]
                 ])
 
+        let sequenceTypes = [High; Low]
+        let onChangeAttribute = XmlAttribute.KeyValue("onchange", "location = this.value;")
+        
         div [_class "container"] [
             h1 [_class "title"] [str "Industry Trend Sequences"]
+            div [ _class "select" ] [
+                select [ onChangeAttribute ] [
+                    for sequenceType in sequenceTypes do
+                        let href = $"?sequenceType={sequenceType.ToString()}"
+                        option [
+                            _value href
+                            if sequenceType = selectedSequenceType then _selected
+                        ] [ sequenceType.ToString() |> str ]
+                ]
+            ]
             div [_class "box-container"] industryBoxes
         ]
 
-    let handler () =
-        
-        Storage.getIndustries()
-        |> List.map (Reports.getAllIndustrySMABreakdowns SMA20)
-        |> view
-        |> List.singleton
-        |> mainLayout "Industry SMA Breakdown Trends"
+    let handler : HttpHandler =
+        fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
+            let sequenceTypeParam = ctx.GetQueryStringValue("sequenceType")
+            let sequenceType =
+                match sequenceTypeParam with
+                | Ok value -> value |> IndustrySequenceType.fromString
+                | Error _ -> High
+                    
+            (Storage.getIndustries()
+            |> List.map (Reports.getAllIndustrySMABreakdowns SMA20)
+            |> view sequenceType
+            |> List.singleton
+            |> mainLayout "Industry SMA Breakdown Trends") next ctx
