@@ -193,7 +193,7 @@ module Trends =
 
             div [_class "content"] content
             
-    let private generateAlertsSection screeners screenerAlerts =
+    let private generateAlertsSection screeners alerts =
         
         let toSentimentSpan sentiment =
             span [sentiment |> sentimentClass |> _class] [
@@ -201,20 +201,32 @@ module Trends =
             ]
             
         div [ _class "content" ] [
-            h4 [] ["Industry Screener Alerts" |> str]
+            h4 [] ["Alerts" |> str]
             yield!
-                match screenerAlerts with
+                match alerts with
                 | [] ->
                     [div [] ["No alerts" |> str]]
                 | _ ->
-                    screenerAlerts
+                    alerts
                     |> List.map (fun (alert:Alert) ->
+                        
                         let industry = Alert.getIndustry alert
+                        let industryNode =
+                            match industry with
+                            | Some i -> [generateHrefNewTab i (Links.industryLink i)]
+                            | None -> []
+                            
                         let screenerId = Alert.getScreenerId alert
-                        let screenerName = screeners |> List.find (fun s -> s.id = screenerId) |> _.name
+                        let screenerNode =
+                            match screenerId with
+                            | Some screenerId ->
+                                let screenerName = screeners |> List.find (fun s -> s.id = screenerId) |> _.name
+                                [ generateHrefNewTab screenerName (Links.screenerResultsLink screenerId alert.date) ]
+                            | None -> []
+                        
                         div [ _class "columns" ] [
-                            div [_class "column"] [ generateHrefNewTab screenerName (Links.screenerResultsLink screenerId alert.date)  ]
-                            div [_class "column"] [ generateHrefNewTab industry (Links.industryLink industry) ]
+                            div [_class "column"] screenerNode
+                            div [_class "column"] industryNode
                             div [_class "column is-two-thirds"] [
                                 alert.sentiment |> toSentimentSpan
                                 alert.description |> str
@@ -249,11 +261,11 @@ module Trends =
                     )
                 ]
         
-    let generateElementsToRender missedJobs screeners industries upAndDowns screenerAlerts activeIndustrySequences dateRange =
+    let generateElementsToRender missedJobs screeners industries upAndDowns alerts activeIndustrySequences dateRange =
         
         let warningSection = jobAlertSection missedJobs
         
-        let alertsSection = generateAlertsSection screeners screenerAlerts
+        let alertsSection = generateAlertsSection screeners alerts
         
         let activeIndustrySequencesSection = generateActiveIndustrySequencesSection activeIndustrySequences
 
@@ -392,21 +404,11 @@ module Trends =
                 | Some d ->
                     let dateToUse = d |> Utils.convertToDateString
                     SMA20 |> getIndustryTrends dateToUse |> Some
-                    
-            let screenerDate = dateRange |> snd |> getScreenerResultsLastKnownDateAsOf |> Utils.convertToDateString
-            
-            // load latest screener hits for each screener
-            let screenersWithResults =
-                screeners
-                |> List.map (fun s ->
-                    s, screenerDate |> getScreenerResults s.id
-                )
                 
-            let industrySize = industries.Value |> List.map (fun i -> i.industry,i.above+ i.below) |> Map.ofList
+            let alerts = Storage.getAlerts()
             
-            let screenerAlerts = IndustryAlertGenerator.screenerAlerts industrySize screenersWithResults
             let activeIndustrySequences = Storage.getActiveIndustrySequences()
 
-            let elementsToRender = generateElementsToRender missedJobs screeners industries upAndDowns screenerAlerts activeIndustrySequences dateRange
+            let elementsToRender = generateElementsToRender missedJobs screeners industries upAndDowns alerts activeIndustrySequences dateRange
 
             (elementsToRender |> mainLayout "All Screener Trends") next ctx

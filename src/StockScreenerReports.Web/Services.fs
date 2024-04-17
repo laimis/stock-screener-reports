@@ -72,6 +72,69 @@ module Services =
             Storage.saveJobStatus EarningsJob (ReportsConfig.nowUtcNow()) Success message |> ignore
 
         runIfTradingDay funcToRun
+        
+    let alertsRun (logger:ILogger) =
+        
+        let funcToRun() =
+            
+            let screeners = Storage.getScreeners()
+            
+            let industries = Storage.getIndustries()
+            
+            let dateRange = ReportsConfig.dateRangeAsStrings()
+                
+            let screenerDate = dateRange |> snd |> Reports.getScreenerResultsLastKnownDateAsOf |> Utils.convertToDateString
+            
+            // load latest screener hits for each screener
+            let screenersWithResults =
+                screeners
+                |> List.map (fun s ->
+                    s, screenerDate |> Reports.getScreenerResults s.id
+                )
+                
+            let industrySize = industries |> List.map (fun industry ->
+                let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry SMA20 dateRange 
+                industry, breakdowns[breakdowns.Length - 1].breakdown.total) |> Map.ofList 
+            
+            let screenerAlerts = 
+                IndustryAlertGenerator.screenerAlerts industrySize screenersWithResults
+                |> List.map Storage.saveAlert
+                |> List.sum
+            
+            // let's load industry sequences and see if there are any recent ones
+            let sequenceAlerts =
+                industries
+                |> List.map (fun industry ->
+                    industry
+                    |> Storage.getIndustrySequencesForIndustry
+                    |> List.filter( fun (s:IndustrySequence) ->
+                        // is this recent run?
+                        let today = ReportsConfig.now().Date
+                        let diff = today.Subtract(s.end'.date).TotalDays |> int
+                        diff <= 1)
+                    |> List.tryHead
+                )
+                |> List.choose id
+                |> List.map (fun (sequence:IndustrySequence) ->
+                    {
+                        date = sequence.start.date
+                        alertType = IndustryAlert(sequence.industry)
+                        acknowledged = false
+                        description = $"{sequence.industry} has entered {sequence.type'} sequence"
+                        sentiment = match sequence.type' with | High -> Positive | Low -> Negative
+                        strength = sequence.end'.value
+                    }
+                )
+                |> List.map Storage.saveAlert
+                |> List.sum
+                
+            let message = $"Generated {screenerAlerts} screener alerts and {sequenceAlerts} sequence alerts"
+            
+            logger.LogInformation(message)
+            
+            Storage.saveJobStatus AlertsJob (ReportsConfig.nowUtcNow()) Success message |> ignore
+            
+        runIfTradingDay funcToRun
 
     let countriesRun (logger:ILogger) =
         
@@ -230,6 +293,7 @@ module Services =
                             earningsRun logger
                             trendsRun logger
                             countriesRun logger
+                            alertsRun logger
                             logger.LogInformation("Finished running")
                     with
                     | ex -> logger.LogError(ex, "Error running background service")

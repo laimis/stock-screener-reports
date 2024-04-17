@@ -383,7 +383,7 @@ type StorageTests(output:ITestOutputHelper) =
             alertType = IndustryAlert("Aluminum") 
         }
         
-        alert |> Storage.saveAlert |> should equal [1; 1]
+        alert |> Storage.saveAlert |> should equal 1
         
         let alerts = Storage.getAlerts()
         
@@ -399,12 +399,11 @@ type StorageTests(output:ITestOutputHelper) =
         savedAlert.alertType |> should equal alert.alertType
         
         // saving it second time should work
-        alert |> Storage.saveAlert |> should equal [1; 1]
-        
+        alert |> Storage.saveAlert |> should equal 1
         // now acknowledge it
         let updatedAlert = { savedAlert with acknowledged = true }
         
-        updatedAlert |> Storage.saveAlert |> should equal [1; 1]
+        updatedAlert |> Storage.saveAlert |> should equal 1
         
         let updatedAlerts = Storage.getAlerts()
         

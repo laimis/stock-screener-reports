@@ -61,6 +61,7 @@ module Storage =
             | TestJob -> "testjob"
             | EarningsJob -> "earningsjob"
             | CountriesJob -> "countriesjob"
+            | AlertsJob -> "alertsjob"
 
     let private toJobName jobName =
         match jobName with
@@ -69,6 +70,7 @@ module Storage =
             | "testjob" -> TestJob
             | "earningsjob" -> EarningsJob
             | "countriesjob" -> CountriesJob
+            | "alertsjob" -> AlertsJob
             | _ -> raise (System.Exception($"Unknown job name: {jobName}"))
     let private toJobStatusString status =
         match status with
@@ -784,6 +786,7 @@ WHERE
             alertSql, [parameters]
             acknowledgementSql, [parameters]
         ]
+        |> List.head
 
     let getAlerts() =
         let sql = @"SELECT a.alerttype, a.industry, a.screenerid, a.date, a.sentiment, a.description, a.strength,

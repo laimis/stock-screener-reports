@@ -396,6 +396,7 @@ type JobName =
     | TestJob
     | EarningsJob
     | CountriesJob
+    | AlertsJob
     
 type Job = {
     name: JobName;
@@ -442,15 +443,15 @@ type Alert =
             
         static member getIndustry alert =
             match alert.alertType with
-            | IndustryAlert industry -> industry
-            | IndustryScreenerAlert(industry,_) -> industry
-            | _ -> failwith "Invalid alert type"
+            | IndustryAlert industry -> Some industry
+            | IndustryScreenerAlert(industry,_) -> Some industry
+            | _ -> None
             
         static member getScreenerId alert =
             match alert.alertType with
-            | ScreenerAlert id -> id
-            | IndustryScreenerAlert(_,id) -> id
-            | _ -> failwith "Invalid alert type"
+            | ScreenerAlert id -> Some id
+            | IndustryScreenerAlert(_,id) -> Some id
+            | _ -> None
 
 type IndustrySequenceType =
     | High

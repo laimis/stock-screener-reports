@@ -23,3 +23,6 @@ module Jobs =
 
     let earnings() =
         Services.earningsRun |> runWithLoggerAndRedirect Links.earnings
+        
+    let alerts() =
+        Services.alertsRun |> runWithLoggerAndRedirect Links.alerts
