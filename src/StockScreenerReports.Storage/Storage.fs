@@ -214,7 +214,7 @@ module Storage =
             VALUES (@ticker,@name,@sector,@industry,@country,@marketCap,now())
             ON CONFLICT (ticker)
             DO UPDATE
-            SET sector=@sector, industry=@industry, country=@country, lastmarketcap=@marketCap, lastupdated=now() RETURNING *"
+            SET sector = @sector, industry = @industry, country = @country, lastmarketcap = @marketCap, lastupdated=now() RETURNING *"
 
         cnnString
             |> Sql.connect
@@ -723,3 +723,101 @@ WHERE
         |> Sql.connect
         |> Sql.query sql
         |> Sql.execute jobMapper
+        
+       
+    let private toSentimentString sentiment =
+        match sentiment with
+        | Positive -> "Positive"
+        | Negative -> "Negative"
+        | Neutral -> "Neutral"
+
+    let private toSentiment str =
+        match str with
+        | "Positive" -> Positive
+        | "Negative" -> Negative
+        | "Neutral" -> Neutral
+        | _ -> failwith $"Unknown sentiment: {str}"
+        
+    let saveAlert (alert:Alert) =
+        let alertSql = @"INSERT INTO alerts (identifier, alerttype, industry, screenerid, date, sentiment, description, strength)
+                     VALUES (@identifier, @alerttype, @industry, @screenerid, @date, @sentiment::sentiment, @description, @strength)
+                     ON CONFLICT (identifier) DO UPDATE
+                     SET alerttype = @alerttype, industry = @industry, screenerid = @screenerid,
+                         date = @date, sentiment = @sentiment::sentiment, description = @description, strength = @strength"
+
+        let acknowledgementSql = @"INSERT INTO alert_acknowledgements (alert_identifier, acknowledged)
+                               VALUES (@identifier, @acknowledged)
+                               ON CONFLICT (alert_identifier) DO UPDATE SET acknowledged = @acknowledged"
+                               
+        let industry =
+            match alert.alertType with
+            | IndustryAlert industry -> industry |> Sql.string
+            | IndustryScreenerAlert (industry,_) -> industry |> Sql.string
+            | _ -> Sql.dbnull
+            
+        let screenerId =
+            match alert.alertType with
+            | IndustryScreenerAlert (_,screenerId) -> screenerId |> Sql.int
+            | _ -> Sql.dbnull
+            
+        let alertType =
+            match alert.alertType with
+            | IndustryAlert _ -> nameof(IndustryAlert)
+            | ScreenerAlert _ -> nameof(ScreenerAlert)
+            | IndustryScreenerAlert _ -> nameof(IndustryScreenerAlert)
+            
+        let parameters = [
+            "@industry", industry
+            "@screenerid", screenerId
+            "@identifier", alert.identifier |> Sql.string
+            "@alerttype", alertType |> Sql.string
+            "@sentiment", alert.sentiment |> toSentimentString |> Sql.string
+            "@date", alert.date |> Sql.date
+            "@description", alert.description |> Sql.string
+            "@strength", alert.strength |> Sql.decimal
+            "@acknowledged", alert.acknowledged |> Sql.bool
+        ]
+
+        cnnString
+        |> Sql.connect
+        |> Sql.executeTransaction [
+            alertSql, [parameters]
+            acknowledgementSql, [parameters]
+        ]
+
+    let getAlerts() =
+        let sql = @"SELECT a.alerttype, a.industry, a.screenerid, a.date, a.sentiment, a.description, a.strength,
+                       COALESCE(ack.acknowledged, false) AS acknowledged
+                FROM alerts a
+                LEFT JOIN alert_acknowledgements ack ON a.identifier = ack.alert_identifier
+                WHERE acknowledged = false"
+
+        let alertMapper (reader:RowReader) =
+            let alertType =
+                match reader.stringOrNone "alerttype" with
+                | Some (nameof(IndustryAlert)) -> IndustryAlert (reader.string "industry")
+                | Some (nameof(ScreenerAlert)) -> ScreenerAlert (reader.int "screenerid")
+                | Some (nameof(IndustryScreenerAlert)) -> IndustryScreenerAlert (reader.string "industry", reader.int "screenerid")
+                | _ -> failwith "Unknown alert type"
+            {
+                date = reader.dateTime "date"
+                sentiment = reader.string "sentiment" |> toSentiment
+                description = reader.string "description"
+                strength = reader.decimal "strength"
+                alertType = alertType
+                acknowledged = reader.bool "acknowledged"
+            }
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.execute alertMapper
+        
+    let deleteAlert (alert:Alert) =
+        let sql = @"DELETE FROM alerts WHERE identifier = @identifier"
+        
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters ["@identifier", alert.identifier |> Sql.string]
+        |> Sql.executeNonQuery

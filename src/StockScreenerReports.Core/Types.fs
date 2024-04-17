@@ -414,9 +414,9 @@ type Sentiment =
     | Neutral
 
 type AlertType =
-    | Industry of string
-    | ScreenerId of int
-    | IndustryScreener of string * int
+    | IndustryAlert of string
+    | ScreenerAlert of int
+    | IndustryScreenerAlert of string * int
     
 type Alert =
     {
@@ -425,18 +425,31 @@ type Alert =
         description: string
         strength: decimal
         alertType: AlertType
+        acknowledged: bool
     }
     with
+        member this.identifier =
+            
+            let additionalInfo =
+                match this.alertType with
+                | IndustryAlert industry -> $"{nameof(IndustryAlert)}_{industry}"
+                | IndustryScreenerAlert(industry,screenerId) -> $"{nameof(IndustryScreenerAlert)}_{industry}_{screenerId}"
+                | ScreenerAlert screenerId -> $"{nameof(ScreenerAlert)}_{screenerId}"
+                
+            let datePart = this.date.ToString("yyyy-MM-dd")
+            
+            $"{datePart}_{additionalInfo}"
+            
         static member getIndustry alert =
             match alert.alertType with
-            | Industry industry -> industry
-            | IndustryScreener(industry,_) -> industry
+            | IndustryAlert industry -> industry
+            | IndustryScreenerAlert(industry,_) -> industry
             | _ -> failwith "Invalid alert type"
             
         static member getScreenerId alert =
             match alert.alertType with
-            | ScreenerId id -> id
-            | IndustryScreener(_,id) -> id
+            | ScreenerAlert id -> id
+            | IndustryScreenerAlert(_,id) -> id
             | _ -> failwith "Invalid alert type"
 
 type IndustrySequenceType =

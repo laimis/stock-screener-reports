@@ -178,3 +178,29 @@ CREATE TABLE industrysequencepoints
     value      NUMERIC   NOT NULL,
     FOREIGN KEY (sequenceid) REFERENCES industrysequences (id) ON DELETE CASCADE
 );
+
+CREATE TYPE sentiment AS ENUM ('Positive', 'Negative', 'Neutral');
+
+CREATE TABLE alerts
+(
+    id          SERIAL PRIMARY KEY,
+    identifier  TEXT      NOT NULL,
+    alerttype   TEXT      NOT NULL,
+    industry    TEXT,
+    screenerid  INTEGER,
+    date        DATE      NOT NULL,
+    sentiment   sentiment NOT NULL,
+    description TEXT      NOT NULL,
+    strength    NUMERIC   NOT NULL,
+    FOREIGN KEY (screenerid) REFERENCES screeners (id) ON DELETE CASCADE,
+    UNIQUE (identifier)
+);
+
+CREATE TABLE alert_acknowledgements
+(
+    id               SERIAL PRIMARY KEY,
+    alert_identifier TEXT    NOT NULL,
+    acknowledged     BOOLEAN NOT NULL DEFAULT false,
+    FOREIGN KEY (alert_identifier) REFERENCES alerts (identifier) ON DELETE CASCADE,
+    UNIQUE (alert_identifier)
+);

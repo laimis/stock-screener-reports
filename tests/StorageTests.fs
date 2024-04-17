@@ -370,3 +370,44 @@ type StorageTests(output:ITestOutputHelper) =
         savedSequences |> List.map (_.industry) |> should contain industry
         savedSequences |> List.map (_.type') |> should contain High
         savedSequences |> List.map (_.type') |> should contain Low
+        
+    [<Fact>]
+    let ``saving and getting alerts works``() =
+        
+        let alert = {
+            date = DateTime.UtcNow
+            sentiment = Positive
+            description = "this alert is great, get going on it!"
+            strength = 5m
+            acknowledged = false
+            alertType = IndustryAlert("Aluminum") 
+        }
+        
+        alert |> Storage.saveAlert |> should equal [1; 1]
+        
+        let alerts = Storage.getAlerts()
+        
+        alerts |> List.length |> should equal 1
+        
+        let savedAlert = alerts |> List.head
+        
+        savedAlert.date.Date |> should equal alert.date.Date
+        savedAlert.sentiment |> should equal alert.sentiment
+        savedAlert.description |> should equal alert.description
+        savedAlert.strength |> should equal alert.strength
+        savedAlert.acknowledged |> should equal alert.acknowledged
+        savedAlert.alertType |> should equal alert.alertType
+        
+        // saving it second time should work
+        alert |> Storage.saveAlert |> should equal [1; 1]
+        
+        // now acknowledge it
+        let updatedAlert = { savedAlert with acknowledged = true }
+        
+        updatedAlert |> Storage.saveAlert |> should equal [1; 1]
+        
+        let updatedAlerts = Storage.getAlerts()
+        
+        updatedAlerts |> List.length |> should equal 0 // because it is acknowledged
+        
+        Storage.deleteAlert alert |> should equal 1
