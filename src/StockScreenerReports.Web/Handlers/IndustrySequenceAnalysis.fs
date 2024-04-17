@@ -4,7 +4,7 @@ open StockScreenerReports.Core
 open StockScreenerReports.Web.Shared
 open XPlot.Plotly
 
-module IndustryTrendsSummary =
+module IndustrySequenceAnalysis =
 
     open Giraffe
     open Giraffe.ViewEngine

@@ -269,12 +269,13 @@ module Views =
                     
                     div [ _class "navbar-item has-dropdown is-hoverable" ] [
                         a [ _class "navbar-link" ] [
-                            encodedText "Trends"
+                            encodedText "Industries"
                         ]
                         
                         div [ _class "navbar-dropdown" ] [
-                            generateHrefWithAttr "Trends" Links.trends (_class "navbar-item")
-                            generateHrefWithAttr "Trends Summary" Links.industryTrendsSummary (_class "navbar-item")
+                            generateHrefWithAttr "Industries" Links.industries (_class "navbar-item")
+                            generateHrefWithAttr "Industries Table" Links.industriestable (_class "navbar-item")
+                            generateHrefWithAttr "Industry Sequence Analysis" Links.industrySequenceAnalysis (_class "navbar-item")
                         ]
                     ]
                     
@@ -286,7 +287,6 @@ module Views =
                         ]
 
                         div [ _class "navbar-dropdown" ] [
-                            generateHrefWithAttr "Industries" Links.industries (_class "navbar-item")
                             generateHrefWithAttr "Countries" Links.countries (_class "navbar-item")
                             generateHrefWithAttr "Earnings" Links.earnings (_class "navbar-item")
                         ]

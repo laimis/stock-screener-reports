@@ -66,8 +66,9 @@ module Links =
     let adhocReportExport = "/reports/adhoc/export"
     
     let trends = "/trends"
-    let industryTrendsSummary = "/industrytrendssummary"
+    let industrySequenceAnalysis = "/industrySequenceAnalysis"
     let industries = "/industries"
+    let industriestable = "/industriestable"
     let countries = "/countries"
     let earnings = "/earnings"
     let alerts = "/alerts"

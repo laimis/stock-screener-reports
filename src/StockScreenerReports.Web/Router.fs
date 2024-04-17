@@ -27,11 +27,11 @@ module Router =
                     route "/login" >=> LoginHandler.loginHandler
                     
                     requiresAuthentication >=>
-                        route "/" >=> warbler (fun _ -> Dashboard.handler())
+                        route "/" >=> Dashboard.handler
                         routef "/screeners/%i" ScreenerDashboard.handler
                         routef "/screeners/%i/results/export" ScreenerResults.exportHandler
                         routef "/screeners/%i/results/%s" ScreenerResults.handler
-                        route Links.trends >=> Trends.handler
+                        route Links.trends >=> Dashboard.handler
 
                         route Links.searchLink >=> Search.handler
                         route "/stocks" >=> warbler (fun _ -> StockManagement.handler())
@@ -41,8 +41,8 @@ module Router =
                         routef "/industries/%s/export" IndustryDashboard.exportHandler
                         routef "/industries/%s" IndustryDashboard.handler
                         route Links.industries >=> warbler (fun _ -> IndustriesDashboard.handler)
-                        route "/industriestable" >=> warbler (fun _ -> IndustriesTable.handler)
-                        route "/industrytrendssummary" >=> warbler (fun _ -> IndustryTrendsSummary.handler)
+                        route Links.industriestable >=> warbler (fun _ -> IndustriesTable.handler)
+                        route Links.industrySequenceAnalysis >=> warbler (fun _ -> IndustrySequenceAnalysis.handler)
                         route Links.cycles >=> warbler (fun _ -> Cycles.handler)
 
                         route Links.countries >=> warbler (fun _ -> Countries.handler)
