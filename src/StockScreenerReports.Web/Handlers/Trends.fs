@@ -87,21 +87,7 @@ module Trends =
             |> List.map (fun breakdown -> breakdown.date.ToString("MM/dd"))
 
         [
-            div [_class "content"] [h4 [] [
-                "SMA Trends" |> str
-                small [
-                    _class "is-pulled-right"
-                ] [
-                    generateHrefWithAttrs
-                            "Trends Summary"
-                            Links.industryTrendsSummary
-                            [(_class "button is-small is-primary mr-2"); (_target "_blank")]
-                ]
-                
-                // span [_class "float-end"] [
-                //     button |> industrytrendssummary
-                // ]
-            ]]
+            div [_class "content"] [h4 [] ["SMA Trends" |> str]]
             div [_class "columns"] smaDirectionColumns
             div [_class "block"]
                 (Charts.generateChartElements "SMA breakdown" Charts.ChartType.Line (Some 100) Charts.smallChart labels datasets)
@@ -261,7 +247,44 @@ module Trends =
                     )
                 ]
         
-    let generateElementsToRender missedJobs screeners industries upAndDowns alerts activeIndustrySequences dateRange =
+    let private geneateScreenersSection screenerResults =
+        
+        let generateScreenerResultSection (screener:ScreenerResultReport) = 
+            div [_class "column is-one-quarter"] [
+                a [
+                    _class "button is-primary is-fullwidth"
+                    _style "justify-content: left;"
+                    _href (Links.screenerResultsLink screener.screenerid screener.date)] [
+                    span [
+                        _style "font-size: 1.5em; font-weight: bold; padding-right: 10px"
+                    ] [
+                        screener.count.ToString() |> str
+                    ]
+                    $"{screener.name}" |> str
+                ]
+            ]
+            
+        let generateRefreshButton() =
+            let link = Links.jobsScreeners
+            let title = "Refresh"
+            div [_class "column is-one-quarter"] [
+                a [
+                    _class "button is-light is-fullwidth"
+                    _style "justify-content: left;"
+                    _href link] [
+                    title |> str
+                ]
+            ]
+            
+        div [_class "content"] [
+            h4 [] ["Latest Screener Results" |> str]
+            div [_class "columns is-multiline"]
+                ((screenerResults |> List.map generateScreenerResultSection) @ [
+                    generateRefreshButton()
+                ])
+        ]
+        
+    let generateElementsToRender missedJobs screeners latestScreenerResults industries upAndDowns alerts activeIndustrySequences dateRange =
         
         let warningSection = jobAlertSection missedJobs
         
@@ -272,6 +295,8 @@ module Trends =
         let filters = generateFilterSection dateRange
 
         let trendingUpAndDownIndustries = generateIndustriesSection industries upAndDowns
+        
+        let latestScreenerResults = geneateScreenersSection latestScreenerResults
 
         let numberOfHitsByScreenerByDate =
             screeners
@@ -360,6 +385,7 @@ module Trends =
             [warningSection]
             [filters]
             trends
+            [latestScreenerResults]
             [alertsSection]
             [activeIndustrySequencesSection]
             [trendingUpAndDownIndustries]
@@ -377,7 +403,7 @@ module Trends =
             // get latest job runs
             let missedJobs =
                 Storage.getJobs()
-                |> List.filter (fun job -> job.name = TrendsJob)
+                |> List.filter (fun job -> job.name = EarningsJob || job.name = ScreenerJob || job.name = TrendsJob)
                 |> List.filter Utils.failedJobFilter
                 
             let screeners = Storage.getScreeners()
@@ -404,11 +430,13 @@ module Trends =
                 | Some d ->
                     let dateToUse = d |> Utils.convertToDateString
                     SMA20 |> getIndustryTrends dateToUse |> Some
+                    
+            let latestScreenerResults = getLatestScreenerResults()
                 
             let alerts = Storage.getAlerts()
             
             let activeIndustrySequences = Storage.getActiveIndustrySequences()
 
-            let elementsToRender = generateElementsToRender missedJobs screeners industries upAndDowns alerts activeIndustrySequences dateRange
+            let elementsToRender = generateElementsToRender missedJobs screeners latestScreenerResults industries upAndDowns alerts activeIndustrySequences dateRange
 
             (elementsToRender |> mainLayout "All Screener Trends") next ctx

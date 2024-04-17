@@ -266,7 +266,18 @@ module Views =
                             ]
                         ]
                     ]
-                    generateHrefWithAttr "Trends" Links.trends (_class "navbar-item")
+                    
+                    div [ _class "navbar-item has-dropdown is-hoverable" ] [
+                        a [ _class "navbar-link" ] [
+                            encodedText "Trends"
+                        ]
+                        
+                        div [ _class "navbar-dropdown" ] [
+                            generateHrefWithAttr "Trends" Links.trends (_class "navbar-item")
+                            generateHrefWithAttr "Trends Summary" Links.industryTrendsSummary (_class "navbar-item")
+                        ]
+                    ]
+                    
                     generateHrefWithAttr "Cycles" Links.cycles (_class "navbar-item")
 
                     div [ _class "navbar-item has-dropdown is-hoverable" ] [
