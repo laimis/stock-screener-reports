@@ -42,7 +42,6 @@ module IndustryTrendsSummary =
             )
             |> List.filter (fun (l,_) -> l.Count > 2)
             
-            
         let combined = stats |> List.collect (fun (s,_) -> s.Sequences) |> describeDurations selectedSequenceType
         let combinedStats = combined, "All Industries"
             

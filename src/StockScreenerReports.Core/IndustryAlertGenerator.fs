@@ -119,7 +119,7 @@ let industrySequenceAlerts (referenceDate:System.DateTime) (industryTrends:Map<s
             sequences
             |> List.filter(fun (sequence:IndustrySequence) ->
                 let today = referenceDate.Date
-                today.Subtract(sequence.end'.date).TotalDays |> int <= 1
+                today.Subtract(sequence.end'.date).TotalDays |> int <= 1 && sequence.open' = false
             )
             |> List.tryHead
         )
