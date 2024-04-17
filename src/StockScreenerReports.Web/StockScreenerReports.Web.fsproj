@@ -10,6 +10,7 @@
     <PackageReference Include="FSharp.Data" Version="6.3.0" />
     <PackageReference Include="Giraffe" Version="6.2.0" />
     <PackageReference Include="Giraffe.ViewEngine" Version="1.4.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Ply" Version="0.3.1" />
     <PackageReference Include="TimeZoneConverter" Version="6.1.0" />
@@ -43,6 +44,7 @@
     <Compile Include="Handlers\HealthCheck.fs" />
     <Compile Include="Handlers\Analysis.fs" />
     <Compile Include="Handlers\IndustryTrendsSummary.fs" />
+    <Compile Include="Handlers\LoginHandler.fs" />
     <Compile Include="Router.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

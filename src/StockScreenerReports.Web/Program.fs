@@ -2,6 +2,7 @@ module StockScreenerReports.Web.App
 
 open System
 open System.IO
+open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Cors.Infrastructure
 open Microsoft.AspNetCore.Hosting
@@ -34,11 +35,17 @@ let configureApp (app : IApplicationBuilder) =
             .UseHttpsRedirection())
         .UseCors(configureCors)
         .UseStaticFiles()
+        .UseAuthentication()
+        .UseAuthorization()
         .UseGiraffe(Router.routes)
 
 let configureServices (services : IServiceCollection) =
     services.AddCors()    |> ignore
     services.AddGiraffe() |> ignore
+    
+    services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+        .AddCookie() |> ignore
+    services.AddAuthorization() |> ignore
 
     let cnnString = Environment.GetEnvironmentVariable("SSR_CONNECTIONSTRING")
     cnnString |> Storage.configureConnectionString
