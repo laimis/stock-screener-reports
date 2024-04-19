@@ -21,7 +21,7 @@ module Cycles =
     let private maximumHighAgeParam = "maximumHighAge"
 
 
-    let internal generateIndustryCycleStartChart (cycles:IndustryWithCycle list) =
+    let private generateIndustryCycleStartChart (cycles:IndustryWithCycle list) =
 
         match cycles with
         | [] -> 

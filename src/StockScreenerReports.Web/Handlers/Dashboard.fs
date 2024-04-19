@@ -220,6 +220,7 @@ module Dashboard =
                     [div [] ["No alerts" |> str]]
                 | _ ->
                     alerts
+                    |> List.sortByDescending (fun a -> a.date, a.sentiment, a.strength)
                     |> List.map (fun (alert:Alert) ->
                         
                         let industry = Alert.getIndustry alert
@@ -237,6 +238,7 @@ module Dashboard =
                             | None -> []
                         
                         div [ _class "columns" ] [
+                            div [_class "column"] [alert.date |> Utils.convertToDateString |> str]
                             div [_class "column"] screenerNode
                             div [_class "column"] industryNode
                             div [_class "column is-two-thirds"] [
