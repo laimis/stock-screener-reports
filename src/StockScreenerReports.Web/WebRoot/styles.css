@@ -42,3 +42,11 @@ section:not(:last-child) {
     padding: 1.5rem;
     margin-bottom: 1rem;
 }
+
+.alert-row .acknowledge-button {
+    visibility: hidden;
+}
+
+.alert-row:hover .acknowledge-button {
+    visibility: visible;
+}

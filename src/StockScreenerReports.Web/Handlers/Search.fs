@@ -74,11 +74,11 @@ module Search =
     let render query results =
 
         match results with
-        | ([],[]) -> 
+        | [],[] -> 
             messageView $"No results found for {query}"
-        | ([x],_) -> 
+        | [x],_ -> 
             redirectFirstResult x
-        | ([], [x]) -> 
+        | [], [x] -> 
             redirectFirstResult x
         | _ ->
             let view = renderMultipleResults query results

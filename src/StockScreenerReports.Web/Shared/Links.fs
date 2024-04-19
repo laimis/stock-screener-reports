@@ -14,6 +14,7 @@ module Links =
 
     let sortingJsLink = "/scripts/sorting.js"
     let hidingJsLink = "/scripts/hiding.js"
+    let alertsJsLink = "/scripts/alerts.js"
 
     let chartJsDatalabelsLink = "https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"
 

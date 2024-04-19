@@ -212,42 +212,76 @@ module Dashboard =
                 sentiment |> sentimentText  |> str
             ]
             
+        let alertRowDivId (alert:Alert) = $"alert-row-{alert.identifier}"
+            
+        let mapAlertToDiv alert =
+            let industry = Alert.getIndustry alert
+            let industryNode =
+                match industry with
+                | Some i -> [generateHrefNewTab i (Links.industryLink i)]
+                | None -> []
+                
+            let screenerId = Alert.getScreenerId alert
+            let screenerNode =
+                match screenerId with
+                | Some screenerId ->
+                    let screenerName = screeners |> List.find (fun s -> s.id = screenerId) |> _.name
+                    [ generateHrefNewTab screenerName (Links.screenerResultsLink screenerId alert.date) ]
+                | None -> []
+            
+            div [ _class "columns alert-row"; alert |> alertRowDivId |> _id ] [
+                div [_class "column"] screenerNode
+                div [_class "column"] industryNode
+                div [_class "column is-two-thirds"] [
+                    alert.sentiment |> toSentimentSpan
+                    alert.description |> str
+                ]
+                div [_class "column has-text-right"] [
+                    button [
+                        _class "button is-small is-info acknowledge-button"
+                        _onclick $"acknowledgeAlert('{alert.identifier}', '{alert |> alertRowDivId}')"
+                    ] [str "Acknowledge"]
+                ]
+            ]
+            
+        let renderDateGroup (date, alertsForDate) =
+            let alertCount = List.length alertsForDate
+            
+            let identifierArrayInJavascript = alertsForDate |> List.map (fun (a:Alert) -> $"'{a.identifier}'") |> String.concat ","
+            let divIdArrayInJavascript = alertsForDate |> List.map (fun (a:Alert) -> $"'{a |> alertRowDivId}'") |> String.concat ","
+            
+            div [] [
+                div [ _class "columns" ] [
+                    div [ _class "column" ] [
+                        strong [] [date |> Utils.convertToDateString |> str]
+                        span [ _class "tag is-info ml-2" ] [alertCount |> string |> str]
+                    ]
+                    div [ _class "column has-text-right" ] [
+                       button [
+                           _class "button is-small is-info"
+                           _onclick $"acknowledgeDateAlert([{identifierArrayInJavascript}], [{divIdArrayInJavascript}])"
+                       ] [str "Acknowledge All"]
+                   ]
+                ]
+                
+                yield!
+                    alertsForDate
+                    |> List.sortByDescending (fun a -> a.sentiment, a.strength)
+                    |> List.map mapAlertToDiv
+            ]
+            
         div [ _class "content" ] [
-            h4 [] ["Alerts" |> str]
-            yield!
-                match alerts with
-                | [] ->
-                    [div [] ["No alerts" |> str]]
-                | _ ->
-                    alerts
-                    |> List.sortByDescending (fun a -> a.date, a.sentiment, a.strength)
-                    |> List.map (fun (alert:Alert) ->
-                        
-                        let industry = Alert.getIndustry alert
-                        let industryNode =
-                            match industry with
-                            | Some i -> [generateHrefNewTab i (Links.industryLink i)]
-                            | None -> []
-                            
-                        let screenerId = Alert.getScreenerId alert
-                        let screenerNode =
-                            match screenerId with
-                            | Some screenerId ->
-                                let screenerName = screeners |> List.find (fun s -> s.id = screenerId) |> _.name
-                                [ generateHrefNewTab screenerName (Links.screenerResultsLink screenerId alert.date) ]
-                            | None -> []
-                        
-                        div [ _class "columns" ] [
-                            div [_class "column"] [alert.date |> Utils.convertToDateString |> str]
-                            div [_class "column"] screenerNode
-                            div [_class "column"] industryNode
-                            div [_class "column is-two-thirds"] [
-                                alert.sentiment |> toSentimentSpan
-                                alert.description |> str
-                            ]
-                        ]
-                    )
-        ]
+        h4 [] ["Alerts" |> str]
+        yield!
+            match alerts with
+            | [] ->
+                [div [] ["No alerts" |> str]]
+            | _ ->
+                alerts
+                |> List.groupBy (fun a -> a.date)
+                |> List.sortByDescending fst
+                |> List.map renderDateGroup
+    ]
         
     let private generateActiveIndustrySequencesSection (sequences:IndustrySequence list) =
         let toSentimentSpan sequenceType =

@@ -87,5 +87,7 @@ module Router =
                         route Links.changeStockIndustryLink >=> ScreenerManagement.changeStockIndustryHandler
 
                         route "/analysis/tickers" >=> Analysis.analyzeHandler
+                        
+                        routef "/alerts/acknowledge/%s" Alerts.acknowledgeAlertHandler
                 ]
             setStatusCode 404 >=> text "Not Found" ]
