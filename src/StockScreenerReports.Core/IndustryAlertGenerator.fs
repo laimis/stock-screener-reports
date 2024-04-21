@@ -103,7 +103,7 @@ let industrySequenceAlerts (referenceDate:System.DateTime) (industryTrends:Map<s
         |> List.choose id
         |> List.map( fun (sequence:IndustrySequence) ->
             {
-                date = sequence.start.date
+                date = referenceDate.Date
                 alertType = IndustryAlert(sequence.industry)
                 acknowledged = false
                 description = $"{sequence.industry} has entered {sequence.type'} sequence"
@@ -126,7 +126,7 @@ let industrySequenceAlerts (referenceDate:System.DateTime) (industryTrends:Map<s
         |> List.choose id
         |> List.map( fun (sequence:IndustrySequence) ->
             {
-                date = sequence.end'.date
+                date = referenceDate.Date
                 alertType = IndustryAlert(sequence.industry)
                 acknowledged = false
                 description = $"{sequence.industry} has exited {sequence.type'} sequence"
