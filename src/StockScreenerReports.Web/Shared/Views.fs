@@ -572,16 +572,18 @@ module Views =
                     | None -> (date, 0m)
                 )
 
+            let industryChartName = "Industry Cycle Starts"
+            
             let dataset:Charts.DataSet<decimal> =
                 {
                     data = dateCounts |> Seq.map snd |> List.ofSeq
-                    title = $"start counts"
+                    title = industryChartName
                     color = Constants.ColorRed
                 }
 
             let maxValue = (dateCounts |> Seq.map snd |> Seq.max) + 5m |> int
 
             let labels = dateCounts |> Seq.map (fun (date,_) -> date.ToString("MM/dd"))
-            let chart = [dataset] |> Charts.generateChartElements "Industry Bottoms" Charts.ChartType.Bar (Some maxValue) Charts.smallChart labels
+            let chart = [dataset] |> Charts.generateChartElements industryChartName Charts.ChartType.Bar (Some maxValue) Charts.smallChart labels
 
             div [] chart |> toSection "Industry Cycle Start Counts"
