@@ -393,7 +393,7 @@ module IndustriesDashboard =
                         match update20 with
                         | Some update20 ->
                             let update200 = industrySMABreakdowns200Map |> Map.find industry
-                            let average = (update20.breakdown.percentAbove + update200.breakdown.percentAbove) / 2m
+                            let average = TrendsCalculator.calculateAverageOfSMA20AndSMA200 update20 update200
                             (average, 0m)
                         | None -> raise (System.Exception("Could not find 20 day SMA breakdown for " + industry))
                 | GeometricMeanRank ->
@@ -402,7 +402,7 @@ module IndustriesDashboard =
                         match update20 with
                         | Some update20 ->
                             let update200 = industrySMABreakdowns200Map |> Map.find industry
-                            let geometricMean = System.Math.Sqrt(float (update20.breakdown.percentAbove * update200.breakdown.percentAbove)) |> decimal
+                            let geometricMean = TrendsCalculator.calculateGeometricMeanOfSMA20AndSMA200 update20 update200
                             (geometricMean, 0m)
                         | None -> raise (System.Exception("Could not find 20 day SMA breakdown for " + industry))
                 | WeightedRank ->
@@ -411,7 +411,7 @@ module IndustriesDashboard =
                         match update20 with
                         | Some update20 ->
                             let update200 = industrySMABreakdowns200Map |> Map.find industry
-                            let weighted = (update20.breakdown.percentAbove * 0.6m) + (update200.breakdown.percentAbove * 0.4m)
+                            let weighted = TrendsCalculator.calculateWeightedRankOfSMA20AndSMA200 update20 update200
                             (weighted, 0m)
                         | None -> raise (System.Exception("Could not find 20 day SMA breakdown for " + industry))
             

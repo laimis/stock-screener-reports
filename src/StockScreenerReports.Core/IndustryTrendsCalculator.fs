@@ -247,4 +247,12 @@ namespace StockScreenerReports.Core
                     | None -> acc
             )
             |> List.concat
-                
+            
+        let calculateAverageOfSMA20AndSMA200 (sma20:IndustrySMABreakdown) (sma200:IndustrySMABreakdown) =
+             (sma20.breakdown.percentAbove + sma200.breakdown.percentAbove) / 2m
+             
+        let calculateGeometricMeanOfSMA20AndSMA200 (sma20:IndustrySMABreakdown) (sma200:IndustrySMABreakdown) =
+            System.Math.Sqrt(sma20.breakdown.percentAbove * sma200.breakdown.percentAbove |> float) |> decimal
+            
+        let calculateWeightedRankOfSMA20AndSMA200 (sma20:IndustrySMABreakdown) (sma200:IndustrySMABreakdown) =
+            (sma20.breakdown.percentAbove * 0.6m) + (sma200.breakdown.percentAbove * 0.4m)
