@@ -101,14 +101,18 @@ match runCountriesJob() with
     StockScreenerReports.Web.Services.countriesRun (DummyLogger())
 | false -> ()
 
-
-let linearRegression numberOfDays (smaBreakdowns:SMABreakdown seq) =
-        
-    let x = smaBreakdowns |> Seq.truncate numberOfDays |> Seq.mapi (fun i breakdown -> i, breakdown.percentAbove) |> Seq.map (fun (i, y) -> float i, float y) |> Seq.toArray
-    let y = x |> Array.map snd
-    let x = x |> Array.map fst
+let roundedDecimal (x:decimal) =
+    Math.Round(x, 2)
     
-    MathNet.Numerics.Fit.line x y |> _.ToTuple()
+let roundedFloat (x:float) =
+    Math.Round(x, 2)
+
+let linearRegression numberOfDays (smaBreakdowns:SMABreakdown list) =
+    
+    let data = smaBreakdowns[(smaBreakdowns.Length - numberOfDays)..] |> Seq.mapi (fun i breakdown -> i |> float, breakdown.percentAbove |> float) |> Seq.toArray
+    let y = data |> Array.map snd
+    let x = data |> Array.map fst
+    MathNet.Numerics.Fit.line x y |> _.ToTuple() |> fun (intercept, slope) -> (roundedFloat intercept, roundedFloat slope)
 
 let detectTrendByMomentum (breakdowns:SMABreakdown seq) numDays lookbackPeriod =
     let percentagesAboveSMA =
@@ -159,12 +163,15 @@ match runTestReports() with
     |> Seq.truncate 5
     |> Seq.iter outputBreakdown
     
-    let sma20Ranks = industryBreakdownsSMA20 |> Seq.sortByDescending _.breakdown.percentAbove |> Seq.mapi (fun i breakdown -> breakdown.industry, i + 1 |> decimal) |> Map.ofSeq
-    let sma200Ranks = industryBreakdownsSMA200 |> Seq.sortByDescending _.breakdown.percentAbove |> Seq.mapi (fun i breakdown -> breakdown.industry, i + 1 |> decimal) |> Map.ofSeq
-
-    let averageRanks = industryBreakdownsSMA20
-                       |> Seq.map (fun breakdown -> (breakdown, (sma20Ranks[breakdown.industry] + sma200Ranks[breakdown.industry]) / 2m))
-                       |> Seq.sortBy snd
+    let averageRanks =
+        industryBreakdownsSMA20
+        |> Seq.map (fun breakdown ->
+            let breakdown20 = industryBreakdownsSMA20 |> Seq.find (fun b -> b.industry = breakdown.industry)
+            let breakdown200 = industryBreakdownsSMA200 |> Seq.find (fun b -> b.industry = breakdown.industry)
+            let score = TrendsCalculator.calculateAverageOfSMA20AndSMA200 breakdown20 breakdown200
+            (breakdown, score)
+        )
+        |> Seq.sortByDescending snd
                        
     Console.WriteLine("")
     Console.WriteLine("Industries sorted by average rank:")
@@ -173,8 +180,12 @@ match runTestReports() with
     // sort by weighted average
     let weightedAverageRanks =
            industryBreakdownsSMA20
-           |> Seq.map (fun breakdown -> (breakdown, (sma20Ranks[breakdown.industry] * 0.65m + sma200Ranks[breakdown.industry] * 0.45m)))
-           |> Seq.sortBy snd
+           |> Seq.map (fun breakdown ->
+               let breakdown20 = industryBreakdownsSMA20 |> Seq.find (fun b -> b.industry = breakdown.industry)
+               let breakdown200 = industryBreakdownsSMA200 |> Seq.find (fun b -> b.industry = breakdown.industry)
+               let score = TrendsCalculator.calculateWeightedRankOfSMA20AndSMA200 breakdown20 breakdown200
+               (breakdown, score))
+           |> Seq.sortByDescending snd
                        
     Console.WriteLine("")
     Console.WriteLine("Industries sorted by weighted average rank:")
@@ -214,13 +225,13 @@ match runTestReports() with
         |> Seq.map (fun breakdown ->
             // get the last 90 days
             let numDays = 90
-            let smaBreakdowns = Reports.getIndustrySMABreakdownsForIndustry SMA.SMA20 (latestDate.AddDays(-numDays) |> Utils.convertToDateString, latestDateStr) breakdown.industry |> Seq.map _.breakdown
+            let smaBreakdowns = Reports.getIndustrySMABreakdownsForIndustry SMA.SMA20 (latestDate.AddDays(-numDays) |> Utils.convertToDateString, latestDateStr) breakdown.industry |> List.map _.breakdown
             (breakdown, linearRegression 20 smaBreakdowns))
         |> Seq.sortByDescending (fun (_, (_, slope)) -> slope)
         
     Console.WriteLine("")
     Console.WriteLine("Industries sorted by linear regression slope:")
-    linearRegressionRanks |> truncateAndOutput (fun (breakdown, (intercept, slope)) -> Console.WriteLine(breakdown.industry + " " + slope.ToString() + " " + intercept.ToString()))
+    linearRegressionRanks |> truncateAndOutput (fun (breakdown, (intercept, slope)) -> Console.WriteLine($"{breakdown.industry}: {intercept} + {slope}x"))
     
     
     // sort by momentum
