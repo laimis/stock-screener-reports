@@ -216,14 +216,12 @@ module IndustriesTable =
         div [] industry20And200Rows
         
     
-    let private generateHref sortAlgo minimumStocks =
-        let sortAlgoAsString = sortAlgoToString sortAlgo
-        let href = $"?sortParam={sortAlgoAsString}&minimumStocks={minimumStocks}"
+    let private generateHref minimumStocks =
+        let href = $"?minimumStocks={minimumStocks}"
         href
         
-    let private generateSortAndFilterSection selectedAlgo selectedMinimumNumberOfStocks =
-        let sortOptions = SortAlgo.All |> List.map (fun x -> x, x |> sortAlgoToLabel) 
-
+    let private generateInfoAndFilterSection matchCount selectedMinimumNumberOfStocks =
+        
         let filterOptions =
             [
                 0, "Any number of stocks"
@@ -234,24 +232,11 @@ module IndustriesTable =
             
         let onChangeAttribute = XmlAttribute.KeyValue("onchange", "location = this.value;")
 
-        let sortDropdown =
-            div [ _class "select" ] [
-                select [ onChangeAttribute ] [
-                    for sortAlgo, title in sortOptions do
-                        let href = generateHref sortAlgo selectedMinimumNumberOfStocks
-                        let isSelected = selectedAlgo = sortAlgo
-                        option [
-                            _value href
-                            if isSelected then _selected
-                        ] [ str title ]
-                ]
-            ]
-
         let filterDropdown =
             div [ _class "select" ] [
                 select [ onChangeAttribute ] [
                     for selection, title in filterOptions do
-                        let href = generateHref selectedAlgo selection
+                        let href = generateHref selection
                         let isSelected = selectedMinimumNumberOfStocks = selection
                         option [
                             _value href
@@ -260,16 +245,11 @@ module IndustriesTable =
                 ]
             ]
 
-        let sortAndFilterSection =
+        let infoAndFilterSection =
             div [ _class "level" ] [
                 div [ _class "level-left" ] [
                     div [ _class "level-item" ] [
-                        div [ _class "field" ] [
-                            label [ _class "label" ] [ str "Sort" ]
-                            div [ _class "control" ] [
-                                sortDropdown
-                            ]
-                        ]
+                        span [] [ str $"{matchCount} Industries" ]
                     ]
                 ]
                 div [ _class "level-right" ] [
@@ -284,17 +264,12 @@ module IndustriesTable =
                 ]
             ]
 
-        sortAndFilterSection
+        infoAndFilterSection
 
     let handler : HttpHandler  =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
 
-            let sortParam = ctx.GetQueryStringValue("sortParam")
-            let sortAlgo =
-                match sortParam with
-                | Ok value -> value |> stringToSortAlgo
-                | Error _ -> CycleScore
-                
+            
             let filterParam = ctx.GetQueryStringValue("minimumStocks")
             let minimumStocks =
                 match filterParam with
@@ -313,9 +288,6 @@ module IndustriesTable =
                 |> toBreakdownMap
                 |> Map.filter (fun _ breakdown -> breakdown.breakdown.total >= minimumStocks)
             
-            let industryTrends20Map = Reports.getIndustryTrends formattedDate SMA20 |> toTrendsMap 
-            let industryTrends200Map = Reports.getIndustryTrends formattedDate SMA200 |> toTrendsMap
-            
             let dateRange = ReportsConfig.dateRangeAsStrings()
             
             let dailySMABreakdown20Map =
@@ -324,100 +296,10 @@ module IndustriesTable =
                     let dailyBreakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry SMA20 dateRange
                     dailyBreakdowns
                 )
-                
-            let dailySMABreakdown200Map =
-                industrySMABreakdowns20Map 
-                |> Map.map (fun industry _ ->
-                    let dailyBreakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry SMA200 dateRange
-                    dailyBreakdowns
-                )
-                
-            let sortFunc =
-                match sortAlgo with
-                | PercentAbove200 ->
-                    fun industry ->
-                        let update20 = industrySMABreakdowns20Map |> Map.tryFind industry
-                        match update20 with
-                        | Some update20 ->
-                            let update200 = industrySMABreakdowns200Map |> Map.find industry
-                            (update200.breakdown.percentAbove, update20.breakdown.percentAbove)
-                        | None -> raise (System.Exception("Could not find 20 day SMA breakdown for " + industry))
-                | PercentAbove20 ->
-                    fun industry ->
-                        let update20 = industrySMABreakdowns20Map |> Map.tryFind industry
-                        match update20 with
-                        | Some update20 ->
-                            let update200 = industrySMABreakdowns200Map |> Map.find industry
-                            (update20.breakdown.percentAbove, update200.breakdown.percentAbove)
-                        | None -> raise (System.Exception("Could not find 20 day SMA breakdown for " + industry))
-                | TrendScore ->
-                    fun industry ->
-                        let breakdowns = dailySMABreakdown20Map |> Map.tryFind industry
-                        match breakdowns with
-                        | Some breakdowns ->
-                            let trendScore = breakdowns |> MarketCycleScoring.trendScore
-                            (trendScore, 0m)
-                        | None -> raise (System.Exception("Could not find daily breakdowns for " + industry))
-                | CycleScore ->
-                    fun industry ->
-                        let breakdowns = dailySMABreakdown20Map |> Map.tryFind industry
-                        match breakdowns with
-                        | Some breakdowns ->
-                            let cycleScore = breakdowns |> MarketCycleScoring.cycleScore
-                            (cycleScore, 0m)
-                        | None -> raise (System.Exception("Could not find daily breakdowns for " + industry))
-                | SMACrossOverStrengthRank ->
-                    fun industry ->
-                        let breakdowns = dailySMABreakdown20Map |> Map.tryFind industry
-                        match breakdowns with
-                        | Some breakdowns -> (breakdowns |> TrendsCalculator.calculateSMACrossOverStrength, 0m)
-                        | None -> raise (System.Exception("Could not find daily breakdowns for " + industry))
-                | EMACrossOverStrengthRank ->
-                    fun industry ->
-                        let breakdowns = dailySMABreakdown20Map |> Map.tryFind industry
-                        match breakdowns with
-                        | Some breakdowns -> (breakdowns |> TrendsCalculator.calculateEMACrossOverStrength, 0m)
-                        | None -> raise (System.Exception("Could not find daily breakdowns for " + industry))
-                | ADXRank ->
-                    fun industry ->
-                        let breakdowns = dailySMABreakdown20Map |> Map.tryFind industry
-                        match breakdowns with
-                        | Some breakdowns ->
-                            let adxRank = breakdowns |> TrendsCalculator.calculateADXTrend
-                            (adxRank, 0m)
-                        | None -> raise (System.Exception("Could not find daily breakdowns for " + industry))
-                        
-                | AverageAboveRank ->
-                    fun industry ->
-                        let update20 = industrySMABreakdowns20Map |> Map.tryFind industry
-                        match update20 with
-                        | Some update20 ->
-                            let update200 = industrySMABreakdowns200Map |> Map.find industry
-                            let average = (update20.breakdown.percentAbove + update200.breakdown.percentAbove) / 2m
-                            (average, 0m)
-                        | None -> raise (System.Exception("Could not find 20 day SMA breakdown for " + industry))
-                | GeometricMeanRank ->
-                    fun industry ->
-                        let update20 = industrySMABreakdowns20Map |> Map.tryFind industry
-                        match update20 with
-                        | Some update20 ->
-                            let update200 = industrySMABreakdowns200Map |> Map.find industry
-                            let geometricMean = System.Math.Sqrt(float (update20.breakdown.percentAbove * update200.breakdown.percentAbove)) |> decimal
-                            (geometricMean, 0m)
-                        | None -> raise (System.Exception("Could not find 20 day SMA breakdown for " + industry))
-                | WeightedRank ->
-                    fun industry ->
-                        let update20 = industrySMABreakdowns20Map |> Map.tryFind industry
-                        match update20 with
-                        | Some update20 ->
-                            let update200 = industrySMABreakdowns200Map |> Map.find industry
-                            let weighted = (update20.breakdown.percentAbove * 0.6m) + (update200.breakdown.percentAbove * 0.4m)
-                            (weighted, 0m)
-                        | None -> raise (System.Exception("Could not find 20 day SMA breakdown for " + industry))
+           
+            let title = $"Industry SMA Breakdowns for {formattedDate}"
             
-            let title = $"Industry SMA Breakdowns ({industrySMABreakdowns20Map.Count} industries) - {formattedDate}"
-            
-            let sortAndFilterSection = generateSortAndFilterSection sortAlgo minimumStocks
+            let infoAndFilterSection = generateInfoAndFilterSection industrySMABreakdowns20Map.Count minimumStocks
             
             let industryTableHeaders = [
                 "industry"
@@ -476,7 +358,6 @@ module IndustriesTable =
 
             let industryTable = fullWidthTableWithSortableHeaderCells industryTableHeaders industryRows
 
-            let title = $"Industry SMA Breakdowns ({industrySMABreakdowns20Map.Count} industries) - {formattedDate}"
-            let view = toSection title (div [_class "content"] [sortAndFilterSection; industryTable])
+            let view = toSection title (div [_class "content"] [infoAndFilterSection; industryTable])
 
             ([view] |> mainLayout $"Industries") next ctx
