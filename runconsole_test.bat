@@ -1,1 +1,1 @@
-dotnet run --project src\StockScreenerReports.Console config\config_secret.json --cycles-migration
+dotnet run --project src\StockScreenerReports.Console config\config_secret.json --test-reports
