@@ -410,7 +410,7 @@ module Views =
                 let adjustedEnd = endDate.AddDays(adjustment)
                 (adjustedStart |> Utils.convertToDateString, adjustedEnd |> Utils.convertToDateString)
 
-    let generateFilterSection dateRange =
+    let generateFilterSection additionalFields dateRange =
         let startDate, endDate = dateRange
         let offsets = [-30; -1; 1; 30]
 
@@ -444,6 +444,8 @@ module Views =
             ]
             input [ _class "input"; _type "hidden"; _value ""; _id "dateAdjustment"; _name "dateAdjustment"]
             div [_class "control"] ((applyButton::buttons) @ [resetButton])
+            for fieldKey,fieldValue in additionalFields do
+                input [_type "hidden"; _value fieldValue; _name fieldKey]
         ]
 
         let toggleFunctions = "toggleDisplayNone(document.getElementById('filterSummary')); toggleDisplayNone(document.getElementById('filterForm'))"
@@ -455,7 +457,7 @@ module Views =
             ] ([formElements; scripts] |> List.concat)
 
         div [ _class "content"] [
-            h4 [] [ str "Filters" ]
+            h4 [_onclick toggleFunctions] [ str "Filters" ]
             div [
                 _id "filterSummary"
                 _onclick toggleFunctions

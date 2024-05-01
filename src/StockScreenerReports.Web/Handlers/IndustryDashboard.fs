@@ -148,7 +148,7 @@ module IndustryDashboard =
                         |> Links.industryFinvizLink
                         |> generateHrefNewTab "See it on Finviz"
                     ]
-                    generateFilterSection dateRange
+                    generateFilterSection [] dateRange
                 ]
             ]
         ]

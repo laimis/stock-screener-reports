@@ -315,7 +315,7 @@ module Dashboard =
         
         let activeIndustrySequencesSection = generateActiveIndustrySequencesSection activeIndustrySequences
 
-        let filters = generateFilterSection dateRange
+        let filters = generateFilterSection [] dateRange
 
         let trendingUpAndDownIndustries = generateIndustriesSection industries upAndDowns
         
