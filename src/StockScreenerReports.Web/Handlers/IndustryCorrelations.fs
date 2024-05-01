@@ -20,7 +20,7 @@ module IndustryCorrelations =
                 select [
                     onChangeAttribute
                 ] [
-                    option [ _value "" ] [ str "Correlation Summary" ]
+                    option [ _value "" ] [ str "Top Correlations" ]
                     for industry in industries do
                         option [
                             _value industry
@@ -65,6 +65,44 @@ module IndustryCorrelations =
         
         fullWidthTableWithSortableHeaderCells correlationTableHeaders correlationRows
         
+    let private generateCorrelationSummary industries (correlationMatrix:Matrix<float>) =
+        
+        // for each industry, get the top correlated industry
+        let correlationList =
+            industries
+            |> List.mapi (fun i ind ->
+                let correlations = correlationMatrix.Row(i).ToArray()
+                // top correlation is the highest correlation that isn't the industry itself
+                let topCorrelation = 
+                    correlations
+                    |> Array.mapi (fun j corr -> (ind, industries.[j], corr))
+                    |> Array.filter (fun (industry1, industry2, _) -> industry1 <> industry2)
+                    |> Array.maxBy (fun (_, _, corr) -> corr)
+                    
+                topCorrelation
+            )
+            
+        let correlationTableHeaders = [ "Industry 1"; "Industry 2"; "Correlation" ]
+        
+        let correlationRows =
+            correlationList
+            |> List.map (fun (industry1, industry2, corr) ->
+                let heatClass =
+                    match corr with
+                    | x when x > 0.85 -> "has-background-success"
+                    | x when x > 0.8 -> "has-background-success-light"
+                    | x when x < 0 -> "has-background-warning"
+                    | _ -> ""
+                    
+                tr [_class heatClass] [
+                    LinkColumn(industry1, "?industry=" + HttpUtility.UrlEncode(industry1)) |> toTd
+                    LinkColumn(industry2, "?industry=" + HttpUtility.UrlEncode(industry2)) |> toTd
+                    [corr |> decimal |> NumberColumn |> toNode] |> td []
+                ]
+                )
+            
+        fullWidthTableWithSortableHeaderCells correlationTableHeaders correlationRows
+        
     let handler: HttpHandler =
         fun (next: HttpFunc) (ctx: Microsoft.AspNetCore.Http.HttpContext) ->
             
@@ -95,7 +133,7 @@ module IndustryCorrelations =
             let contentToRender =
                 match selectedIndustry with
                 | Some selectedIndustry -> correlationMatrix |> generateCorrelationTable industries selectedIndustry
-                | None -> div [] []
+                | None -> correlationMatrix |> generateCorrelationSummary industries
             
             let header = generateHeader industries selectedIndustry additionalFields startDate endDate
 
