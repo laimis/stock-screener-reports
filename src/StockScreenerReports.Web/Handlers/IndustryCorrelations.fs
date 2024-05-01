@@ -1,6 +1,8 @@
 namespace StockScreenerReports.Web.Handlers
 
+open System.Web
 open MathNet.Numerics.Statistics
+open StockScreenerReports.Web.Shared
 
 module IndustryCorrelations =
     open Giraffe
@@ -27,10 +29,13 @@ module IndustryCorrelations =
             let industryParam = ctx.GetQueryStringValue("industry")
             let selectedIndustry =
                 match industryParam with
-                | Ok value -> Some value
+                | Ok value ->
+                    match value with
+                    | x when System.String.IsNullOrWhiteSpace(x) -> None
+                    | _ -> Some value
                 | Error _ -> None
 
-            let correlationTableHeaders = [ "Industry"; "Correlation" ]
+            let correlationTableHeaders = [ "Industry"; "Correlation"; "" ]
 
             let correlationRows =
                 match selectedIndustry with
@@ -42,16 +47,24 @@ module IndustryCorrelations =
                     |> List.filter (fun (ind, _) -> ind <> industry)
                     |> List.sortByDescending snd
                     |> List.map (fun (ind, corr) ->
-                        tr [] [
-                            StringColumn(ind) |> toTd
-                            corr |> decimal |> NumberColumn |> toTd
+                        let heatClass =
+                            match corr with
+                            | x when x > 0.85 -> "has-background-success"
+                            | x when x > 0.8 -> "has-background-success-light"
+                            | x when x < 0 -> "has-background-warning"
+                            | _ -> ""
+                            
+                        tr [_class heatClass] [
+                            LinkColumn(ind, "?industry=" + HttpUtility.UrlEncode(ind)) |> toTd
+                            [corr |> decimal |> NumberColumn |> toNode] |> td []
+                            LinkNewTabColumn("Industry Page", ind |> Links.industryLink) |> toTd
                         ]
                     )
                 | None -> []
 
             let correlationTable = fullWidthTableWithSortableHeaderCells correlationTableHeaders correlationRows
 
-            let onChangeAttribute = KeyValue("onchange", "location.href = '?industry=' + this.value")
+            let onChangeAttribute = KeyValue("onchange", "location.href = '?industry=' + encodeURIComponent(this.value)")
             let industryDropdown =
                 div [ _class "select" ] [
                     select [

@@ -116,19 +116,19 @@ module Views =
 
     let toHeaderCell title =
         th [] [str title]
-
-    let toTd cell = 
-        let node =
-            match cell with
-            | LinkColumn (title, link) -> generateHref title link
-            | LinkNewTabColumn (title, link) -> generateHrefNewTab title link
-            | StringColumn text -> str text
-            | DateColumn date -> date.ToString("yyyy-MM-dd") |> str
-            | NumberColumn number -> number.ToString("N2") |> str
-            | TickerLinkColumn ticker -> generateTickerLink ticker
-            | NodeColumn node -> node
         
-        node |> toTdWithNode
+    let toNode cell =
+        match cell with
+        | LinkColumn (title, link) -> generateHref title link
+        | LinkNewTabColumn (title, link) -> generateHrefNewTab title link
+        | StringColumn text -> str text
+        | DateColumn date -> date.ToString("yyyy-MM-dd") |> str
+        | NumberColumn number -> number.ToString("N2") |> str
+        | TickerLinkColumn ticker -> generateTickerLink ticker
+        | NodeColumn node -> node
+        
+    let toTd cell = 
+        cell |> toNode |> toTdWithNode
 
     let toTr cells =
         tr [] (cells |> List.map toTd)
