@@ -1,7 +1,5 @@
 namespace StockScreenerReports.Web.Handlers
 
-open Giraffe.ViewEngine.HtmlElements
-
 module IndustriesTable =
     open Giraffe
     open Giraffe.ViewEngine
@@ -149,12 +147,12 @@ module IndustriesTable =
             let latestDate = Reports.getIndustrySMABreakdownLatestDate()
             let formattedDate = latestDate |> Utils.convertToDateString
             let industrySMABreakdowns20Map =
-                Reports.getIndustrySMABreakdowns SMA20 formattedDate
+                Reports.getIndustrySMABreakdownsForDate SMA20 formattedDate
                 |> toBreakdownMap
                 |> Map.filter (fun _ breakdown -> breakdown.breakdown.total >= minimumStocks)
                 
             let industrySMABreakdowns200Map =
-                Reports.getIndustrySMABreakdowns SMA200 formattedDate
+                Reports.getIndustrySMABreakdownsForDate SMA200 formattedDate
                 |> toBreakdownMap
                 |> Map.filter (fun _ breakdown -> breakdown.breakdown.total >= minimumStocks)
             
@@ -163,7 +161,7 @@ module IndustriesTable =
             let dailySMABreakdown20Map =
                 industrySMABreakdowns20Map 
                 |> Map.map (fun industry _ ->
-                    let dailyBreakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry SMA20 dateRange
+                    let dailyBreakdowns = industry |> Reports.getIndustrySMABreakdownsForDateRange SMA20 dateRange
                     dailyBreakdowns
                 )
            

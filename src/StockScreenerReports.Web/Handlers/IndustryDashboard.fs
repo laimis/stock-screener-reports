@@ -109,7 +109,7 @@ module IndustryDashboard =
 
     let private createHeaderSection dateRange (stocks:Stock list) industryName  =
 
-        let breakdowns = industryName |> getIndustrySMABreakdownsForIndustry SMA20 dateRange
+        let breakdowns = industryName |> getIndustrySMABreakdownsForDateRange SMA20 dateRange
         let cycleScore = breakdowns |> MarketCycleScoring.cycleScore
         let trendScore = breakdowns |> MarketCycleScoring.trendScore
         let trendWithCycle = breakdowns |> TrendsCalculator.calculateForIndustry
@@ -341,7 +341,7 @@ module IndustryDashboard =
                 |> List.map (fun sma -> 
                     let breakdowns =
                         industryName
-                        |> getIndustrySMABreakdownsForIndustry sma dateRange
+                        |> getIndustrySMABreakdownsForDateRange sma dateRange
                     (sma, breakdowns)
                 )
                 |> Map.ofList

@@ -705,7 +705,7 @@ module Reports =
         |> Sql.query "SELECT MAX(date) as date FROM CountrySMABreakdowns"
         |> Sql.executeRow (fun reader -> reader.dateTime "date")
         
-    let getIndustrySMABreakdownsForIndustry (sma:SMA) dateRange industry =
+    let getIndustrySMABreakdownsForDateRange (sma:SMA) dateRange industry =
         let sql = @"
             SELECT industry,date,days,above,below
             FROM IndustrySMABreakdowns
@@ -742,7 +742,7 @@ module Reports =
         ]
         |> Sql.execute industrySMABreakdownMapper
 
-    let getIndustrySMABreakdowns (sma:SMA) date =
+    let getIndustrySMABreakdownsForDate (sma:SMA) date =
         let sql = @"
             SELECT industry,date,days,above,below FROM IndustrySMABreakdowns
             WHERE date = date(@date)

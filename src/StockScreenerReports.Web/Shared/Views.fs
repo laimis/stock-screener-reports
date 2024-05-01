@@ -250,6 +250,7 @@ module Views =
                             generateHrefWithAttr "Industries" Links.industries (_class "navbar-item")
                             generateHrefWithAttr "Industries Table" Links.industriestable (_class "navbar-item")
                             generateHrefWithAttr "Industry Sequence Analysis" Links.industrySequenceAnalysis (_class "navbar-item")
+                            generateHrefWithAttr "Industry Correlations" Links.industryCorrelations (_class "navbar-item")
                         ]
                     ]
                     

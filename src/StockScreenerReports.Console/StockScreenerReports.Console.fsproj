@@ -6,6 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="IndustryCorrelationPlayground.fs" />
+    <Compile Include="IndustryRankingPlayground.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

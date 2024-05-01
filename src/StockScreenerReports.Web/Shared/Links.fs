@@ -68,6 +68,7 @@ module Links =
     
     let trends = "/trends"
     let industrySequenceAnalysis = "/industrySequenceAnalysis"
+    let industryCorrelations = "/industryCorrelations"
     let industries = "/industries"
     let industriestable = "/industriestable"
     let countries = "/countries"

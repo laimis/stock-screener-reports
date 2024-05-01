@@ -240,7 +240,7 @@ type ReportTests() =
         Storage.saveIndustrySMABreakdowns date ("airlines",sma,10,50)
         |> ignore
 
-        let updates = date |> Reports.getIndustrySMABreakdowns sma
+        let updates = date |> Reports.getIndustrySMABreakdownsForDate sma
 
         updates.Length |> should equal 1
 
@@ -272,7 +272,7 @@ type ReportTests() =
         let dateRange = ReportsConfig.dateRangeAsStrings()
         let trends =
             StorageTests.testStockIndustry
-            |> Reports.getIndustrySMABreakdownsForIndustry SMA20 dateRange
+            |> Reports.getIndustrySMABreakdownsForDateRange SMA20 dateRange
         
         trends |> should not' (be Empty)
 
@@ -342,7 +342,7 @@ type ReportTests() =
     let ``calculate industry trends works`` () =
         let smaBreakdowns =
             StorageTests.testStockIndustry
-            |> Reports.getIndustrySMABreakdownsForIndustry SMA20 (ReportsConfig.dateRangeAsStrings())
+            |> Reports.getIndustrySMABreakdownsForDateRange SMA20 (ReportsConfig.dateRangeAsStrings())
         let trend = smaBreakdowns |> TrendsCalculator.calculateForIndustry |> getTrend
 
         trend.streak |> should be (greaterThan 0)
@@ -431,7 +431,7 @@ type ReportTests() =
         
         // get industry breakdowns for the reference date
         let referenceDate = "2024-03-22"
-        let breakdowns = Reports.getIndustrySMABreakdowns SMA20 referenceDate
+        let breakdowns = Reports.getIndustrySMABreakdownsForDate SMA20 referenceDate
         
         // from there we will get all the industries that have data
         let industries = breakdowns |> List.map _.industry
@@ -441,7 +441,7 @@ type ReportTests() =
             |> List.map (fun industry ->
                 let trend =
                     industry
-                    |> Reports.getIndustrySMABreakdownsForIndustry SMA20 ("2024-01-01", referenceDate)
+                    |> Reports.getIndustrySMABreakdownsForDateRange SMA20 ("2024-01-01", referenceDate)
                     |> TrendsCalculator.calculateSMACrossOverStrength
                     
                 industry, trend

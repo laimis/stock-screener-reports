@@ -93,7 +93,7 @@ module Services =
                 )
                 
             let industrySize = industries |> List.map (fun industry ->
-                let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry SMA20 dateRange 
+                let breakdowns = industry |> Reports.getIndustrySMABreakdownsForDateRange SMA20 dateRange 
                 industry, breakdowns[breakdowns.Length - 1].breakdown.total) |> Map.ofList 
             
             let screenerAlerts = 
@@ -197,7 +197,7 @@ module Services =
                 industrySmaPairs
                 |> Seq.map (fun (industry, days) -> 
                     
-                    let breakdowns = industry |> Reports.getIndustrySMABreakdownsForIndustry days (ReportsConfig.dateRangeAsStrings())
+                    let breakdowns = industry |> Reports.getIndustrySMABreakdownsForDateRange days (ReportsConfig.dateRangeAsStrings())
                     let trendAndCycle = breakdowns |> TrendsCalculator.calculateForIndustry
                     let trend = trendAndCycle.trend
                     let lastBreakdown = breakdowns |> List.last

@@ -283,7 +283,7 @@ type StorageTests(output:ITestOutputHelper) =
 
         let trendAndCycle =
             testStockIndustry
-            |> Reports.getIndustrySMABreakdownsForIndustry SMA20 range
+            |> Reports.getIndustrySMABreakdownsForDateRange SMA20 range
             |> TrendsCalculator.calculateForIndustry
         
         let cycle = trendAndCycle.cycle
