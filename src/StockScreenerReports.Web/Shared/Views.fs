@@ -550,43 +550,52 @@ module Views =
         | Neutral -> "➖"
         
         
-    let generateIndustryCycleStartChart (cycles:IndustryWithCycle list) =
+    let generateIndustryCycleStartChart sectionName (cycles:IndustryWithCycle list) =
 
         match cycles with
         | [] -> 
             toSectionWithNoContent "No cycles found" 
         | _ ->
-            let cyclesGroupedByDate =
-                cycles
-                |> List.groupBy (fun (_, x) -> x.startPointDateFormatted)
-                |> Map.ofList
+            
+            let generateDataset title color listOfDays (cyclesGroupedByDate:Map<string,IndustryWithCycle list>) : Charts.DataSet<decimal> =
+                
+                let dateCounts = 
+                    listOfDays |> Seq.map (fun (date:System.DateTime) -> 
+                        let dateFormatted = date.ToString("d")
+                        let cyclesForDate = cyclesGroupedByDate |> Map.tryFind dateFormatted
+                        match cyclesForDate with
+                        | Some cycles -> (date, decimal cycles.Length)
+                        | None -> (date, 0m)
+                    )
 
+                {
+                    data = dateCounts |> Seq.map snd |> List.ofSeq
+                    title = title
+                    color = color
+                }
+                
             let startPointDateSelector = fun (_, x) -> x.startPoint.date
             let minStart = cycles |> List.minBy startPointDateSelector |> startPointDateSelector
             let maxStart = ReportsConfig.now().Date
 
-            let dateCounts = 
-                ReportsConfig.listOfBusinessDates (minStart, maxStart)
-                |> Seq.map (fun date -> 
-                    let dateFormatted = date.ToString("d")
-                    let cyclesForDate = cyclesGroupedByDate |> Map.tryFind dateFormatted
-                    match cyclesForDate with
-                    | Some cycles -> (date, decimal cycles.Length)
-                    | None -> (date, 0m)
-                )
+            let listOfDays =ReportsConfig.listOfBusinessDates (minStart, maxStart)
+                    
+            let cyclesGroupedByStartDate =
+                cycles
+                |> List.groupBy (fun (_, x) -> x.startPointDateFormatted)
+                |> Map.ofList
+                
+            let cyclesGroupedByHighDate =
+                cycles
+                |> List.groupBy (fun (_, x) -> x.highPointDateFormatted)
+                |> Map.ofList
+                
+            let startDataSet = generateDataset "Cycle Starts" Constants.ColorRed listOfDays cyclesGroupedByStartDate
+            let highDataSet = generateDataset "Cycle Highs" Constants.ColorGreen listOfDays cyclesGroupedByHighDate
 
-            let industryChartName = "Industry Cycle Starts"
-            
-            let dataset:Charts.DataSet<decimal> =
-                {
-                    data = dateCounts |> Seq.map snd |> List.ofSeq
-                    title = industryChartName
-                    color = Constants.ColorRed
-                }
+            let maxValue = System.Math.Max(startDataSet.data |> List.max, highDataSet.data |> List.max) + 5m |> int
 
-            let maxValue = (dateCounts |> Seq.map snd |> Seq.max) + 5m |> int
+            let labels = listOfDays |> Seq.map _.ToString("MM/dd")
+            let chart = [startDataSet; highDataSet] |> Charts.generateChartElements sectionName Charts.ChartType.Bar (Some maxValue) Charts.smallChart labels
 
-            let labels = dateCounts |> Seq.map (fun (date,_) -> date.ToString("MM/dd"))
-            let chart = [dataset] |> Charts.generateChartElements industryChartName Charts.ChartType.Bar (Some maxValue) Charts.smallChart labels
-
-            div [] chart |> toSection "Industry Cycle Start Counts"
+            div [] chart |> toSection sectionName

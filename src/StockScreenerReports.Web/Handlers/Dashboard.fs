@@ -404,7 +404,7 @@ module Dashboard =
             )
             |> generateSMATrendRows
             
-        let cyclesSection = generateIndustryCycleStartChart cycles
+        let cyclesSection = generateIndustryCycleStartChart "Cycle Starts (SMA20)" cycles
 
         [
             [warningSection]

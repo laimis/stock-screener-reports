@@ -169,9 +169,9 @@ module Cycles =
                 cycle.rateOfChange >= minimumRateOfChange &&
                 cycle.highPointAge.TotalDays <= maximumHighAge
 
-            let cycles =
-                SMA20
-                |> Storage.getIndustryCycles
+            let cyclesSMA20 = SMA20 |> Storage.getIndustryCycles
+                
+            let cyclesSMA200 = SMA200 |> Storage.getIndustryCycles
 
             // get latest job runs 
             let missedJobs =
@@ -181,12 +181,16 @@ module Cycles =
 
             let warningSection = jobAlertSection missedJobs
             
-            let industryCycleSection = 
-                cycles
-                |> generateIndustryCycleStartChart
+            let industryCycleSection20 = 
+                cyclesSMA20
+                |> generateIndustryCycleStartChart "Cycle Starts (SMA 20)"
+                
+            let industryCycleSection200 = 
+                cyclesSMA200
+                |> generateIndustryCycleStartChart "Cycle Starts (SMA 200)"
 
             let filteredCycles = 
-                cycles
+                cyclesSMA20
                 |> List.filter cycleFilterFunc
 
             let cycleTableSection =
@@ -195,7 +199,8 @@ module Cycles =
 
             let view = [
                 warningSection
-                industryCycleSection
+                industryCycleSection20
+                industryCycleSection200
                 cycleTableSection
             ]
             

@@ -35,6 +35,9 @@ module Constants =
 
     [<Literal>]
     let ColorBlack = "#111111"
+    
+    [<Literal>]
+    let ColorGreen = "#2ECC40"
 
 
 open Constants
