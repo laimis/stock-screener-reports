@@ -112,6 +112,7 @@ match runCyclesMigration() with
         Seq.initInfinite id
         |> Seq.map startDate.AddDays
         |> Seq.takeWhile (fun i -> i < now)
+        |> Seq.filter (fun i -> i |> ReportsConfig.isTradingDay)
         |> Seq.iter(fun date ->
             
             // every 1% of checks, print what sma, industry, date is being processed
