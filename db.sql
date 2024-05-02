@@ -204,3 +204,7 @@ CREATE TABLE alert_acknowledgements
     FOREIGN KEY (alert_identifier) REFERENCES alerts (identifier) ON DELETE CASCADE,
     UNIQUE (alert_identifier)
 );
+
+-- industry cycles unique constraint should include currentdate, drop existing, and add new
+ALTER TABLE industrycycles DROP CONSTRAINT industrycycles_industry_days_key;
+ALTER TABLE industrycycles ADD CONSTRAINT industrycycles_industry_days_date_key UNIQUE (industry, days, currentdate);

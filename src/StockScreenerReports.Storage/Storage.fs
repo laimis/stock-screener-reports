@@ -439,7 +439,7 @@ module Storage =
 
         let sql = @"INSERT INTO industrycycles (industry,days,startDate,startValue,highDate,highValue,currentDate,currentValue)
             VALUES (@industry,@days,date(@start),@startValue,date(@highDate),@highValue,date(@currentDate),@currentValue)
-            ON CONFLICT (industry,days) DO UPDATE SET
+            ON CONFLICT (industry,days,curentDate) DO UPDATE SET
                 startDate = date(@start),
                 startValue = @startValue,
                 highDate = date(@highDate),
@@ -463,7 +463,7 @@ module Storage =
         |> Sql.executeNonQuery
 
     let getIndustryCycle (sma:SMA) industry =
-        let sql = @"SELECT * FROM industrycycles WHERE industry = @industry AND days = @days"
+        let sql = @"SELECT * FROM industrycycles WHERE industry = @industry AND days = @days AND currentDate = (SELECT MAX(currentDate) FROM industrycycles WHERE industry = @industry AND days = @days)"
         cnnString
         |> Sql.connect
         |> Sql.query sql
@@ -474,7 +474,7 @@ module Storage =
         |> Sql.executeRow industryCycleMapper
 
     let getIndustryCycles (sma:SMA) =
-        let sql = @"SELECT * FROM industrycycles WHERE days = @days"
+        let sql = @"SELECT * FROM industrycycles WHERE days = @days AND currentDate = (SELECT MAX(currentDate) FROM industrycycles WHERE days = @days)"
         cnnString
         |> Sql.connect
         |> Sql.query sql
