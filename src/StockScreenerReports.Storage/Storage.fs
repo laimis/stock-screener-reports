@@ -473,6 +473,17 @@ module Storage =
         ]
         |> Sql.executeRow industryCycleMapper
 
+    let getIndustryCycleLatestDate (sma:SMA) date =
+        let sql = @"SELECT MAX(currentDate) as max FROM industrycycles WHERE days = @days AND currentDate <= date(@date)"
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@days", sma.Interval |> Sql.int;
+            "@date", date |> Sql.string
+        ]
+        |> Sql.executeRow (fun reader -> reader.dateTime "max")
+        
     let getIndustryCyclesForDate (sma:SMA) date =
         let sql = @"SELECT * FROM industrycycles WHERE days = @days AND currentDate = date(@date)"
         cnnString

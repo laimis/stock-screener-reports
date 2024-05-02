@@ -410,3 +410,23 @@ type StorageTests(output:ITestOutputHelper) =
         updatedAlerts |> List.length |> should equal 0 // because it is acknowledged
         
         Storage.deleteAlert alert |> should equal 1
+        
+    [<Fact>]
+    let ``Getting latest cycle date works``() =
+        
+        let referenceDate = DateTime.UtcNow
+        
+        let date = Storage.getIndustryCycleLatestDate SMA20 (referenceDate |> Utils.convertToDateString)
+        
+        date |> should be (lessThanOrEqualTo referenceDate)
+        
+    [<Fact>]
+    let ``Getting cycle data works`` () =
+        
+        let dataSMA20 = Storage.getIndustryCycles SMA20
+        let dataSMA200 = Storage.getIndustryCycles SMA200
+        
+        dataSMA20 |> should not' (be Empty)
+        dataSMA200 |> should not' (be Empty)
+        
+        dataSMA20.Length |> should be (equal dataSMA200.Length)

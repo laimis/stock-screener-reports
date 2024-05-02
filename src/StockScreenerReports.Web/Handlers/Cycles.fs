@@ -162,6 +162,7 @@ module Cycles =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
 
             let dateRange = getFilterSectionParams ctx
+            
             let dateFilterSection = generateFilterSection [] dateRange 
             
             let maximumAge, minimumValue, minimumChange, minimumRateOfChange, maximumHighAge = getQueryParams ctx
@@ -171,10 +172,12 @@ module Cycles =
                 cycle.currentPointValue - cycle.startPointValue >= minimumChange &&
                 cycle.rateOfChange >= minimumRateOfChange &&
                 cycle.highPointAge.TotalDays <= maximumHighAge
-
-            let cyclesSMA20 = Storage.getIndustryCyclesForDate SMA20 (dateRange |> snd)
                 
-            let cyclesSMA200 = Storage.getIndustryCyclesForDate SMA200 (dateRange |> snd)
+            let referenceDate = dateRange |> snd |> Storage.getIndustryCycleLatestDate SMA20 |> Utils.convertToDateString
+
+            let cyclesSMA20 = Storage.getIndustryCyclesForDate SMA20 referenceDate
+                
+            let cyclesSMA200 = Storage.getIndustryCyclesForDate SMA200 referenceDate
 
             // get latest job runs 
             let missedJobs =
