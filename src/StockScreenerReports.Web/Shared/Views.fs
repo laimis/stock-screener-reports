@@ -575,8 +575,10 @@ module Views =
                 }
                 
             let startPointDateSelector = fun (_, x) -> x.startPoint.date
+            let endPointDateSelector = fun (_, x) -> x.currentPoint.date
+            
             let minStart = cycles |> List.minBy startPointDateSelector |> startPointDateSelector
-            let maxStart = ReportsConfig.now().Date
+            let maxStart = cycles |> List.maxBy endPointDateSelector |> endPointDateSelector
 
             let listOfDays =ReportsConfig.listOfBusinessDates (minStart, maxStart)
                     

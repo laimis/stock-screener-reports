@@ -47,8 +47,8 @@ let runTestReports() =
 let runSequencesMigration() =
     containsArgument "--sequences-migration"
 
-let runCountriesJob() =
-    containsArgument "--countries-job"
+let runCyclesMigration() =
+    containsArgument "--cycles-migration"
     
 let config = readConfig()
 
@@ -95,11 +95,41 @@ match runSequencesMigration() with
 | false ->
     ()
 
-match runCountriesJob() with
+match runCyclesMigration() with
 | true ->
-    let date = DateTime.Parse("2023-10-27")
-    TimeFunctions.nowFunc <- fun() -> date
-    StockScreenerReports.Web.Services.countriesRun (DummyLogger())
+    
+    let industries = Storage.getIndustries()
+    
+    let industrySMAPairs = SMA.All |> Seq.map (fun sma -> industries |> Seq.map (fun industry -> (industry, sma))) |> Seq.concat
+    
+    let startDate = DateTime.Parse("2023-01-01")
+    let random = new Random()
+    
+    industrySMAPairs
+    |> Seq.iter (fun pairs -> 
+        let industry, sma = pairs
+        
+        Seq.initInfinite id
+        |> Seq.map startDate.AddDays
+        |> Seq.takeWhile (fun i -> i < now)
+        |> Seq.iter(fun date ->
+            
+            // every 1% of checks, print what sma, industry, date is being processed
+            if random.Next(100) = 0 then
+                Console.WriteLine("Processing " + industry + " " + sma.ToString() + " " + date.ToString())
+                
+            let range = (date.AddDays(-ReportsConfig.days), date) |> ReportsConfig.formatDateRangeToStrings
+            
+            let smaBreakdowns = Reports.getIndustrySMABreakdownsForDateRange sma range industry
+            
+            if smaBreakdowns.Length = 0 then
+                Console.WriteLine("No data found for " + industry + " " + sma.ToString() + " " + date.ToString())
+            else
+                let trendWithCycle = smaBreakdowns |> TrendsCalculator.calculateForIndustry
+                Storage.saveIndustryCycle sma trendWithCycle.cycle industry |> ignore
+        )
+    )
+    
 | false -> ()
         
 match runTestReports() with
