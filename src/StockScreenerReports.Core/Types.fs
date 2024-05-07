@@ -476,5 +476,5 @@ type IndustrySequence = {
         member this.start = this.values |> List.last
         member this.end' = this.values.Head
         member this.length = this.values.Length
-        member this.age = this.end'.date - this.start.date
-        member this.ageInDays = this.age.TotalDays |> Math.Floor |> int
+        member private this.age = this.end'.date - this.start.date
+        member this.ageInDays = this.age.TotalDays |> Math.Floor |> int |> (+) 1

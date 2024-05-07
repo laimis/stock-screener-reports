@@ -179,7 +179,7 @@ type IndustryTrendsCalculatorTests(output:ITestOutputHelper) =
         underTest.start.date.Date |> should equal expectedStart
         underTest.end'.value |> should be (greaterThanOrEqualTo 90)
         underTest.end'.date.Date |> should equal expectedEnd
-        underTest.age.TotalDays |> int |> should equal 6
+        underTest.ageInDays |> int |> should equal 7
         underTest.length |> should equal 7
         underTest.open' |> should be False
         underTest.values |> List.forall (fun x -> x.value >= 90m) |> should be True
