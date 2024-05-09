@@ -478,3 +478,10 @@ type IndustrySequence = {
         member this.length = this.values.Length
         member private this.age = this.end'.date - this.start.date
         member this.ageInDays = this.age.TotalDays |> Math.Floor |> int |> (+) 1
+        
+type CorporateAction = {
+    Date: string
+    Symbol: string
+    Type: string
+    Action: string
+}

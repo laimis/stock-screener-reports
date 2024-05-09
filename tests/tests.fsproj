@@ -32,6 +32,6 @@
   <ItemGroup>
     <ProjectReference Include="..\src\StockScreenerReports.Storage\StockScreenerReports.Storage.fsproj" />
     <ProjectReference Include="..\src\StockScreenerReports.Core\StockScreenerReports.Core.fsproj" />
-    <ProjectReference Include="..\src\StockScreenerReports.FinvizClient\StockScreenerReports.FinvizClient.fsproj" />
+    <ProjectReference Include="..\src\StockScreenerReports.Clients\StockScreenerReports.Clients.fsproj" />
   </ItemGroup>
 </Project>

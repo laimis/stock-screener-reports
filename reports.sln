@@ -7,7 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A8AB1CAB-F28
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StockScreenerReports.Core", "src\StockScreenerReports.Core\StockScreenerReports.Core.fsproj", "{E4F61B3E-7DF9-4F2A-A7FF-7639B16B6091}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StockScreenerReports.FinvizClient", "src\StockScreenerReports.FinvizClient\StockScreenerReports.FinvizClient.fsproj", "{7FAC3BDE-F8D5-45B4-8E83-9140CA0EB0F7}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StockScreenerReports.Clients", "src\StockScreenerReports.Clients\StockScreenerReports.Clients.fsproj", "{7FAC3BDE-F8D5-45B4-8E83-9140CA0EB0F7}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "StockScreenerReports.Storage", "src\StockScreenerReports.Storage\StockScreenerReports.Storage.fsproj", "{B6E7435F-FA81-4B36-A703-5AD68CE65518}"
 EndProject
