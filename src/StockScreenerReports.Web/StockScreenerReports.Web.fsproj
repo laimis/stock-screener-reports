@@ -7,16 +7,16 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="DynamicObj" Version="2.0.0" />
-    <PackageReference Include="FSharp.Data" Version="6.3.0" />
-    <PackageReference Include="Giraffe" Version="6.2.0" />
+    <PackageReference Include="FSharp.Data" Version="6.4.0" />
+    <PackageReference Include="Giraffe" Version="6.4.0" />
     <PackageReference Include="Giraffe.ViewEngine" Version="1.4.0" />
     <PackageReference Include="MathNet.Numerics" Version="6.0.0-beta1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Ply" Version="0.3.1" />
     <PackageReference Include="TimeZoneConverter" Version="6.1.0" />
-    <PackageReference Update="FSharp.Core" Version="8.0.100" />
-    <PackageReference Include="XPlot.Plotly" Version="4.0.6" />
+    <PackageReference Update="FSharp.Core" Version="8.0.200" />
+    <PackageReference Include="XPlot.Plotly" Version="4.1.0" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Services.fs" />

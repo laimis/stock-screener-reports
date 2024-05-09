@@ -11,7 +11,7 @@
     <ProjectReference Include="..\StockScreenerReports.Core\StockScreenerReports.Core.fsproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.56" />
-    <PackageReference Update="FSharp.Core" Version="8.0.100" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
+    <PackageReference Update="FSharp.Core" Version="8.0.200" />
   </ItemGroup>
 </Project>
