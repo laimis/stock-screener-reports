@@ -70,7 +70,7 @@ type ParsingTests(output: ITestOutputHelper) =
         [<Fact>]
         member this.CorporateActions() =
 
-            let content = FinvizClient.getCorporateActions ()
+            let content = StockAnalysisClient.getCorporateActions ()
 
             content |> should not' (be Empty)
 
