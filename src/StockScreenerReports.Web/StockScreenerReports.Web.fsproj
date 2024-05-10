@@ -47,6 +47,7 @@
     <Compile Include="Handlers\IndustrySequenceAnalysis.fs" />
     <Compile Include="Handlers\LoginHandler.fs" />
     <Compile Include="Handlers\Alerts.fs" />
+    <Compile Include="Handlers\CorporateActions.fs" />
     <Compile Include="Router.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

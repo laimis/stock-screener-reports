@@ -77,12 +77,14 @@ module Links =
     let earnings = "/earnings"
     let alerts = "/alerts"
     let cycles = "/cycles"
+    let corporateActions = "/corporateActions"
 
     let jobsScreeners = "/jobs/screeners"
     let jobsEarnings = "/jobs/earnings"
     let jobsTrends = "/jobs/trends"
     let jobsCountries = "/jobs/countries"
     let jobsAlerts = "/jobs/alerts"
+    let jobsCorporateActions = "/jobs/corporateActions"
 
     let industryFinvizLink (industryName:string) =
         let value =

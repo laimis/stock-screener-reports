@@ -346,6 +346,7 @@ module ScreenerManagement =
             | TrendsJob -> Links.jobsTrends
             | CountriesJob -> Links.jobsCountries
             | AlertsJob -> Links.jobsAlerts
+            | CorporateActionsJob -> Links.jobsCorporateActions
             | TestJob -> "testjob"
 
         let jobRows =

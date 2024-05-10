@@ -73,6 +73,41 @@ module Services =
 
         runIfTradingDay funcToRun
         
+    let corporateActionsRun (_:ILogger) =
+        let funcToRun() =
+            try
+                let actions = StockAnalysisClient.getCorporateActions()
+                let saved = Storage.saveCorporateActions actions
+                Storage.saveJobStatus CorporateActionsJob (ReportsConfig.nowUtcNow()) Success $"{saved} corporate actions fetched and saved successfully." |> ignore
+                
+                // go over each action, and if today is the action date, create alert for it
+                actions
+                |> List.iter (fun action ->
+                    let actionDate = action.Date |> DateTime.Parse
+                    let today = ReportsConfig.now().Date
+                    if actionDate = today then
+                        // see if we have a stock for it
+                        let stock = action.Symbol |> StockTicker.create |> Storage.getStockByTicker
+                        match stock with
+                        | Some stock ->
+                            let alert = { date = actionDate
+                                          sentiment = Neutral
+                                          description = $"Corporate action for {action.Symbol} - {stock.company}, {action.Type}: {action.Action}"
+                                          strength = 0m
+                                          alertType = CorporateActionAlert(action.Symbol, action.Type)
+                                          acknowledged = false }
+                            Storage.saveAlert alert |> ignore
+                        | None ->
+                            ()
+                )
+            with
+            | ex ->
+                let errorMsg = $"Error fetching and saving corporate actions: {ex.Message}"
+                Storage.saveJobStatus CorporateActionsJob (ReportsConfig.nowUtcNow()) Failure errorMsg |> ignore
+                reraise()
+            
+        runIfTradingDay funcToRun
+    
     let alertsRun (logger:ILogger) =
         
         let funcToRun() =

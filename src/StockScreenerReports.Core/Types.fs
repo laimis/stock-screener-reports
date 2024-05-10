@@ -400,6 +400,7 @@ type JobName =
     | EarningsJob
     | CountriesJob
     | AlertsJob
+    | CorporateActionsJob
     
 type Job = {
     name: JobName;
@@ -421,6 +422,7 @@ type AlertType =
     | IndustryAlert of string
     | ScreenerAlert of int
     | IndustryScreenerAlert of string * int
+    | CorporateActionAlert of string * string // ticker, type
     
 type Alert =
     {
@@ -439,6 +441,7 @@ type Alert =
                 | IndustryAlert industry -> $"{nameof(IndustryAlert)}_{industry}"
                 | IndustryScreenerAlert(industry,screenerId) -> $"{nameof(IndustryScreenerAlert)}_{industry}_{screenerId}"
                 | ScreenerAlert screenerId -> $"{nameof(ScreenerAlert)}_{screenerId}"
+                | CorporateActionAlert (ticker,type') -> $"{nameof(CorporateActionAlert)}_{ticker}_{type'}"
                 
             let datePart = this.date.ToString("yyyy-MM-dd")
             
@@ -455,6 +458,7 @@ type Alert =
             | ScreenerAlert id -> Some id
             | IndustryScreenerAlert(_,id) -> Some id
             | _ -> None
+            
 
 type IndustrySequenceType =
     | High
