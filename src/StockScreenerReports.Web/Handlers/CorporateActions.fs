@@ -22,6 +22,15 @@ let handler : HttpHandler =
                 |> Storage.getStockByTickers
                 |> List.map (fun stock -> stock.ticker |> StockTicker.value)
                 |> HashSet
+                
+            // get latest job runs 
+            let missedJobs =
+                Storage.getJobs()
+                |> List.filter (fun job ->
+                    match job.name with
+                    | AlertsJob | CountriesJob | EarningsJob | ScreenerJob | TestJob | TrendsJob -> false
+                    | CorporateActionsJob -> true)
+                |> List.filter Utils.failedJobFilter
             
             let corporateActionRows =
                 corporateActions
@@ -52,8 +61,11 @@ let handler : HttpHandler =
                 | _ ->
                     corporateActionRows |> fullWidthTableWithSortableHeaderCells headerNames
 
+            let warningSection = jobAlertSection missedJobs
+            
             let view = div [_class "content"] [
                 h2 [] [str "Corporate Actions"]
+                warningSection
                 corporateActionsTable
             ]
 

@@ -429,7 +429,11 @@ module Dashboard =
             // get latest job runs
             let missedJobs =
                 Storage.getJobs()
-                |> List.filter (fun job -> job.name = EarningsJob || job.name = ScreenerJob || job.name = TrendsJob)
+                |> List.filter (fun job ->
+                    match job.name with
+                    | EarningsJob | ScreenerJob | TrendsJob | CorporateActionsJob -> true
+                    | AlertsJob | CountriesJob -> true
+                    | TestJob -> false)
                 |> List.filter Utils.failedJobFilter
                 
             let screeners = Storage.getScreeners()

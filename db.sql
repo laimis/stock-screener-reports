@@ -253,3 +253,6 @@ CREATE TABLE corporateactions
     action TEXT NOT NULL,
     UNIQUE (date, symbol, type)
 );
+
+ALTER TABLE alerts ADD COLUMN ticker TEXT NULL;
+ALTER TABLE alerts ADD COLUMN corporateactiontype TEXT NULL;

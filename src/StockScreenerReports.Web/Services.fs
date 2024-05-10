@@ -77,8 +77,15 @@ module Services =
         let funcToRun() =
             try
                 let actions = StockAnalysisClient.getCorporateActions()
-                let saved = Storage.saveCorporateActions actions
-                Storage.saveJobStatus CorporateActionsJob (ReportsConfig.nowUtcNow()) Success $"{saved} corporate actions fetched and saved successfully." |> ignore
+                
+                match actions with
+                | [] ->
+                    // fail if no actions were fetched, something is off
+                    let errorMsg = "No corporate actions found."
+                    Storage.saveJobStatus CorporateActionsJob (ReportsConfig.nowUtcNow()) Failure errorMsg |> ignore
+                | _ ->
+                    let saved = Storage.saveCorporateActions actions
+                    Storage.saveJobStatus CorporateActionsJob (ReportsConfig.nowUtcNow()) Success $"{saved} corporate actions fetched and saved successfully." |> ignore
                 
                 // go over each action, and if today is the action date, create alert for it
                 actions
@@ -314,6 +321,7 @@ module Services =
                             trendsRun logger
                             countriesRun logger
                             alertsRun logger
+                            corporateActionsRun logger
                             logger.LogInformation("Finished running")
                     with
                     | ex -> logger.LogError(ex, "Error running background service")

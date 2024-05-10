@@ -182,7 +182,10 @@ module Cycles =
             // get latest job runs 
             let missedJobs =
                 Storage.getJobs()
-                |> List.filter (fun job -> job.name = TrendsJob)
+                |> List.filter (fun job ->
+                    match job.name with
+                    | AlertsJob | CountriesJob | EarningsJob | ScreenerJob | TestJob | CorporateActionsJob -> false
+                    | TrendsJob -> true)
                 |> List.filter Utils.failedJobFilter
 
             let warningSection = jobAlertSection missedJobs
