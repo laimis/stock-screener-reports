@@ -264,6 +264,8 @@ module Views =
                         div [ _class "navbar-dropdown" ] [
                             generateHrefWithAttr "Countries" Links.countries (_class "navbar-item")
                             generateHrefWithAttr "Earnings" Links.earnings (_class "navbar-item")
+                            generateHrefWithAttr "Corporate Actions" Links.corporateActions (_class "navbar-item")
+                            generateHrefWithAttr "Admin" Links.screeners (_class "navbar-item")
                         ]
                     ]
                 ]

@@ -62,6 +62,7 @@ module Storage =
             | EarningsJob -> "earningsjob"
             | CountriesJob -> "countriesjob"
             | AlertsJob -> "alertsjob"
+            | CorporateActionsJob -> "corporateactionsjob"
 
     let private toJobName jobName =
         match jobName with
@@ -71,6 +72,7 @@ module Storage =
             | "earningsjob" -> EarningsJob
             | "countriesjob" -> CountriesJob
             | "alertsjob" -> AlertsJob
+            | "corporateactionsjob" -> CorporateActionsJob
             | _ -> raise (System.Exception($"Unknown job name: {jobName}"))
     let private toJobStatusString status =
         match status with
@@ -763,11 +765,12 @@ WHERE
         | _ -> failwith $"Unknown sentiment: {str}"
         
     let saveAlert (alert:Alert) =
-        let alertSql = @"INSERT INTO alerts (identifier, alerttype, industry, screenerid, date, sentiment, description, strength)
-                     VALUES (@identifier, @alerttype, @industry, @screenerid, @date, @sentiment::sentiment, @description, @strength)
+        let alertSql = @"INSERT INTO alerts (identifier, alerttype, industry, screenerid, date, sentiment, description, strength, ticker, corporateactiontype)
+                     VALUES (@identifier, @alerttype, @industry, @screenerid, @date, @sentiment::sentiment, @description, @strength, @ticker, @corporateactiontype)
                      ON CONFLICT (identifier) DO UPDATE
                      SET alerttype = @alerttype, industry = @industry, screenerid = @screenerid,
-                         date = @date, sentiment = @sentiment::sentiment, description = @description, strength = @strength"
+                         date = @date, sentiment = @sentiment::sentiment, description = @description, strength = @strength,
+                         ticker = @ticker, corporateactiontype = @corporateactiontype"
 
         let acknowledgementSql = @"INSERT INTO alert_acknowledgements (alert_identifier, acknowledged)
                                VALUES (@identifier, @acknowledged)
@@ -789,6 +792,17 @@ WHERE
             | IndustryAlert _ -> nameof(IndustryAlert)
             | ScreenerAlert _ -> nameof(ScreenerAlert)
             | IndustryScreenerAlert _ -> nameof(IndustryScreenerAlert)
+            | CorporateActionAlert _ -> nameof(CorporateActionAlert)
+            
+        let ticker =
+            match alert.alertType with
+            | CorporateActionAlert (ticker,_) -> ticker |> Sql.string
+            | _ -> Sql.dbnull
+            
+        let corporateActionType =
+            match alert.alertType with
+            | CorporateActionAlert (_,actionType) -> actionType |> Sql.string
+            | _ -> Sql.dbnull
             
         let parameters = [
             "@industry", industry
@@ -800,6 +814,8 @@ WHERE
             "@description", alert.description |> Sql.string
             "@strength", alert.strength |> Sql.decimal
             "@acknowledged", alert.acknowledged |> Sql.bool
+            "@ticker", ticker
+            "@corporateactiontype", corporateActionType
         ]
 
         cnnString
@@ -812,7 +828,7 @@ WHERE
 
     let getAlerts() =
         let sql = @"SELECT a.alerttype, a.industry, a.screenerid, a.date, a.sentiment, a.description, a.strength,
-                       COALESCE(ack.acknowledged, false) AS acknowledged
+                       COALESCE(ack.acknowledged, false) AS acknowledged, a.ticker, a.corporateactiontype
                 FROM alerts a
                 LEFT JOIN alert_acknowledgements ack ON a.identifier = ack.alert_identifier
                 WHERE acknowledged = false"
@@ -823,6 +839,7 @@ WHERE
                 | Some (nameof(IndustryAlert)) -> IndustryAlert (reader.string "industry")
                 | Some (nameof(ScreenerAlert)) -> ScreenerAlert (reader.int "screenerid")
                 | Some (nameof(IndustryScreenerAlert)) -> IndustryScreenerAlert (reader.string "industry", reader.int "screenerid")
+                | Some (nameof(CorporateActionAlert)) -> CorporateActionAlert (reader.string "ticker", reader.string "corporateactiontype")
                 | _ -> failwith "Unknown alert type"
             {
                 date = reader.dateTime "date"
@@ -846,3 +863,40 @@ WHERE
         |> Sql.query sql
         |> Sql.parameters ["@identifier", alert.identifier |> Sql.string]
         |> Sql.executeNonQuery
+        
+    let saveCorporateAction (action:CorporateAction) =
+        let sql = @"INSERT INTO corporateactions (date, symbol, type, action)
+                    VALUES (date(@date), @symbol, @type, @action)
+                    ON CONFLICT (date, symbol, type) DO UPDATE
+                    SET action = @action"
+
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@date", action.Date |> Sql.string
+            "@symbol", action.Symbol |> Sql.string
+            "@type", action.Type |> Sql.string
+            "@action", action.Action |> Sql.string
+        ]
+        |> Sql.executeNonQuery
+
+    let saveCorporateActions (actions:CorporateAction seq) =
+        actions |> Seq.map saveCorporateAction |> Seq.sum
+        
+    let getCorporateActions() = task {
+        let sql = @"SELECT date, symbol, type, action FROM corporateactions ORDER BY date DESC"
+
+        let corporateActionMapper (reader:RowReader) = {
+            Date = reader.dateTime "date" |> Utils.convertToDateString
+            Symbol = reader.string "symbol"
+            Type = reader.string "type"
+            Action = reader.string "action"
+        }
+        
+        return!
+            cnnString
+            |> Sql.connect
+            |> Sql.query sql
+            |> Sql.executeAsync corporateActionMapper
+    }

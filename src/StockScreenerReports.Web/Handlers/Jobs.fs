@@ -26,3 +26,6 @@ module Jobs =
         
     let alerts() =
         Services.alertsRun |> runWithLoggerAndRedirect Links.alerts
+        
+    let corporateActions() =
+        Services.corporateActionsRun |> runWithLoggerAndRedirect Links.corporateActions

@@ -11,7 +11,7 @@ module FinvizClient =
         outputFunc <- f
         FinvizParsing.setOutputFunc f
 
-    let private fetchScreenerHtml (url:string) =
+    let private fetchUrl (url:string) =
         // make ure that we sleep a bit before each request
         System.Threading.Thread.Sleep(SLEEP_BETWEEN_REQUESTS_MS)
         url |> outputFunc 
@@ -21,7 +21,7 @@ module FinvizClient =
     let getResults url =
         let rec fetchPage offset (results:list<ScreenerResult>) =
             let urlToFetch = url + "&r=" + offset.ToString()
-            let htmlDoc = fetchScreenerHtml urlToFetch
+            let htmlDoc = fetchUrl urlToFetch
 
             outputFunc urlToFetch
             
@@ -47,7 +47,7 @@ module FinvizClient =
         fetchPage 1 []
 
     let getResultCount url =
-        url |> fetchScreenerHtml |> FinvizParsing.parseResultCount
+        url |> fetchUrl |> FinvizParsing.parseResultCount
 
     let getResultCountForIndustryAboveAndBelowSMA (sma:SMA) industry =
         let cleaned = industry |> Utils.cleanIndustry

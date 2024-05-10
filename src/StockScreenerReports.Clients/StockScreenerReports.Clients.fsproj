@@ -2,10 +2,12 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RootNamespace>StockScreenerReports.FinvizClient</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="FinvizParsing.fs" />
     <Compile Include="FinvizClient.fs" />
+    <Compile Include="StockAnalysisClient.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\StockScreenerReports.Core\StockScreenerReports.Core.fsproj" />
