@@ -8,9 +8,9 @@ module Services =
     open System
     open System.Collections.Generic
 
-    let runIfTradingDay func =
+    let runIfTradingDay forced func =
         let isTradingDay = ReportsConfig.now().Date |> ReportsConfig.isTradingDay
-        match isTradingDay with
+        match isTradingDay || forced with
         | true -> func()
         | false -> ()
 
@@ -52,7 +52,7 @@ module Services =
             
             Storage.saveJobStatus ScreenerJob (ReportsConfig.nowUtcNow()) status message |> ignore
 
-        runIfTradingDay funcToRun
+        runIfTradingDay false funcToRun
 
     let earningsRun (logger:ILogger) =
         
@@ -71,9 +71,9 @@ module Services =
 
             Storage.saveJobStatus EarningsJob (ReportsConfig.nowUtcNow()) Success message |> ignore
 
-        runIfTradingDay funcToRun
+        runIfTradingDay false funcToRun
         
-    let corporateActionsRun (_:ILogger) =
+    let corporateActionsRun forced (_:ILogger) =
         let funcToRun() =
             try
                 let actions = StockAnalysisClient.getCorporateActions()
@@ -101,7 +101,7 @@ module Services =
                                           sentiment = Neutral
                                           description = $"Corporate action for {action.Symbol} - {stock.company}, {action.Type}: {action.Action}"
                                           strength = 0m
-                                          alertType = CorporateActionAlert(action.Symbol, action.Type)
+                                          alertType = CorporateActionAlert(action.Symbol)
                                           acknowledged = false }
                             Storage.saveAlert alert |> ignore
                         | None ->
@@ -113,7 +113,7 @@ module Services =
                 Storage.saveJobStatus CorporateActionsJob (ReportsConfig.nowUtcNow()) Failure errorMsg |> ignore
                 reraise()
             
-        runIfTradingDay funcToRun
+        runIfTradingDay forced funcToRun
     
     let alertsRun (logger:ILogger) =
         
@@ -161,7 +161,7 @@ module Services =
             
             Storage.saveJobStatus AlertsJob (ReportsConfig.nowUtcNow()) Success message |> ignore
             
-        runIfTradingDay funcToRun
+        runIfTradingDay false funcToRun
 
     let countriesRun (logger:ILogger) =
         
@@ -199,7 +199,7 @@ module Services =
             |> ignore
             
         try
-            runIfTradingDay funcToRun
+            runIfTradingDay false funcToRun
         with
         | ex -> 
             let message = $"Error running countries: {ex.Message}"
@@ -265,7 +265,7 @@ module Services =
             |> ignore
 
         try
-            runIfTradingDay funcToRun
+            runIfTradingDay false funcToRun
         with
         | ex -> 
             let message = $"Error running trends: {ex.Message}"
@@ -321,7 +321,7 @@ module Services =
                             trendsRun logger
                             countriesRun logger
                             alertsRun logger
-                            corporateActionsRun logger
+                            corporateActionsRun false logger
                             logger.LogInformation("Finished running")
                     with
                     | ex -> logger.LogError(ex, "Error running background service")

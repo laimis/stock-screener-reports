@@ -43,7 +43,7 @@ let handler : HttpHandler =
                     [
                         DateColumn(action.Date |> Utils.convertToDateTime)
                         symbolColumn
-                        StringColumn(action.Type)
+                        StringColumn(action.TypeName)
                         StringColumn(action.Action)
                     ] |> toTr
                 )

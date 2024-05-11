@@ -28,4 +28,4 @@ module Jobs =
         Services.alertsRun |> runWithLoggerAndRedirect Links.alerts
         
     let corporateActions() =
-        Services.corporateActionsRun |> runWithLoggerAndRedirect Links.corporateActions
+        Services.corporateActionsRun true |> runWithLoggerAndRedirect Links.corporateActions

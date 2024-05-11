@@ -796,13 +796,9 @@ WHERE
             
         let ticker =
             match alert.alertType with
-            | CorporateActionAlert (ticker,_) -> ticker |> Sql.string
+            | CorporateActionAlert ticker -> ticker |> Sql.string
             | _ -> Sql.dbnull
             
-        let corporateActionType =
-            match alert.alertType with
-            | CorporateActionAlert (_,actionType) -> actionType |> Sql.string
-            | _ -> Sql.dbnull
             
         let parameters = [
             "@industry", industry
@@ -815,7 +811,6 @@ WHERE
             "@strength", alert.strength |> Sql.decimal
             "@acknowledged", alert.acknowledged |> Sql.bool
             "@ticker", ticker
-            "@corporateactiontype", corporateActionType
         ]
 
         cnnString
@@ -828,7 +823,7 @@ WHERE
 
     let getAlerts() =
         let sql = @"SELECT a.alerttype, a.industry, a.screenerid, a.date, a.sentiment, a.description, a.strength,
-                       COALESCE(ack.acknowledged, false) AS acknowledged, a.ticker, a.corporateactiontype
+                       COALESCE(ack.acknowledged, false) AS acknowledged, a.ticker
                 FROM alerts a
                 LEFT JOIN alert_acknowledgements ack ON a.identifier = ack.alert_identifier
                 WHERE acknowledged = false"
@@ -839,7 +834,7 @@ WHERE
                 | Some (nameof(IndustryAlert)) -> IndustryAlert (reader.string "industry")
                 | Some (nameof(ScreenerAlert)) -> ScreenerAlert (reader.int "screenerid")
                 | Some (nameof(IndustryScreenerAlert)) -> IndustryScreenerAlert (reader.string "industry", reader.int "screenerid")
-                | Some (nameof(CorporateActionAlert)) -> CorporateActionAlert (reader.string "ticker", reader.string "corporateactiontype")
+                | Some (nameof(CorporateActionAlert)) -> CorporateActionAlert (reader.string "ticker")
                 | _ -> failwith "Unknown alert type"
             {
                 date = reader.dateTime "date"
@@ -863,6 +858,32 @@ WHERE
         |> Sql.query sql
         |> Sql.parameters ["@identifier", alert.identifier |> Sql.string]
         |> Sql.executeNonQuery
+    
+    let corporateActionTypeConverterToDb (corporateActionType:CorporateActionType) =
+        
+        match corporateActionType with
+        | Acquisition -> nameof(CorporateActionType.Acquisition)
+        | Bankruptcy -> nameof(CorporateActionType.Bankruptcy)
+        | Delisted -> nameof(CorporateActionType.Delisted)
+        | Listed -> nameof(CorporateActionType.Listed)
+        | Spinoff -> nameof(CorporateActionType.Spinoff)
+        | StockSplit (numerator, denominator) -> $"{nameof(CorporateActionType.StockSplit)}_{numerator}_{denominator}"
+        | SymbolChange (oldSymbol, newSymbol) -> $"{nameof(CorporateActionType.SymbolChange)}_{oldSymbol}_{newSymbol}"
+        
+    let corporateActionTypeConverterFromDb (corporateActionType:string) =
+        
+        let parts = corporateActionType.Split("_")
+        let type' = parts[0]
+        
+        match type' with
+        | nameof(CorporateActionType.Acquisition) -> Acquisition
+        | nameof(CorporateActionType.Bankruptcy) -> Bankruptcy
+        | nameof(CorporateActionType.Delisted) -> Delisted
+        | nameof(CorporateActionType.Listed) -> Listed
+        | nameof(CorporateActionType.Spinoff) -> Spinoff
+        | nameof(CorporateActionType.StockSplit) -> StockSplit(parts[1] |> System.Decimal.Parse, parts[2] |> System.Decimal.Parse)
+        | nameof(CorporateActionType.SymbolChange) -> SymbolChange(parts[1], parts[2])
+        | _ -> failwith $"Unknown corporate action type: {type'}"
         
     let saveCorporateAction (action:CorporateAction) =
         let sql = @"INSERT INTO corporateactions (date, symbol, type, action)
@@ -876,7 +897,7 @@ WHERE
         |> Sql.parameters [
             "@date", action.Date |> Sql.string
             "@symbol", action.Symbol |> Sql.string
-            "@type", action.Type |> Sql.string
+            "@type", action.Type |> corporateActionTypeConverterToDb |> Sql.string
             "@action", action.Action |> Sql.string
         ]
         |> Sql.executeNonQuery
@@ -885,12 +906,14 @@ WHERE
         actions |> Seq.map saveCorporateAction |> Seq.sum
     
     let private GetCorporateActionsByQuery sql parameters = task {
-        let corporateActionMapper (reader:RowReader) = {
-            Date = reader.dateTime "date" |> Utils.convertToDateString
-            Symbol = reader.string "symbol"
-            Type = reader.string "type"
-            Action = reader.string "action"
-        }
+        
+        let corporateActionMapper (reader:RowReader) =
+            {
+                Date = reader.dateTime "date" |> Utils.convertToDateString
+                Symbol = reader.string "symbol"
+                Type = "type" |> reader.string |> corporateActionTypeConverterFromDb
+                Action = reader.string "action"
+            }
         
         return!
             cnnString

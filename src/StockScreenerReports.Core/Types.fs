@@ -422,7 +422,7 @@ type AlertType =
     | IndustryAlert of string
     | ScreenerAlert of int
     | IndustryScreenerAlert of string * int
-    | CorporateActionAlert of string * string // ticker, type
+    | CorporateActionAlert of string
     
 type Alert =
     {
@@ -441,7 +441,7 @@ type Alert =
                 | IndustryAlert industry -> $"{nameof(IndustryAlert)}_{industry}"
                 | IndustryScreenerAlert(industry,screenerId) -> $"{nameof(IndustryScreenerAlert)}_{industry}_{screenerId}"
                 | ScreenerAlert screenerId -> $"{nameof(ScreenerAlert)}_{screenerId}"
-                | CorporateActionAlert (ticker,type') -> $"{nameof(CorporateActionAlert)}_{ticker}_{type'}"
+                | CorporateActionAlert ticker -> $"{nameof(CorporateActionAlert)}_{ticker}"
                 
             let datePart = this.date.ToString("yyyy-MM-dd")
             
@@ -483,9 +483,28 @@ type IndustrySequence = {
         member private this.age = this.end'.date - this.start.date
         member this.ageInDays = this.age.TotalDays |> Math.Floor |> int |> (+) 1
         
+type CorporateActionType =
+    | Acquisition
+    | Bankruptcy
+    | Delisted
+    | Listed
+    | Spinoff
+    | StockSplit of OldShares:decimal * NewShares:decimal
+    | SymbolChange of OldSymbol:string * NewSymbol:string
+    
 type CorporateAction = {
     Date: string
     Symbol: string
-    Type: string
+    Type: CorporateActionType
     Action: string
 }
+    with
+        member this.TypeName =
+            match this.Type with
+            | Acquisition -> "Acquisition"
+            | Bankruptcy -> "Bankruptcy"
+            | Delisted -> "Delisted"
+            | Listed -> "Listed"
+            | Spinoff -> "Spinoff"
+            | StockSplit _ -> "Stock Split"
+            | SymbolChange _ -> "Symbol Change"

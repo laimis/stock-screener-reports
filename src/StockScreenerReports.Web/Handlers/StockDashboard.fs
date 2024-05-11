@@ -44,7 +44,7 @@ module StockDashboard =
         let corporateActionToRow (corporateAction:CorporateAction) =
             [
                 StringColumn(corporateAction.Date)
-                StringColumn(corporateAction.Type)
+                StringColumn(corporateAction.TypeName)
                 StringColumn(corporateAction.Action)
             ] |> toTr
 
