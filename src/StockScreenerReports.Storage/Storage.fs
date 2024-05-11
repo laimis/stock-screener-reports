@@ -883,10 +883,8 @@ WHERE
 
     let saveCorporateActions (actions:CorporateAction seq) =
         actions |> Seq.map saveCorporateAction |> Seq.sum
-        
-    let getCorporateActions() = task {
-        let sql = @"SELECT date, symbol, type, action FROM corporateactions ORDER BY date DESC"
-
+    
+    let private GetCorporateActionsByQuery sql parameters = task {
         let corporateActionMapper (reader:RowReader) = {
             Date = reader.dateTime "date" |> Utils.convertToDateString
             Symbol = reader.string "symbol"
@@ -898,5 +896,14 @@ WHERE
             cnnString
             |> Sql.connect
             |> Sql.query sql
+            |> Sql.parameters parameters
             |> Sql.executeAsync corporateActionMapper
     }
+    
+    let getCorporateActions() = 
+        let sql = @"SELECT date, symbol, type, action FROM corporateactions ORDER BY date DESC"
+        GetCorporateActionsByQuery sql []
+    
+    let getCorporateActionsForTicker (ticker:StockTicker.T) =
+        let sql = @"SELECT date, symbol, type, action FROM corporateactions WHERE symbol = @symbol ORDER BY date DESC"
+        GetCorporateActionsByQuery sql ["@symbol", ticker |> StockTicker.value |> Sql.string]
