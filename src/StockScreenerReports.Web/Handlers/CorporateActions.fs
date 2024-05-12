@@ -8,9 +8,15 @@ open Giraffe.ViewEngine.Attributes
 open Giraffe.ViewEngine.HtmlElements
 open StockScreenerReports.Storage
 open StockScreenerReports.Web.Services
+open StockScreenerReports.Web.Shared
 open StockScreenerReports.Web.Shared.Utils
 open StockScreenerReports.Web.Shared.Views
 open Giraffe
+
+let private actionToTickers a =
+    match a.Type with
+    | CorporateActionType.SymbolChange (oldS, newS) -> [oldS; newS]
+    | _ -> [a.Symbol]
 
 let handler : HttpHandler =
     fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
@@ -19,7 +25,8 @@ let handler : HttpHandler =
 
             let stocks =
                 corporateActions
-                |> List.map (_.Symbol)
+                |> List.map actionToTickers
+                |> List.concat
                 |> List.distinct
                 |> Storage.getStockByTickers
                 |> List.map (fun stock -> stock.ticker |> StockTicker.value)
@@ -37,14 +44,19 @@ let handler : HttpHandler =
             let corporateActionRows =
                 corporateActions
                 |> List.map (fun action ->
-                    let symbolColumn =
-                        match stocks.Contains action.Symbol with
-                        | true -> TickerLinkColumn(action.Symbol)
-                        | false -> StringColumn(action.Symbol)
+                    
+                    let tickerLinks =
+                        action |> actionToTickers |> List.map (fun ticker ->
+                            match stocks.Contains ticker with
+                            | false -> span [_class "mr-2"] [str ticker]
+                            | true ->
+                                let link = Links.stockLink ticker
+                                a [_href link; _class "mr-2"] [str ticker]
+                        )
                         
                     [
                         DateColumn(action.Date)
-                        symbolColumn
+                        NodeColumn(div [] tickerLinks)
                         StringColumn(action.TypeName)
                         StringColumn(action.Action)
                     ] |> toTr
@@ -79,7 +91,7 @@ let delistingProcessing : HttpHandler =
         task {
         
             let processor = CorporateActionProcessor(ctx.GetService<ILogger<CorporateActionProcessor>>())
-            let! stocks,recordsDeleted = processor.Process()
+            let! stocks,recordsDeleted = processor.BankruptyDelistings()
             
             let view = div [_class "content"] [
                 h2 [] [str "Delisting Processing"]

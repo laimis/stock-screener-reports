@@ -303,7 +303,7 @@ module Services =
 
     type CorporateActionProcessor(logger:ILogger<CorporateActionProcessor>) =
         
-        member this.Process() = task {
+        member this.BankruptyDelistings() = task {
             
             // actions for the day
             let! actions = Storage.getCorporateActions()
