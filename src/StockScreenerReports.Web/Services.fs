@@ -91,7 +91,7 @@ module Services =
                 actions
                 |> List.iter (fun action ->
                     let actionDate = action.Date.Date
-                    let today = ReportsConfig.now().Dgate
+                    let today = ReportsConfig.now().Date
                     if actionDate = today then
                         // see if we have a stock for it
                         let stock = action.Symbol |> StockTicker.create |> Storage.getStockByTicker
