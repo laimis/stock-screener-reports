@@ -8,11 +8,12 @@ module Services =
     open System
     open System.Collections.Generic
 
-    let runIfTradingDay forced func =
+    let runIfTradingDay forced func = task {
         let isTradingDay = ReportsConfig.now().Date |> ReportsConfig.isTradingDay
         match isTradingDay || forced with
-        | true -> func()
+        | true -> do! func()
         | false -> ()
+    }
 
     let screenerRun (logger:ILogger) =
         let fetchScreenerResults (input:Screener) =
@@ -27,7 +28,7 @@ module Services =
             |> List.iter (fun x -> Storage.saveScreenerResults date x)
             screenerResults
 
-        let funcToRun() =
+        let funcToRun() = task {
             let results =
                 Storage.getScreeners()
                 |> List.map fetchScreenerResults
@@ -51,12 +52,13 @@ module Services =
                     )
             
             Storage.saveJobStatus ScreenerJob (ReportsConfig.nowUtcNow()) status message |> ignore
-
+        }
+        
         runIfTradingDay false funcToRun
 
     let earningsRun (logger:ILogger) =
         
-        let funcToRun() =
+        let funcToRun() = task {
             let earnings = FinvizClient.getEarnings()
 
             let message = $"Ran {earnings.Length} earnings successfully"
@@ -70,11 +72,12 @@ module Services =
                 )
 
             Storage.saveJobStatus EarningsJob (ReportsConfig.nowUtcNow()) Success message |> ignore
-
+        }
+        
         runIfTradingDay false funcToRun
         
     let corporateActionsRun forced (_:ILogger) =
-        let funcToRun() =
+        let funcToRun() = task {
             try
                 let actions = StockAnalysisClient.getCorporateActions()
                 
@@ -86,38 +89,17 @@ module Services =
                 | _ ->
                     let saved = Storage.saveCorporateActions actions
                     Storage.saveJobStatus CorporateActionsJob (ReportsConfig.nowUtcNow()) Success $"{saved} corporate actions fetched and saved successfully." |> ignore
-                
-                // go over each action, and if today is the action date, create alert for it
-                actions
-                |> List.iter (fun action ->
-                    let actionDate = action.Date.Date
-                    let today = ReportsConfig.now().Date
-                    if actionDate = today then
-                        // see if we have a stock for it
-                        let stock = action.Symbol |> StockTicker.create |> Storage.getStockByTicker
-                        match stock with
-                        | Some stock ->
-                            let alert = { date = actionDate
-                                          sentiment = Neutral
-                                          description = $"Corporate action for {action.Symbol} - {stock.company}, {action.Type}: {action.Action}"
-                                          strength = 0m
-                                          alertType = CorporateActionAlert(action.Symbol)
-                                          acknowledged = false }
-                            Storage.saveAlert alert |> ignore
-                        | None ->
-                            ()
-                )
             with
             | ex ->
                 let errorMsg = $"Error fetching and saving corporate actions: {ex.Message}"
                 Storage.saveJobStatus CorporateActionsJob (ReportsConfig.nowUtcNow()) Failure errorMsg |> ignore
-                reraise()
-            
+        }
+        
         runIfTradingDay forced funcToRun
     
     let alertsRun (logger:ILogger) =
         
-        let funcToRun() =
+        let funcToRun() = task {
             
             let screeners = Storage.getScreeners()
             
@@ -155,17 +137,50 @@ module Services =
                 |> List.map Storage.saveAlert
                 |> List.sum
                 
-            let message = $"Generated {screenerAlerts} screener alerts and {sequenceAlerts} sequence alerts"
+            // see if there are corporate actions one might take a look at
+            let! corporateActions = ReportsConfig.now() |> Storage.getCorporateActionsForDate
+                
+            let alerts =
+                corporateActions
+                |> List.map (fun (action:CorporateAction) ->
+                    let stockSymbolToLookup =
+                        match action.Type with
+                        | SymbolChange (oldSymbol, _) -> oldSymbol
+                        | _ -> action.Symbol
+                        
+                    let stock = stockSymbolToLookup |> StockTicker.create |> Storage.getStockByTicker
+                    match stock with
+                    | Some stock -> Some (stock, action)
+                    | None -> None
+                )
+                |> List.choose id
+                |> List.map ( fun (stock, action) ->
+                    {
+                          date = action.Date
+                          sentiment = Neutral
+                          description = $"Corporate action for {action.Symbol} - {stock.company}, {action.Type}: {action.Action}"
+                          strength = 0m
+                          alertType = CorporateActionAlert(action.Symbol)
+                          acknowledged = false
+                    }
+                )
+            
+            alerts
+            |> List.map Storage.saveAlert
+            |> ignore
+                    
+            let message = $"Generated {screenerAlerts} screener alerts, {sequenceAlerts} sequence alerts, and {alerts.Length} corporate action alerts"
             
             logger.LogInformation(message)
             
             Storage.saveJobStatus AlertsJob (ReportsConfig.nowUtcNow()) Success message |> ignore
-            
+        }
+        
         runIfTradingDay false funcToRun
 
     let countriesRun (logger:ILogger) =
         
-        let funcToRun () =
+        let funcToRun () = task {
             
             let date = Utils.getRunDate()
             
@@ -197,17 +212,12 @@ module Services =
                 Success
                 $"Updated sma breakdowns for {countriesUpdated} countries"
             |> ignore
-            
-        try
-            runIfTradingDay false funcToRun
-        with
-        | ex -> 
-            let message = $"Error running countries: {ex.Message}"
-            logger.LogError(ex, message)
-            Storage.saveJobStatus CountriesJob (ReportsConfig.nowUtcNow()) Failure message |> ignore
+        }
+        
+        runIfTradingDay false funcToRun
             
     let trendsRun (logger:ILogger) =
-        let funcToRun() =
+        let funcToRun() = task {
             let date = Utils.getRunDate()
 
             logger.LogInformation($"Running trends for {date}")
@@ -263,14 +273,9 @@ module Services =
                 Success
                 $"Updated sma breakdowns for {industriesUpdated} industries and calculated {trendsUpdated} trends"
             |> ignore
-
-        try
-            runIfTradingDay false funcToRun
-        with
-        | ex -> 
-            let message = $"Error running trends: {ex.Message}"
-            logger.LogError(ex, message)
-            Storage.saveJobStatus TrendsJob (ReportsConfig.nowUtcNow()) Failure message |> ignore
+        }
+        
+        runIfTradingDay false funcToRun
 
     // background service class
     type BackgroundService(logger:ILogger<BackgroundService>) =
@@ -291,7 +296,6 @@ module Services =
         override _.ExecuteAsync(cancellationToken) =
             task {
                 while cancellationToken.IsCancellationRequested |> not do
-                    
                         
                 logger.LogInformation("---- background service")
                 let now = ReportsConfig.now()
@@ -316,12 +320,12 @@ module Services =
                         else
                             logger.LogInformation("Running")
                             runTracker.Add(runDate) |> ignore
-                            screenerRun logger
-                            earningsRun logger
-                            trendsRun logger
-                            countriesRun logger
-                            alertsRun logger
-                            corporateActionsRun false logger
+                            do! screenerRun logger
+                            do! earningsRun logger
+                            do! trendsRun logger
+                            do! countriesRun logger
+                            do! corporateActionsRun false logger
+                            do! alertsRun logger
                             logger.LogInformation("Finished running")
                     with
                     | ex -> logger.LogError(ex, "Error running background service")

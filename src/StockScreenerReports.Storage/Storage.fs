@@ -930,3 +930,7 @@ WHERE
     let getCorporateActionsForTicker (ticker:StockTicker.T) =
         let sql = @"SELECT date, symbol, type, action FROM corporateactions WHERE symbol = @symbol ORDER BY date DESC"
         GetCorporateActionsByQuery sql ["@symbol", ticker |> StockTicker.value |> Sql.string]
+        
+    let getCorporateActionsForDate (date:System.DateTime) =
+        let sql = @"SELECT date, symbol, type, action FROM corporateactions WHERE date = date(@date) ORDER BY symbol"
+        GetCorporateActionsByQuery sql ["@date", date |> Sql.date]
