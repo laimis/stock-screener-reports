@@ -518,6 +518,9 @@ module Views =
                     p [] [
                         str $"Job {job.name} failed with message: {job.message}"
                     ]
+                | Skipped ->
+                    // fail here as we should not have skipped jobs in the missed jobs list
+                    failwith "Skipped jobs should not be stored"
 
         match missedJobs with
         | [] -> div [] []

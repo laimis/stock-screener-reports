@@ -1,16 +1,21 @@
 namespace StockScreenerReports.Web.Handlers
 
+open StockScreenerReports.Core
+open StockScreenerReports.Web.Shared.Utils
+
 module Jobs =
     open StockScreenerReports.Web
     open StockScreenerReports.Web.Shared.Utils
     open Giraffe
     open StockScreenerReports.Web.Shared
 
-    let logger = new DummyLogger()
+    let logger = DummyLogger()
     
-    let private runWithLoggerAndRedirect url func =
-        func logger
-        redirectTo false url
+    let private runWithLoggerAndRedirect url (func:DummyLogger -> System.Threading.Tasks.Task<JobStatus>) : HttpHandler =
+        fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) -> task {
+            let! _ = func logger // TODO: don't redirect if failed, show the failure
+            return! redirectTo false url next ctx
+        }
 
     let screeners() =
         Services.screenerRun |> runWithLoggerAndRedirect "/"

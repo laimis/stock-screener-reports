@@ -392,6 +392,7 @@ type JobStatus =
     | Success
     | Warning
     | Failure
+    | Skipped
 
 type JobName =
     | ScreenerJob

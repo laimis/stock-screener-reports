@@ -10,9 +10,10 @@ module Services =
 
     let runIfTradingDay forced func = task {
         let isTradingDay = ReportsConfig.now().Date |> ReportsConfig.isTradingDay
+        
         match isTradingDay || forced with
-        | true -> do! func()
-        | false -> ()
+        | true -> return! func()
+        | false -> return Skipped
     }
 
     let screenerRun (logger:ILogger) =
@@ -52,6 +53,8 @@ module Services =
                     )
             
             Storage.saveJobStatus ScreenerJob (ReportsConfig.nowUtcNow()) status message |> ignore
+            
+            return status
         }
         
         runIfTradingDay false funcToRun
@@ -71,7 +74,11 @@ module Services =
                     Storage.saveEarningsDate ticker (Utils.getRunDate()) earningsTime |> ignore
                 )
 
-            Storage.saveJobStatus EarningsJob (ReportsConfig.nowUtcNow()) Success message |> ignore
+            let jobStatus = Success
+            
+            Storage.saveJobStatus EarningsJob (ReportsConfig.nowUtcNow()) jobStatus message |> ignore
+            
+            return jobStatus
         }
         
         runIfTradingDay false funcToRun
@@ -85,14 +92,21 @@ module Services =
                 | [] ->
                     // fail if no actions were fetched, something is off
                     let errorMsg = "No corporate actions found."
-                    Storage.saveJobStatus CorporateActionsJob (ReportsConfig.nowUtcNow()) Failure errorMsg |> ignore
+                    let status = Failure
+                    Storage.saveJobStatus CorporateActionsJob (ReportsConfig.nowUtcNow()) status errorMsg |> ignore
+                    return status
                 | _ ->
                     let saved = Storage.saveCorporateActions actions
-                    Storage.saveJobStatus CorporateActionsJob (ReportsConfig.nowUtcNow()) Success $"{saved} corporate actions fetched and saved successfully." |> ignore
+                    let status = Success
+                    Storage.saveJobStatus CorporateActionsJob (ReportsConfig.nowUtcNow()) status $"{saved} corporate actions fetched and saved successfully." |> ignore
+                    return status
+                    
             with
             | ex ->
                 let errorMsg = $"Error fetching and saving corporate actions: {ex.Message}"
-                Storage.saveJobStatus CorporateActionsJob (ReportsConfig.nowUtcNow()) Failure errorMsg |> ignore
+                let status = Failure
+                Storage.saveJobStatus CorporateActionsJob (ReportsConfig.nowUtcNow()) status errorMsg |> ignore
+                return status
         }
         
         runIfTradingDay forced funcToRun
@@ -173,7 +187,11 @@ module Services =
             
             logger.LogInformation(message)
             
-            Storage.saveJobStatus AlertsJob (ReportsConfig.nowUtcNow()) Success message |> ignore
+            let status = Success
+            
+            Storage.saveJobStatus AlertsJob (ReportsConfig.nowUtcNow()) status message |> ignore
+            
+            return status
         }
         
         runIfTradingDay false funcToRun
@@ -206,12 +224,14 @@ module Services =
                 )
                 |> Seq.length
                 
+            let status = Success
             Storage.saveJobStatus
                 CountriesJob
                 (ReportsConfig.nowUtcNow())
-                Success
+                status
                 $"Updated sma breakdowns for {countriesUpdated} countries"
             |> ignore
+            return status
         }
         
         runIfTradingDay false funcToRun
@@ -267,12 +287,16 @@ module Services =
                     
                 ) |> Seq.sum
 
+            let status = Success
+            
             Storage.saveJobStatus
                 TrendsJob
                 (ReportsConfig.nowUtcNow())
-                Success
+                status
                 $"Updated sma breakdowns for {industriesUpdated} industries and calculated {trendsUpdated} trends"
             |> ignore
+            
+            return status
         }
         
         runIfTradingDay false funcToRun
@@ -320,12 +344,13 @@ module Services =
                         else
                             logger.LogInformation("Running")
                             runTracker.Add(runDate) |> ignore
-                            do! screenerRun logger
-                            do! earningsRun logger
-                            do! trendsRun logger
-                            do! countriesRun logger
-                            do! corporateActionsRun false logger
-                            do! alertsRun logger
+                            
+                            let! _ = screenerRun logger
+                            let! _ = earningsRun logger
+                            let! _ = trendsRun logger
+                            let! _ = countriesRun logger
+                            let! _ = corporateActionsRun false logger
+                            let! _ = alertsRun logger
                             logger.LogInformation("Finished running")
                     with
                     | ex -> logger.LogError(ex, "Error running background service")

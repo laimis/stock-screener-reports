@@ -357,6 +357,7 @@ module ScreenerManagement =
                     | Success -> ""
                     | Warning -> "has-text-warning-dark"
                     | Failure -> "has-text-danger-dark"
+                    | Skipped -> failwith "Skipped jobs should not be stored"
 
                 tr [_class classToSet] [
                     StringColumn(job.name.ToString()) |> toTd
