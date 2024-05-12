@@ -1,5 +1,6 @@
 module StockScreenerReports.FinvizClient.StockAnalysisClient
 
+open System
 open System.Text.RegularExpressions
 open StockScreenerReports.Core
 
@@ -62,7 +63,7 @@ let getCorporateActions() =
             | _ -> failwith "Unknown corporate action type"
 
         {
-            Date = date
+            Date = date |> DateTime.Parse
             Symbol = symbol
             Type = corporateActionType
             Action = action

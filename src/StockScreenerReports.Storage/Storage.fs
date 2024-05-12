@@ -895,7 +895,7 @@ WHERE
         |> Sql.connect
         |> Sql.query sql
         |> Sql.parameters [
-            "@date", action.Date |> Sql.string
+            "@date", action.Date |> Sql.date
             "@symbol", action.Symbol |> Sql.string
             "@type", action.Type |> corporateActionTypeConverterToDb |> Sql.string
             "@action", action.Action |> Sql.string
@@ -909,7 +909,7 @@ WHERE
         
         let corporateActionMapper (reader:RowReader) =
             {
-                Date = reader.dateTime "date" |> Utils.convertToDateString
+                Date = reader.dateTime "date"
                 Symbol = reader.string "symbol"
                 Type = "type" |> reader.string |> corporateActionTypeConverterFromDb
                 Action = reader.string "action"

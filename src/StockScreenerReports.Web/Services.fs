@@ -90,8 +90,8 @@ module Services =
                 // go over each action, and if today is the action date, create alert for it
                 actions
                 |> List.iter (fun action ->
-                    let actionDate = action.Date |> DateTime.Parse
-                    let today = ReportsConfig.now().Date
+                    let actionDate = action.Date.Date
+                    let today = ReportsConfig.now().Dgate
                     if actionDate = today then
                         // see if we have a stock for it
                         let stock = action.Symbol |> StockTicker.create |> Storage.getStockByTicker

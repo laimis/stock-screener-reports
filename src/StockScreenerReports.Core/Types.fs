@@ -493,7 +493,7 @@ type CorporateActionType =
     | SymbolChange of OldSymbol:string * NewSymbol:string
     
 type CorporateAction = {
-    Date: string
+    Date: DateTime
     Symbol: string
     Type: CorporateActionType
     Action: string
