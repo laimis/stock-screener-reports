@@ -301,6 +301,39 @@ module Services =
         
         runIfTradingDay false funcToRun
 
+    type CorporateActionProcessor(logger:ILogger<CorporateActionProcessor>) =
+        
+        member this.Process() = task {
+            
+            // actions for the day
+            let! actions = Storage.getCorporateActions()
+            
+            // group it by symbol
+            let actionsBySymbol = actions |> List.groupBy (fun a -> a.Symbol,a.Date)
+            
+            // go over each group, and the group that has Delisted and symbol change, take the old symbol and delete it from our db
+            let stocksToDelete =
+                actionsBySymbol
+                |> List.map (fun (_, actions) ->
+                    let delisted = actions |> List.tryFind (fun x -> x.Type = Delisted)
+                    let symbolChange = actions |> List.tryFind (fun x -> match x.Type with | SymbolChange _ -> true | _ -> false)
+                    let bankrupcy = actions |> List.tryFind (fun x -> x.Type = Bankruptcy)
+                    (delisted, symbolChange, bankrupcy)
+                )
+                |> List.filter (fun (delisted, symbolChange, bankruptcy) -> delisted.IsSome && symbolChange.IsSome && bankruptcy.IsSome)
+                |> List.map (fun (_, symbolChange, _) -> match symbolChange.Value.Type with | SymbolChange(oldSymbol, _) -> oldSymbol | _ -> failwith "Invalid symbol change")
+                |> List.map (fun x -> x |> StockTicker.create |> Storage.getStockByTicker)
+                |> List.choose id
+                
+            let recordsDeleted =
+                stocksToDelete
+                |> List.map Storage.deleteStock
+                |> List.concat
+                |> List.sum
+
+            return stocksToDelete, recordsDeleted
+        }
+            
     // background service class
     type BackgroundService(logger:ILogger<BackgroundService>) =
         inherit Microsoft.Extensions.Hosting.BackgroundService()

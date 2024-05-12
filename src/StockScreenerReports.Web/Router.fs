@@ -2,6 +2,7 @@ namespace StockScreenerReports.Web
 
 open Giraffe
 open Microsoft.AspNetCore.Http
+open StockScreenerReports.Core
 open StockScreenerReports.Web.Handlers
 open StockScreenerReports.Web.Shared
 
@@ -70,6 +71,7 @@ module Router =
                         route "/screeners/diagnostics" >=> warbler (fun _ -> ScreenerManagement.checkScannerHandler())
                         
                         route Links.corporateActions >=> CorporateActions.handler
+                        route Links.corporateActionsDelisting  >=> CorporateActions.delistingProcessing
 
                 ]
             POST >=>

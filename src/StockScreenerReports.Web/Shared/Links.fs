@@ -78,6 +78,7 @@ module Links =
     let alerts = "/alerts"
     let cycles = "/cycles"
     let corporateActions = "/corporateActions"
+    let corporateActionsDelisting = "/corporateActions/delisting"
 
     let jobsScreeners = "/jobs/screeners"
     let jobsEarnings = "/jobs/earnings"

@@ -2,11 +2,13 @@ module StockScreenerReports.Web.Handlers.CorporateActions
 
 
 open System.Collections.Generic
+open Microsoft.Extensions.Logging
 open StockScreenerReports.Core
 open Giraffe.ViewEngine.Attributes
 open Giraffe.ViewEngine.HtmlElements
 open StockScreenerReports.Storage
-open StockScreenerReports.Web.Shared
+open StockScreenerReports.Web.Services
+open StockScreenerReports.Web.Shared.Utils
 open StockScreenerReports.Web.Shared.Views
 open Giraffe
 
@@ -30,7 +32,7 @@ let handler : HttpHandler =
                     match job.name with
                     | AlertsJob | CountriesJob | EarningsJob | ScreenerJob | TestJob | TrendsJob -> false
                     | CorporateActionsJob -> true)
-                |> List.filter Utils.failedJobFilter
+                |> List.filter failedJobFilter
             
             let corporateActionRows =
                 corporateActions
@@ -70,4 +72,23 @@ let handler : HttpHandler =
             ]
 
             return! ([ view ] |> mainLayout "Corporate Actions Dashboard") next ctx
+        }
+        
+let delistingProcessing : HttpHandler =
+    fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
+        task {
+        
+            let processor = CorporateActionProcessor(ctx.GetService<ILogger<CorporateActionProcessor>>())
+            let! stocks,recordsDeleted = processor.Process()
+            
+            let view = div [_class "content"] [
+                h2 [] [str "Delisting Processing"]
+                p [] [str "Delisting processing has been initiated"]
+                p [] [str "Please wait for the process to complete"]
+                p [] [str ("Number of records deleted: " + recordsDeleted.ToString())]
+                p [] [str ("Number of stocks processed: " + stocks.Length.ToString())]
+                p [] (stocks |> List.map (fun stock -> div [] [stock.company |> str]))                
+            ]
+            
+            return! ([ view ] |> mainLayout "Delisting Processing") next ctx
         }
