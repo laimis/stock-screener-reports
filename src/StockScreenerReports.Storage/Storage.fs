@@ -79,6 +79,7 @@ module Storage =
             | Success -> "success"
             | Warning -> "warning"
             | Failure -> "failure"
+            | _ -> raise (System.Exception($"Unknown job status: {status}"))
 
     let private toJobStatus status =
         match status with

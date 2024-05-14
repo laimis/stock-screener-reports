@@ -69,14 +69,14 @@ updateStatus ("Trading day: " + isTradingDay.ToString())
 match runScreeners() with
 | true ->
     let logger = DummyLogger()
-    StockScreenerReports.Web.Services.screenerRun logger
-    StockScreenerReports.Web.Services.earningsRun logger
+    StockScreenerReports.Web.Services.screenerRun logger |> Async.AwaitTask |> Async.RunSynchronously |> ignore
+    StockScreenerReports.Web.Services.earningsRun logger |> Async.AwaitTask |> Async.RunSynchronously |> ignore
 | false -> ()
 
 
 match runSMAUpdates() with
 | true ->     
-    StockScreenerReports.Web.Services.trendsRun (DummyLogger())
+    StockScreenerReports.Web.Services.trendsRun (DummyLogger()) |> Async.AwaitTask |> Async.RunSynchronously |> ignore
 | false -> ()
 
 match runSequencesMigration() with
@@ -103,7 +103,7 @@ match runCyclesMigration() with
     let industrySMAPairs = SMA.All |> Seq.map (fun sma -> industries |> Seq.map (fun industry -> (industry, sma))) |> Seq.concat
     
     let startDate = DateTime.Parse("2023-01-01")
-    let random = new Random()
+    let random = Random()
     
     industrySMAPairs
     |> Seq.iter (fun pairs -> 
