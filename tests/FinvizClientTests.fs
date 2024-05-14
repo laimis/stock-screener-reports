@@ -79,7 +79,7 @@ type ParsingTests(output: ITestOutputHelper) =
                 |> List.find (fun (act) -> act.Symbol = "SCCO")
 
             sccoAction.Date |> should be (equal "May 7, 2024")
-            sccoAction.Date |> DateTime.Parse |> _.Month |> should be (equal 5)
+            sccoAction.Date |> _.Month |> should be (equal 5)
             sccoAction.Symbol |> should be (equal "SCCO")
             sccoAction.Type |> should be (equal "Stock Split")
             sccoAction.Action |> should be (equal "SCCO stock split: 1.0104 for 1")
