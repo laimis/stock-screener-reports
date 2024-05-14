@@ -765,12 +765,12 @@ WHERE
         | _ -> failwith $"Unknown sentiment: {str}"
         
     let saveAlert (alert:Alert) =
-        let alertSql = @"INSERT INTO alerts (identifier, alerttype, industry, screenerid, date, sentiment, description, strength, ticker, corporateactiontype)
-                     VALUES (@identifier, @alerttype, @industry, @screenerid, @date, @sentiment::sentiment, @description, @strength, @ticker, @corporateactiontype)
+        let alertSql = @"INSERT INTO alerts (identifier, alerttype, industry, screenerid, date, sentiment, description, strength, ticker)
+                     VALUES (@identifier, @alerttype, @industry, @screenerid, @date, @sentiment::sentiment, @description, @strength, @ticker)
                      ON CONFLICT (identifier) DO UPDATE
                      SET alerttype = @alerttype, industry = @industry, screenerid = @screenerid,
                          date = @date, sentiment = @sentiment::sentiment, description = @description, strength = @strength,
-                         ticker = @ticker, corporateactiontype = @corporateactiontype"
+                         ticker = @ticker"
 
         let acknowledgementSql = @"INSERT INTO alert_acknowledgements (alert_identifier, acknowledged)
                                VALUES (@identifier, @acknowledged)
