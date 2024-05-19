@@ -9,6 +9,7 @@ module Dashboard =
     open StockScreenerReports.Core
     open StockScreenerReports.Storage.Reports
     open StockScreenerReports.Web.Shared.Views
+    open FSharp.Data
     
     let private getScreenerDailyHits (dateRange:string * string) screener =
         screener.id |> getDailyCountsForScreener dateRange
@@ -63,7 +64,7 @@ module Dashboard =
             smaBreakdownPairs
             |> List.map (fun (sma:SMA,breakdowns) ->
                 {
-                    data = breakdowns |> List.map (fun breakdown -> breakdown.percentAboveRounded)
+                    data = breakdowns |> List.map (_.percentAboveRounded)
                     title = $"SMA {sma}"
                     color = sma.Color 
                 }
@@ -307,7 +308,7 @@ module Dashboard =
                 ])
         ]
         
-    let generateElementsToRender missedJobs screeners latestScreenerResults cycles industries upAndDowns alerts activeIndustrySequences dateRange =
+    let generateElementsToRender missedJobs screeners latestScreenerResults smaBreakdowns cycles industries upAndDowns alerts activeIndustrySequences dateRange =
         
         let warningSection = jobAlertSection missedJobs
         
@@ -397,19 +398,14 @@ module Dashboard =
                 ]
             ]::volumeCharts        
 
-        let trends =
-            SMA.All
-            |> List.map(fun sma -> 
-                (sma, sma |> getDailySMABreakdown dateRange)
-            )
-            |> generateSMATrendRows
+        let trendsSection = smaBreakdowns |> generateSMATrendRows
             
         let cyclesSection = generateIndustryCycleStartChart "Cycle Starts (SMA20)" cycles
 
         [
             [warningSection]
             [filters]
-            trends
+            trendsSection
             [cyclesSection]
             [latestScreenerResults]
             [alertsSection]
@@ -468,7 +464,81 @@ module Dashboard =
             let activeIndustrySequences = Storage.getActiveIndustrySequences()
             
             let cycles = SMA20 |> Storage.getIndustryCycles
+            
+            let smaBreakdowns =
+                SMA.All
+                |> List.map(fun sma -> 
+                    (sma, sma |> getDailySMABreakdown dateRange)
+                )
 
-            let elementsToRender = generateElementsToRender missedJobs screeners latestScreenerResults cycles industries upAndDowns alerts activeIndustrySequences dateRange
+            let elementsToRender = generateElementsToRender missedJobs screeners latestScreenerResults smaBreakdowns cycles industries upAndDowns alerts activeIndustrySequences dateRange
 
             (elementsToRender |> mainLayout "All Screener Trends") next ctx
+      
+      
+    type SmaTrendExportType =   CsvProvider<
+        Schema = "date(string),sma20",
+        HasHeaders=false>
+    let smaHeader = "date,sma20"
+    
+    type CycleExportType =   CsvProvider<
+        Schema = "date(string),counts",
+        HasHeaders=false>
+    let cycleStartsHeader = "date,starts"
+    let cycleHighsHeader = "date,highs"
+    
+    let private exportGeneric filename headerRow data =
+        setHttpHeader "Content-Type" "text/csv"
+        >=> setHttpHeader "Content-Disposition" $"attachment; filename={filename}"
+        >=> setBodyFromString (headerRow + System.Environment.NewLine + data)
+    
+    let exportSma20Handler() =
+        let dateRange = ReportsConfig.dateRangeAsStrings()
+            
+        let smaBreakdowns =
+            SMA.All
+            |> List.map(fun sma -> 
+                (sma, sma |> getDailySMABreakdown dateRange)
+            )
+            
+        let sma20Data = smaBreakdowns[0] |> snd
+        let dates = sma20Data |> List.map (fun b -> b.date |> Utils.convertToDateString)
+        
+        // csv format should be date,sma20,sma200
+        let rows = 
+            dates
+            |> List.mapi (fun i date ->
+                SmaTrendExportType.Row(date,sma20Data[i].percentAbove.ToString())
+            )
+            
+        new SmaTrendExportType(rows) |> _.SaveToString() |> exportGeneric "smaExport.csv" smaHeader
+    
+    let private exportCycleData filename headerRow groupByfunction =
+        let cycles = SMA20 |> Storage.getIndustryCycles
+        
+        let startPointDateSelector = fun (_, x) -> x.startPoint.date
+        let endPointDateSelector = fun (_, x) -> x.currentPoint.date
+        
+        let cycleStarts = cycles |> List.groupBy (fun (_, c:MarketCycle) -> groupByfunction c) |> Map.ofList
+        
+        let minStart = cycles |> List.minBy startPointDateSelector |> startPointDateSelector
+        let maxStart = cycles |> List.maxBy endPointDateSelector |> endPointDateSelector
+        
+        let listOfDays = ReportsConfig.listOfBusinessDates (minStart, maxStart)
+        
+        let dateCounts = 
+            listOfDays |> Seq.map (fun (date:System.DateTime) -> 
+                let dateFormatted = date.ToString("d")
+                let cyclesForDate = cycleStarts |> Map.tryFind dateFormatted
+                match cyclesForDate with
+                | Some cycles -> CycleExportType.Row(date |> Utils.convertToDateString, cycles.Length.ToString())
+                | None -> CycleExportType.Row(date  |> Utils.convertToDateString, "0")
+            )
+            
+        new CycleExportType(dateCounts) |> _.SaveToString() |> exportGeneric filename headerRow
+                    
+    let exportCycleStartsHandler() =
+        exportCycleData "CycleStarts.csv" cycleStartsHeader (_.startPointDateFormatted)
+        
+    let exportCycleHighsHandler() =
+        exportCycleData "CycleHighs.csv" cycleHighsHeader (_.highPointDateFormatted)

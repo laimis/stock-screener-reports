@@ -27,8 +27,13 @@ module Router =
                 choose [
                     route "/login" >=> LoginHandler.loginHandler
                     
+                    // allow exporting of data without auth to allow 3rd party connections without auth
+                    route Links.exportSMA20 >=> warbler (fun _ -> Dashboard.exportSma20Handler())
+                    route Links.exportCycleStarts >=> warbler (fun _ -> Dashboard.exportCycleStartsHandler())
+                    route Links.exportCycleHighs >=> warbler (fun _ -> Dashboard.exportCycleHighsHandler())
+                    
                     requiresAuthentication >=>
-                        route "/" >=> Dashboard.handler
+                        route Links.dashboard >=> Dashboard.handler
                         routef "/screeners/%i" ScreenerDashboard.handler
                         routef "/screeners/%i/results/export" ScreenerResults.exportHandler
                         routef "/screeners/%i/results/%s" ScreenerResults.handler

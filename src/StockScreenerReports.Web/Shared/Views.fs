@@ -254,18 +254,29 @@ module Views =
                         ]
                     ]
                     
-                    generateHrefWithAttr "Cycles" Links.cycles (_class "navbar-item")
-
                     div [ _class "navbar-item has-dropdown is-hoverable" ] [
                         a [ _class "navbar-link" ] [
                             encodedText "Market Data"
                         ]
 
                         div [ _class "navbar-dropdown" ] [
+                            generateHrefWithAttr "Cycles" Links.cycles (_class "navbar-item")
                             generateHrefWithAttr "Countries" Links.countries (_class "navbar-item")
                             generateHrefWithAttr "Earnings" Links.earnings (_class "navbar-item")
                             generateHrefWithAttr "Corporate Actions" Links.corporateActions (_class "navbar-item")
                             generateHrefWithAttr "Admin" Links.screeners (_class "navbar-item")
+                        ]
+                    ]
+                    
+                    div [ _class "navbar-item has-dropdown is-hoverable" ] [
+                        a [ _class "navbar-link" ] [
+                            encodedText "Exports"
+                        ]
+                        
+                        div [ _class "navbar-dropdown" ] [
+                            generateHrefWithAttr "SMA 20" Links.exportSMA20 (_class "navbar-item")
+                            generateHrefWithAttr "Cycle Starts" Links.exportCycleStarts (_class "navbar-item")
+                            generateHrefWithAttr "Cycle Highs" Links.exportCycleHighs (_class "navbar-item")
                         ]
                     ]
                 ]
@@ -585,7 +596,7 @@ module Views =
             let minStart = cycles |> List.minBy startPointDateSelector |> startPointDateSelector
             let maxStart = cycles |> List.maxBy endPointDateSelector |> endPointDateSelector
 
-            let listOfDays =ReportsConfig.listOfBusinessDates (minStart, maxStart)
+            let listOfDays = ReportsConfig.listOfBusinessDates (minStart, maxStart)
                     
             let cyclesGroupedByStartDate =
                 cycles

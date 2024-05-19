@@ -72,6 +72,11 @@ module Links =
     let screenersExport id = $"/screeners/{id}/results/export"
     let adhocReportExport = "/reports/adhoc/export"
     
+    let dashboard = "/"
+    let exportSMA20 = "/export/sma20"
+    let exportCycleStarts = "/export/cyclestarts"
+    let exportCycleHighs = "/export/cyclehighs"
+    
     let trends = "/trends"
     let countries = "/countries"
     let earnings = "/earnings"
