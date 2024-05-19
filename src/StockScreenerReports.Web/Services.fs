@@ -333,6 +333,35 @@ module Services =
 
             return stocksToDelete, recordsDeleted
         }
+        
+        member this.Delistings() = task {
+            
+            // actions
+            let! actions = Storage.getCorporateActions()
+            
+            // group it by symbol and date
+            let actionsBySymbol = actions |> List.groupBy (fun a -> a.Symbol,a.Date)
+            
+            // go over each group, and the group that has Delisted ONLY, can be used for deletion
+            let stocksToDelete =
+                actionsBySymbol
+                |> List.map (fun (_, actions) ->
+                    let delisted = actions |> List.tryFind (fun x -> x.Type = Delisted)
+                    delisted, actions.Length
+                )
+                |> List.filter (fun (delisted, count) -> delisted.IsSome && count = 1)
+                |> List.map (fun (delisted, _) -> delisted.Value.Symbol)
+                |> List.map (fun x -> x |> StockTicker.create |> Storage.getStockByTicker)
+                |> List.choose id
+                
+            let recordsDeleted =
+                stocksToDelete
+                |> List.map Storage.deleteStock
+                |> List.concat
+                |> List.sum
+
+            return stocksToDelete, recordsDeleted
+        }
             
     // background service class
     type BackgroundService(logger:ILogger<BackgroundService>) =

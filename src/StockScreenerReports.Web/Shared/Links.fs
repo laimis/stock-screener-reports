@@ -83,6 +83,7 @@ module Links =
     let alerts = "/alerts"
     let cycles = "/cycles"
     let corporateActions = "/corporateActions"
+    let corporateActionsBankruptcy = "/corporateActions/bankruptcy"
     let corporateActionsDelisting = "/corporateActions/delisting"
 
     let jobsScreeners = "/jobs/screeners"
@@ -98,6 +99,13 @@ module Links =
             |> StockScreenerReports.Core.Utils.cleanIndustry
         
         $"https://finviz.com/screener.ashx?v=111&f=ind_" + value
+        
+    let countryFinvizLink (countryName:string) =
+        let value =
+            countryName
+            |> StockScreenerReports.Core.Utils.cleanIndustry
+        
+        $"https://finviz.com/screener.ashx?v=111&f=geo_" + value
 
     let ngtdOutcomesReportLink (title,tickers,earnings,startDate,endDate) =
         let commaSeparated = tickers |> String.concat ","

@@ -2,6 +2,7 @@ module StockScreenerReports.Web.Handlers.CorporateActions
 
 
 open System.Collections.Generic
+open System.Threading.Tasks
 open Microsoft.Extensions.Logging
 open StockScreenerReports.Core
 open Giraffe.ViewEngine.Attributes
@@ -86,21 +87,26 @@ let handler : HttpHandler =
             return! ([ view ] |> mainLayout "Corporate Actions Dashboard") next ctx
         }
         
+let private actionProcessing title (func:unit -> Task<Stock list * int>) next ctx = task {
+    let! stocks,recordsDeleted = func()
+    
+    let view = div [_class "content"] [
+        h2 [] [str title]
+        p [] [str ("Number of records deleted: " + recordsDeleted.ToString())]
+        p [] [str ("Number of stocks processed: " + stocks.Length.ToString())]
+        p [] (stocks |> List.map (fun stock -> div [] [stock.company |> str]))                
+    ]
+    
+    return! ([ view ] |> mainLayout title) next ctx
+}
+    
+        
+let bankruptcyProcessing : HttpHandler =
+    fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
+        let processor = CorporateActionProcessor(ctx.GetService<ILogger<CorporateActionProcessor>>())
+        actionProcessing "Bankruptcy Processing" processor.BankruptyDelistings next ctx
+        
 let delistingProcessing : HttpHandler =
     fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
-        task {
-        
-            let processor = CorporateActionProcessor(ctx.GetService<ILogger<CorporateActionProcessor>>())
-            let! stocks,recordsDeleted = processor.BankruptyDelistings()
-            
-            let view = div [_class "content"] [
-                h2 [] [str "Delisting Processing"]
-                p [] [str "Delisting processing has been initiated"]
-                p [] [str "Please wait for the process to complete"]
-                p [] [str ("Number of records deleted: " + recordsDeleted.ToString())]
-                p [] [str ("Number of stocks processed: " + stocks.Length.ToString())]
-                p [] (stocks |> List.map (fun stock -> div [] [stock.company |> str]))                
-            ]
-            
-            return! ([ view ] |> mainLayout "Delisting Processing") next ctx
-        }
+        let processor = CorporateActionProcessor(ctx.GetService<ILogger<CorporateActionProcessor>>())
+        actionProcessing "Delisting Processing" processor.Delistings next ctx

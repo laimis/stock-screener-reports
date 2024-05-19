@@ -58,9 +58,20 @@ module CountryDashboard =
         resultRows |> fullWidthTableWithSortableHeaderCells tableHeader |> toSection "Screener Hits"
 
     let private renderHeader countryName =
-        div [_class "content"] [
-            h1 [] [
-                str countryName
+        div [_class "columns content"] [
+            div [_class "column"] [
+                h1 [] [
+                    str countryName
+                ]
+            ]
+            div [ _class "column has-text-right"] [
+                h5 [] [
+                    span [ _class "mx-1"] [
+                        countryName 
+                        |> Links.countryFinvizLink
+                        |> generateHrefNewTab "See it on Finviz"
+                    ]
+                ]
             ]
         ]
         

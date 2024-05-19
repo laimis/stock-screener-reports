@@ -76,8 +76,8 @@ module Router =
                         route "/screeners/diagnostics" >=> warbler (fun _ -> ScreenerManagement.checkScannerHandler())
                         
                         route Links.corporateActions >=> CorporateActions.handler
+                        route Links.corporateActionsBankruptcy  >=> CorporateActions.bankruptcyProcessing
                         route Links.corporateActionsDelisting  >=> CorporateActions.delistingProcessing
-
                 ]
             POST >=>
                 choose [
