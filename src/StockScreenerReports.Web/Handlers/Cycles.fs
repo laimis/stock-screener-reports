@@ -192,11 +192,11 @@ module Cycles =
             
             let industryCycleSection20 = 
                 cyclesSMA20
-                |> generateIndustryCycleStartChart "Cycle Starts (SMA 20)"
+                |> generateIndustryCycleStartChart "Cycle Starts (SMA 20)" dateRange
                 
             let industryCycleSection200 = 
                 cyclesSMA200
-                |> generateIndustryCycleStartChart "Cycle Starts (SMA 200)"
+                |> generateIndustryCycleStartChart "Cycle Starts (SMA 200)" dateRange
 
             let filteredCycles = 
                 cyclesSMA20

@@ -566,7 +566,7 @@ module Views =
         | Neutral -> "➖"
         
         
-    let generateIndustryCycleStartChart sectionName (cycles:IndustryWithCycle list) =
+    let generateIndustryCycleStartChart sectionName dateRange (cycles:IndustryWithCycle list) =
 
         match cycles with
         | [] -> 
@@ -595,8 +595,11 @@ module Views =
             
             let minStart = cycles |> List.minBy startPointDateSelector |> startPointDateSelector
             let maxStart = cycles |> List.maxBy endPointDateSelector |> endPointDateSelector
+            
+            let rangeStart = dateRange |> fst |> System.DateTime.Parse
+            let rangeEnd = dateRange |> snd |> System.DateTime.Parse
 
-            let listOfDays = ReportsConfig.listOfBusinessDates (minStart, maxStart)
+            let listOfDays = ReportsConfig.listOfBusinessDates (rangeStart, rangeEnd)
                     
             let cyclesGroupedByStartDate =
                 cycles
