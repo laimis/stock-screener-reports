@@ -66,20 +66,24 @@ type ParsingTests(output: ITestOutputHelper) =
         above |> should be (greaterThan 0)
         below |> should be (greaterThan 0)
 
-    with
-        [<Fact>]
-        member this.CorporateActions() =
+    [<Fact>]
+    let corporateActions() =
 
-            let content = StockAnalysisClient.getCorporateActions ()
+        let content = StockAnalysisClient.getCorporateActions ()
 
-            content |> should not' (be Empty)
+        content |> should not' (be Empty)
 
-            let sccoAction =
-                content
-                |> List.find (fun (act) -> act.Symbol = "SCCO")
+        let sccoAction =
+            content
+            |> List.find (fun (act) -> act.Symbol = "SCCO")
 
-            sccoAction.Date |> should be (equal "May 7, 2024")
-            sccoAction.Date |> _.Month |> should be (equal 5)
-            sccoAction.Symbol |> should be (equal "SCCO")
-            sccoAction.Type |> should be (equal "Stock Split")
-            sccoAction.Action |> should be (equal "SCCO stock split: 1.0104 for 1")
+        sccoAction.Date |> _.Day |> should be (equal 7)
+        sccoAction.Date |> _.Month |> should be (equal 5)
+        sccoAction.Date |> _.Year |> should be (equal 2024)
+        sccoAction.Symbol |> should be (equal "SCCO")
+        match sccoAction.Type with
+            | StockSplit (x,y) ->
+                x |> should be (equal 1m)
+                y |> should be (equal 1.0104m)
+            | _ -> failwith "Invalid type"
+        sccoAction.Action |> should be (equal "SCCO stock split: 1.0104 for 1")
