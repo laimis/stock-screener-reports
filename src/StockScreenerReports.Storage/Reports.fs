@@ -211,42 +211,6 @@ module Reports =
             |> Sql.execute (fun reader ->
                 mapScreenerResultReportItem reader
             )
-
-    let getTickersWithEarnings date =
-        let sql = @$"SELECT ticker FROM earnings
-            WHERE date = date(@date)"
-        let results =
-            cnnString
-            |> Sql.connect
-            |> Sql.query sql
-            |> Sql.parameters [
-                "@date", Sql.string date
-            ]
-            |> Sql.execute (fun reader -> reader.string "ticker")
-        results
-
-    let getAllEarningsTickers() =
-        let sql = @$"SELECT ticker,date FROM earnings"
-        
-        cnnString
-        |> Sql.connect
-        |> Sql.query sql
-        |> Sql.execute (fun reader -> (reader.string "ticker", reader.dateTime "date"))
-
-    let getEarningCountByDate dateRange =
-        let sql = @$"SELECT date,count(*) as count FROM earnings
-            WHERE date BETWEEN date(@start) AND date(@end)
-            GROUP BY date
-            ORDER BY date"
-        
-        cnnString
-        |> Sql.connect
-        |> Sql.query sql
-        |> Sql.parameters [
-            "@start",  dateRange |> fst |> Sql.string;
-            "@end", dateRange |> snd |> Sql.string
-        ]
-        |> Sql.execute (fun reader -> (reader.dateTime "date", reader.int "count"))
     
     let getScreenerResults id date =
 

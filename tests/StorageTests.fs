@@ -430,3 +430,25 @@ type StorageTests(output:ITestOutputHelper) =
         dataSMA200 |> should not' (be Empty)
         
         dataSMA20.Length |> should be (equal dataSMA200.Length)
+        
+    [<Fact>]
+    let ``get tickers with earnings works`` () =
+        let results = Storage.getTickersWithEarnings "2022-08-18"
+        results |> should not' (be Empty)
+
+    [<Fact>]
+    let ``get tickers with earnings for date range works`` () =
+        let dateRange = ("2023-02-01", "2023-02-14")
+        let results = dateRange |> Storage.getEarningsTickers
+        results |> should not' (be Empty)
+
+    [<Fact>]
+    let ``get earnings by date breakdown works`` () =
+        let dateRange = ("2023-03-01", "2023-05-30")
+
+        let breakdown = dateRange |> Storage.getEarningCountByDate
+
+        let breakdownsWithEarnings = breakdown |> Seq.filter (fun (_,c) -> c > 0)
+
+        breakdown |> should not' (be Empty)
+        breakdownsWithEarnings |> should not' (be Empty)
