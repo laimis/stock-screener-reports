@@ -237,8 +237,8 @@ module ScreenerResults =
             let earningsTickers =
                 date
                 |> Utils.convertToDateString
-                |> getTickersWithEarnings
-                |> List.append (dateBefore |> Utils.convertToDateString |> getTickersWithEarnings)
+                |> Storage.getTickersWithEarnings
+                |> List.append (dateBefore |> Utils.convertToDateString |> Storage.getTickersWithEarnings)
                 |> List.distinct
 
             let topGainers =
