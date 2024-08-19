@@ -106,6 +106,12 @@ module Storage =
         match earningsTime with
             | BeforeMarket -> "beforemarket"
             | AfterMarket -> "aftermarket"
+            
+    let private toEarningTime earningsTimeString =
+        match earningsTimeString with
+            | "beforemarket" -> BeforeMarket
+            | "aftermarket" -> AfterMarket
+            | _ -> raise (System.Exception($"Unknown earnings time: {earningsTimeString}"))
 
     let singleOrThrow message results =
         match results with
@@ -562,6 +568,21 @@ module Storage =
             "@earningsTime", earningsTime |> toEarningTimeString |> Sql.string
         ]
         |> Sql.executeNonQuery
+        
+    
+    let getEarningsTickers dateRange =
+        let sql = @$"SELECT ticker,date,earningsTime FROM earnings
+            WHERE date >= date(@start) AND date <= date(@end)
+            ORDER BY date, ticker"
+        
+        cnnString
+        |> Sql.connect
+        |> Sql.query sql
+        |> Sql.parameters [
+            "@start",  dateRange |> fst |> Sql.string;
+            "@end", dateRange |> snd |> Sql.string
+        ]
+        |> Sql.execute (fun reader -> (reader.string "ticker", reader.dateTime "date", reader.string "earningstime" |> toEarningTime))
 
     let saveJobStatus (jobName:JobName) (timestamp : System.DateTime) (status:JobStatus) message =
         let sql = @"

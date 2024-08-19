@@ -1,5 +1,7 @@
 namespace StockScreenerReports.Web.Handlers
 
+open System
+
 module Earnings =
     open Giraffe.ViewEngine.Attributes
     open Giraffe.ViewEngine.HtmlElements
@@ -11,7 +13,7 @@ module Earnings =
 
     let private createMapFromScreenerResults (stocks:ScreenerResultReportItem list) =
         stocks
-        |> List.map (fun s -> s.ticker, s)
+        |> List.map (fun s -> (s.ticker, s.date) , s)
         |> Map.ofList
 
     let private createEarningsByDateChart dateCountList =
@@ -29,14 +31,16 @@ module Earnings =
 
         chart |> toSection "Earnings By Date"
     
-    let private createIndustryGrouping stockDatePairs (membershipMap:Map<string,ScreenerResultReportItem>) =
+    let private createIndustryGrouping stockDatePairs (membershipMap:Map<string * DateTime,ScreenerResultReportItem>) =
         stockDatePairs
-        |> List.map (fun pair -> 
-            let ticker,_ = pair
-            ticker
+        |> List.where (fun stockAndDate ->
+            match membershipMap.ContainsKey stockAndDate with
+            | true ->
+                let screenerResult = membershipMap[stockAndDate]
+                screenerResult.date = (stockAndDate |> snd)
+            | false -> false
         )
-        |> List.where membershipMap.ContainsKey
-        |> List.map (fun t -> membershipMap[t])
+        |> List.map (fun stockAndDate -> membershipMap[stockAndDate])
         |> List.groupBy (_.industry)
 
     let private createNameCountTableColumnDiv title grouping =
@@ -61,11 +65,11 @@ module Earnings =
 
         div [_class "column"] [table]
 
-    let private createFilteredSection title (matchFilter:Map<string,ScreenerResultReportItem>) tickersWithEarnings =
+    let private createFilteredSection title (matchFilter:Map<string * DateTime,ScreenerResultReportItem>) tickersWithEarnings =
         let rows = 
             tickersWithEarnings
-            |> List.filter (fun (ticker,_) -> ticker |> matchFilter.ContainsKey)
-            |> List.map (fun (ticker, _) -> matchFilter[ticker])
+            |> List.filter (fun tickerDate -> tickerDate |> matchFilter.ContainsKey)
+            |> List.map (fun tickerDate -> matchFilter[tickerDate])
             |> List.sortBy _.industry
             |> List.map (fun s -> 
                 [
@@ -87,11 +91,11 @@ module Earnings =
 
     let createEarningsTable
         (stocks:Map<string,Stock>)
-        tickersWithEarnings
-        (screenerResultMappings:list<Map<string,ScreenerResultReportItem>>) =
+        (tickersWithEarnings:list<string * DateTime>)
+        (screenerResultMappings:list<Map<string * DateTime,ScreenerResultReportItem>>) =
         let rows =
             tickersWithEarnings
-            |> List.map (fun (ticker, date:System.DateTime) ->
+            |> List.map (fun (ticker, date:DateTime) ->
 
                 let iconFunc screenerId =
                     match screenerId with
@@ -114,7 +118,7 @@ module Earnings =
                 let screenerCells =
                     screenerResultMappings
                     |> List.map (fun map -> 
-                        NodeColumn(ticker |> map.TryFind |> generateDivWithDateAndIcon)
+                        NodeColumn((ticker,date) |> map.TryFind |> generateDivWithDateAndIcon)
                     )
 
                 let stock = stocks |> Map.tryFind ticker
@@ -156,10 +160,18 @@ module Earnings =
             endDate |> Utils.convertToDateString
         )
 
-        let tickersWithEarnings = getEarningsTickers dateRange
+        let tickersWithEarnings =
+            Storage.getEarningsTickers dateRange
+            |> List.map (fun (ticker,date,earningsTime) ->
+                let effectiveDate =
+                    match earningsTime with
+                    | BeforeMarket -> date
+                    | AfterMarket -> date.AddDays(1)
+                ticker, effectiveDate)
+        
         let stocks =
             tickersWithEarnings
-            |> List.map (fun (ticker,_) -> ticker)
+            |> List.map fst
             |> Storage.getStockByTickers
             |> List.map (fun s -> s.ticker |> StockTicker.value, s)
             |> Map.ofList

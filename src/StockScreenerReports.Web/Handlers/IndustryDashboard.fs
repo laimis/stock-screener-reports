@@ -26,7 +26,16 @@ module IndustryDashboard =
         let startDate = fullDateRange |> snd |> Utils.convertToDateTime |> fun d -> d.AddDays(-14) |> Utils.convertToDateString
         let dateRange = (startDate, fullDateRange |> snd)
 
-        let tickerToEarningDateMap = getEarningsTickers dateRange |> Map.ofList
+        let tickerToEarningDateMap =
+            Storage.getEarningsTickers dateRange
+            |> List.map (fun (ticker,date,earningsTime) ->
+                let effectiveDate =
+                    match earningsTime with
+                    | BeforeMarket -> date
+                    | AfterMarket -> date.AddDays(1)
+                (ticker, effectiveDate)
+            )
+            |> Map.ofList
 
         let stocksWithEarnings =
             tickerToEarningDateMap
