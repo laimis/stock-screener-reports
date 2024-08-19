@@ -190,7 +190,7 @@ module Earnings =
             ReportsConfig.now() |> Utils.convertToDateString
         )
         
-        let earningsByDate = historicalDateRange |> getEarningCountByDate
+        let earningsByDate = historicalDateRange |> Storage.getEarningCountByDate
 
         let earningChart = earningsByDate |> createEarningsByDateChart
         

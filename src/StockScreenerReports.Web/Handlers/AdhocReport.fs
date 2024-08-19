@@ -17,7 +17,7 @@ module AdhocReport =
 
     let getData() = 
         // all earnings
-        let earningsList = Reports.getAllEarningsTickers()
+        let earningsList = Storage.getAllEarningsTickers()
 
         let earningsSet =
             earningsList
