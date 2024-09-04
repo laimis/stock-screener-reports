@@ -138,6 +138,18 @@ type ReportsConfig =
                 DateTime(2024, 6, 19)
                 DateTime(2024, 7, 4)
                 DateTime(2024, 9, 2)
+                DateTime(2024, 11, 28)
+                DateTime(2024, 12, 25)
+                DateTime(2025, 1, 1)
+                DateTime(2025, 1, 20)
+                DateTime(2025, 2, 17)
+                DateTime(2025, 4, 18)
+                DateTime(2025, 5, 26)
+                DateTime(2025, 6, 19)
+                DateTime(2025, 7, 4)
+                DateTime(2025, 9, 1)
+                DateTime(2025, 11, 27)
+                DateTime(2025, 12, 25)
             ]
         holidays
 
