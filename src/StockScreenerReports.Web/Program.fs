@@ -46,15 +46,10 @@ let configureJobs (app : IApplicationBuilder) =
         let rjo = RecurringJobOptions()
         rjo.TimeZone <- easternTimeZone
         
-        // at 16:30 eastern time we will run full background job
-        let s = app.ApplicationServices.GetService<Services>()
-        let fullRunExpression = <@ s.FullRun() @> |> LeafExpressionConverter.QuotationToExpression
-        let result = Expression.Lambda<Func<Task>>(fullRunExpression)
-        
-        RecurringJob.AddOrUpdate(
+        RecurringJob.AddOrUpdate<Services>(
             recurringJobId="fullrun",
-            methodCall=result,
-            cronExpression=Cron.Daily(17, 00),
+            methodCall=(fun (s:Services) -> s.FullRun() :> Task),
+            cronExpression=Cron.Daily(16, 08),
             options=rjo
         )
         
