@@ -2,6 +2,7 @@
 open StockScreenerReports.Console
 open StockScreenerReports.Core
 open StockScreenerReports.Storage
+open StockScreenerReports.Web
 open StockScreenerReports.Web.Shared.Utils
 
 let updateStatus (message:string) =
@@ -69,14 +70,15 @@ updateStatus ("Trading day: " + isTradingDay.ToString())
 match runScreeners() with
 | true ->
     let logger = DummyLogger()
-    StockScreenerReports.Web.Services.screenerRun logger |> Async.AwaitTask |> Async.RunSynchronously |> ignore
-    StockScreenerReports.Web.Services.earningsRun logger |> Async.AwaitTask |> Async.RunSynchronously |> ignore
+    let services = Services(logger)
+    services.ScreenerRun() |> Async.AwaitTask |> Async.RunSynchronously |> ignore
+    services.EarningsRun() |> Async.AwaitTask |> Async.RunSynchronously |> ignore
 | false -> ()
 
 
 match runSMAUpdates() with
 | true ->     
-    StockScreenerReports.Web.Services.trendsRun (DummyLogger()) |> Async.AwaitTask |> Async.RunSynchronously |> ignore
+    Services(DummyLogger()).TrendsRun() |> Async.AwaitTask |> Async.RunSynchronously |> ignore
 | false -> ()
 
 match runSequencesMigration() with

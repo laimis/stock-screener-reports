@@ -1,5 +1,7 @@
 namespace StockScreenerReports.Web.Shared
 
+open StockScreenerReports.Web
+
 module Utils =
     open Charts
     open StockScreenerReports.Core
@@ -30,7 +32,7 @@ module Utils =
             job.timestamp |> Utils.ageInBusinessDays > System.TimeSpan.FromDays(1.5)
 
     type DummyLogger() =
-        interface ILogger with
+        interface ILogger<Services> with
             member this.BeginScope(state: 'TState): System.IDisposable = 
                 failwith "Not Implemented"
             member this.IsEnabled(logLevel: LogLevel): bool = 
