@@ -33,9 +33,6 @@ let configureCors (builder : CorsPolicyBuilder) =
        .AllowAnyMethod()
        .AllowAnyHeader()
        |> ignore
-       
-let myRecurringJob (services:Services) =
-    services.Test() :> Task
   
 let configureJobs (app : IApplicationBuilder) =
     let skipBackgroundJobs = Environment.GetEnvironmentVariable("SSR_SKIPBACKGROUNDJOBS")
