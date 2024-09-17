@@ -2,6 +2,10 @@ module StockScreenerReports.Web.App
 
 open System
 open System.IO
+open System.Linq.Expressions
+open System.Threading.Tasks
+open Hangfire
+open Hangfire.PostgreSql
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Cors.Infrastructure
@@ -10,8 +14,13 @@ open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.DependencyInjection
 open Giraffe
+open Microsoft.FSharp.Linq.RuntimeHelpers
+open StockScreenerReports.Core
 open StockScreenerReports.Storage
 
+// time functions return eastern timezone to match US market hours
+let easternTimeZone = TimeZoneConverter.TZConvert.GetTimeZoneInfo("Eastern Standard Time")    
+    
 let errorHandler (ex : Exception) (logger : ILogger) =
     logger.LogError(ex, "An unhandled exception has occurred while executing the request.")
     clearResponse >=> setStatusCode 500 >=> text ex.Message
@@ -24,6 +33,32 @@ let configureCors (builder : CorsPolicyBuilder) =
        .AllowAnyMethod()
        .AllowAnyHeader()
        |> ignore
+  
+let configureJobs (app : IApplicationBuilder) =
+    let skipBackgroundJobs = Environment.GetEnvironmentVariable("SSR_SKIPBACKGROUNDJOBS")
+    let logger = app.ApplicationServices.GetService<ILogger<Services>>()
+    match skipBackgroundJobs with
+    | "true" ->
+        logger.LogInformation("Skipping background jobs")
+    | _  ->
+        logger.LogInformation("Configuring background jobs")
+        
+        let rjo = RecurringJobOptions()
+        rjo.TimeZone <- easternTimeZone
+        
+        // at 16:30 eastern time we will run full background job
+        let s = app.ApplicationServices.GetService<Services>()
+        let fullRunExpression = <@ s.FullRun() @> |> LeafExpressionConverter.QuotationToExpression
+        let result = Expression.Lambda<Func<Task>>(fullRunExpression)
+        
+        RecurringJob.AddOrUpdate(
+            recurringJobId="fullrun",
+            methodCall=result,
+            cronExpression=Cron.Daily(17, 00),
+            options=rjo
+        )
+        
+        logger.LogInformation("Starting background jobs")
 
 let configureApp (app : IApplicationBuilder) =
     let env = app.ApplicationServices.GetService<IWebHostEnvironment>()
@@ -31,13 +66,15 @@ let configureApp (app : IApplicationBuilder) =
     | true  ->
         app.UseDeveloperExceptionPage()
     | false ->
-        app .UseGiraffeErrorHandler(errorHandler)
+        app.UseGiraffeErrorHandler(errorHandler)
             .UseHttpsRedirection())
         .UseCors(configureCors)
         .UseStaticFiles()
         .UseAuthentication()
         .UseAuthorization()
         .UseGiraffe(Router.routes)
+        
+    configureJobs app 
 
 let configureServices (services : IServiceCollection) =
     services.AddCors()    |> ignore
@@ -46,21 +83,24 @@ let configureServices (services : IServiceCollection) =
     services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
         .AddCookie() |> ignore
     services.AddAuthorization() |> ignore
-
+    
     let cnnString = Environment.GetEnvironmentVariable("SSR_CONNECTIONSTRING")
     cnnString |> Storage.configureConnectionString
     cnnString |> Reports.configureConnectionString
+    
+    let configAction = Action<PostgreSqlBootstrapperOptions>(fun options ->
+        options.UseNpgsqlConnection(cnnString) |> ignore
+    )
+    
+    GlobalConfiguration.Configuration.UsePostgreSqlStorage(configAction) |> ignore
+    
+    services.AddSingleton<Services>() |> ignore
+    services.AddHangfire(fun c -> ()) |> ignore
+    services.AddHangfireServer() |> ignore
 
-    // we also need to make sure the date is returned in easter timezone
-    let easternTimeZone = TimeZoneConverter.TZConvert.GetTimeZoneInfo("Eastern Standard Time")
-    StockScreenerReports.Core.TimeFunctions.nowFunc <- fun () ->
+    TimeFunctions.nowFunc <- fun () ->
         let now = DateTime.UtcNow
         TimeZoneInfo.ConvertTimeFromUtc(now, easternTimeZone)
-
-    let skipBackgroundJobs = Environment.GetEnvironmentVariable("SSR_SKIPBACKGROUNDJOBS")
-    match skipBackgroundJobs with
-    | "true" -> System.Console.WriteLine("Skipping background jobs") |> ignore
-    | _  -> services.AddHostedService<Services.BackgroundService>() |> ignore 
 
 let configureLogging (builder : ILoggingBuilder) =
     builder.AddConsole()
@@ -76,9 +116,9 @@ let main args =
                 webHostBuilder
                     .UseContentRoot(contentRoot)
                     .UseWebRoot(webRoot)
+                    .ConfigureLogging(configureLogging)
                     .Configure(Action<IApplicationBuilder> configureApp)
                     .ConfigureServices(configureServices)
-                    .ConfigureLogging(configureLogging)
                     |> ignore)
         .Build()
         .Run()
