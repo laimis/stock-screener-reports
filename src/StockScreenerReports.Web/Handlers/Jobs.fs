@@ -1,36 +1,38 @@
 namespace StockScreenerReports.Web.Handlers
 
+open Giraffe
 open StockScreenerReports.Core
+open StockScreenerReports.Web
 open StockScreenerReports.Web.Shared.Utils
+open StockScreenerReports.Web.Shared
+
 
 module Jobs =
-    open StockScreenerReports.Web
-    open StockScreenerReports.Web.Shared.Utils
-    open Giraffe
-    open StockScreenerReports.Web.Shared
-
+    
     let logger = DummyLogger()
     
-    let private runWithLoggerAndRedirect url (func:DummyLogger -> System.Threading.Tasks.Task<JobStatus>) : HttpHandler =
+    let private runWithLoggerAndRedirect url (func:Services -> System.Threading.Tasks.Task<JobStatus>) : HttpHandler =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) -> task {
-            let! _ = func logger // TODO: don't redirect if failed, show the failure
+            let services = ctx.GetService<Services>()
+            let! _ = func services
+            // TODO: don't redirect if failed, show the failure
             return! redirectTo false url next ctx
         }
 
     let screeners() =
-        Services.screenerRun |> runWithLoggerAndRedirect "/"
+        (fun (s:Services) -> s.ScreenerRun()) |> runWithLoggerAndRedirect "/"
 
     let trends() =
-        Services.trendsRun |> runWithLoggerAndRedirect Links.trends
+        (fun (s:Services) -> s.TrendsRun()) |> runWithLoggerAndRedirect Links.trends
         
     let countries() =
-        Services.countriesRun |> runWithLoggerAndRedirect Links.countries
+        (fun (s:Services) -> s.CountriesRun()) |> runWithLoggerAndRedirect Links.countries
 
     let earnings() =
-        Services.earningsRun |> runWithLoggerAndRedirect Links.earnings
+        (fun (s:Services) -> s.EarningsRun()) |> runWithLoggerAndRedirect Links.earnings
         
     let alerts() =
-        Services.alertsRun |> runWithLoggerAndRedirect Links.alerts
+        (fun (s:Services) -> s.AlertsRun()) |> runWithLoggerAndRedirect Links.alerts
         
     let corporateActions() =
-        Services.corporateActionsRun true |> runWithLoggerAndRedirect Links.corporateActions
+        (fun (s:Services) -> s.CorporateActionsRun true) |> runWithLoggerAndRedirect Links.corporateActions

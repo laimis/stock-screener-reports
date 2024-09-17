@@ -10,6 +10,8 @@
     <PackageReference Include="FSharp.Data" Version="6.4.0" />
     <PackageReference Include="Giraffe" Version="6.4.0" />
     <PackageReference Include="Giraffe.ViewEngine" Version="1.4.0" />
+    <PackageReference Include="Hangfire" Version="1.8.14" />
+    <PackageReference Include="Hangfire.PostgreSql" Version="1.20.9" />
     <PackageReference Include="MathNet.Numerics" Version="6.0.0-beta1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />

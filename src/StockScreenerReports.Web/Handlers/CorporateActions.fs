@@ -8,7 +8,7 @@ open StockScreenerReports.Core
 open Giraffe.ViewEngine.Attributes
 open Giraffe.ViewEngine.HtmlElements
 open StockScreenerReports.Storage
-open StockScreenerReports.Web.Services
+open StockScreenerReports.Web
 open StockScreenerReports.Web.Shared
 open StockScreenerReports.Web.Shared.Utils
 open StockScreenerReports.Web.Shared.Views
