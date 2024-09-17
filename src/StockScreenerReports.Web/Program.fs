@@ -49,7 +49,7 @@ let configureJobs (app : IApplicationBuilder) =
         RecurringJob.AddOrUpdate<Services>(
             recurringJobId="fullrun",
             methodCall=(fun (s:Services) -> s.FullRun() :> Task),
-            cronExpression=Cron.Daily(16, 00),
+            cronExpression=Cron.Daily(17, 00),
             options=rjo
         )
         
