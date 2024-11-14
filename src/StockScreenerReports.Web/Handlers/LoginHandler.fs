@@ -49,10 +49,10 @@ let verifyLoginHandler : HttpHandler =
         task {
             let! model = ctx.BindFormAsync<LoginModel>()
             
-            let request = new HttpRequestMessage(HttpMethod.Post, "https://app.nightingaletrading.com/api/account/login")
+            use request = new HttpRequestMessage(HttpMethod.Post, "https://app.nightingaletrading.com/api/account/login")
             request.Content <- new StringContent( $"""{{ "email": "%s{model.Username}", "password": "%s{model.Password}" }}""", System.Text.Encoding.UTF8, "application/json")
             
-            let! response = client.SendAsync(request) |> Async.AwaitTask
+            use! response = client.SendAsync(request) |> Async.AwaitTask
             
             // Validate the credentials and authenticate the user
             if response.IsSuccessStatusCode then
