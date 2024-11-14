@@ -22,5 +22,6 @@ WORKDIR /app
 COPY --from=build-env /app/out /app
 
 ENV ASPNETCORE_URLS=http://*:8080
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
 ENTRYPOINT ["dotnet", "StockScreenerReports.Web.App.dll"]
