@@ -15,11 +15,13 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine
 RUN apk add --no-cache -U \
     curl \
     tzdata \
-    icu-libs
+    icu-libs \
+    icu-data-full
 
 WORKDIR /app
 COPY --from=build-env /app/out /app
 
 ENV ASPNETCORE_URLS=http://*:8080
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
 
 ENTRYPOINT ["dotnet", "StockScreenerReports.Web.App.dll"]
