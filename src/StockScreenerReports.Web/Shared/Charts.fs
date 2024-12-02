@@ -53,7 +53,12 @@ module Charts =
                             align: 'end',
                             formatter: function(value, context) {
                                 return value > 1000000 ? (value / 1000000).toFixed(0) + 'M' : value;
-                            }
+                            },
+                            display: 'auto'
+                        },
+                        legend: {
+                            display: true,
+                            position: 'right'
                         }
                     }
                 }"
