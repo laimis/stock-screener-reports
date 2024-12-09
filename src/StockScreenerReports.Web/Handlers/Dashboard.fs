@@ -65,7 +65,7 @@ module Dashboard =
             |> List.map (fun (sma:SMA,breakdowns) ->
                 {
                     data = breakdowns |> List.map (_.percentAboveRounded)
-                    title = $"SMA {sma}"
+                    title = $"{sma}"
                     color = sma.Color 
                 }
             )
