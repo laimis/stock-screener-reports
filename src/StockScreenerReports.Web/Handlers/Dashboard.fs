@@ -400,7 +400,7 @@ module Dashboard =
 
         let trendsSection = smaBreakdowns |> generateSMATrendRows
             
-        let cyclesSection = generateIndustryCycleStartChart "Cycle Starts (SMA20)" dateRange cycles
+        let cyclesSection = generateIndustryCycleStartChart "Cycle Starts (SMA20)" dateRange true cycles
 
         [
             [warningSection]

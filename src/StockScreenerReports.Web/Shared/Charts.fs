@@ -36,6 +36,8 @@ module Charts =
             match maxYValue with
             | Some m -> $"max: {m},"
             | None -> ""
+            
+        let legendPosition = "'right'"
 
         let options = "{
                     // responsive: true,
@@ -58,7 +60,7 @@ module Charts =
                         },
                         legend: {
                             display: true,
-                            position: 'right'
+                            position: " + legendPosition + "
                         }
                     }
                 }"

@@ -1,5 +1,7 @@
 namespace StockScreenerReports.Web.Shared
 
+open StockScreenerReports.Web.Shared.Charts
+
 module Views =
     open Giraffe
     open Giraffe.ViewEngine
@@ -566,7 +568,7 @@ module Views =
         | Neutral -> "➖"
         
         
-    let generateIndustryCycleStartChart sectionName dateRange (cycles:IndustryWithCycle list) =
+    let generateIndustryCycleStartChart sectionName dateRange includeHighs (cycles:IndustryWithCycle list) =
 
         match cycles with
         | [] -> 
@@ -613,10 +615,17 @@ module Views =
                 
             let startDataSet = generateDataset "Cycle Starts" Constants.ColorRed listOfDays cyclesGroupedByStartDate
             let highDataSet = generateDataset "Cycle Highs" Constants.ColorGreen listOfDays cyclesGroupedByHighDate
-
-            let maxValue = System.Math.Max(startDataSet.data |> List.max, highDataSet.data |> List.max) + 5m |> int
+                
+            let maxValue =
+                match includeHighs with
+                | true -> System.Math.Max(startDataSet.data |> List.max, highDataSet.data |> List.max) + 5m |> int
+                | false -> (startDataSet.data |> List.max) + 5m |> int
 
             let labels = listOfDays |> Seq.map _.ToString("MM/dd")
-            let chart = [startDataSet; highDataSet] |> Charts.generateChartElements sectionName Charts.ChartType.Bar (Some maxValue) Charts.smallChart labels
+            let chart =
+                [
+                    startDataSet
+                    if includeHighs then highDataSet
+                ] |> generateChartElements sectionName ChartType.Bar (Some maxValue) smallChart labels
 
             div [] chart |> toSection sectionName
