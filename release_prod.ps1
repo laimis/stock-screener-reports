@@ -85,7 +85,7 @@ Invoke-Expression "git push --tags"
 $cmd = "git checkout prod"
 Invoke-Expression $cmd
 
-$cmd = "git merge main --squash -m '$($newVersion): $message'"
+$cmd = "git merge main -m '$($newVersion): $message'"
 Invoke-Expression $cmd
 
 $cmd = "git push"

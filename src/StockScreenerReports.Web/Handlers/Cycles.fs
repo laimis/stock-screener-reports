@@ -131,8 +131,8 @@ module Cycles =
  
         let title = 
             match maximumAge with
-            | System.Int32.MaxValue -> "Industry Cycles"
-            | _ -> $"Industry Cycles (Maximum Age: {maximumAge} days, Minimum Value: {minimumValue}): {cycles.Length}, Minimum Change: {minimumChange}"
+            | System.Int32.MaxValue -> $"Industry Cycles: {cycles.Length}"
+            | _ -> $"Industry Cycles (Maximum Age: {maximumAge} days, Minimum Value: {minimumValue}), Minimum Change: {minimumChange}: {cycles.Length}"
 
         div [] [
             filterSection
@@ -214,6 +214,4 @@ module Cycles =
                 cycleTableSection
             ]
             
-            let title = $"Cycles - {filteredCycles.Length}"
-            
-            (view |> mainLayout title) next ctx
+            (view |> mainLayout "Cycles") next ctx
