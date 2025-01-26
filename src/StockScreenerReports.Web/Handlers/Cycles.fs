@@ -214,4 +214,6 @@ module Cycles =
                 cycleTableSection
             ]
             
-            (view |> mainLayout $"Cycles") next ctx
+            let title = $"Cycles - {filteredCycles.Length}"
+            
+            (view |> mainLayout title) next ctx
