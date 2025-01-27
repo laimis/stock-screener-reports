@@ -2,10 +2,9 @@ module StockScreenerReports.Web.App
 
 open System
 open System.IO
-open System.Linq.Expressions
 open System.Threading.Tasks
 open Hangfire
-open Hangfire.PostgreSql
+open Hangfire.MemoryStorage
 open Microsoft.AspNetCore.Authentication.Cookies
 open Microsoft.AspNetCore.Builder
 open Microsoft.AspNetCore.Cors.Infrastructure
@@ -83,14 +82,8 @@ let configureServices (services : IServiceCollection) =
     cnnString |> Storage.configureConnectionString
     cnnString |> Reports.configureConnectionString
     
-    let configAction = Action<PostgreSqlBootstrapperOptions>(fun options ->
-        options.UseNpgsqlConnection(cnnString) |> ignore
-    )
-    
-    GlobalConfiguration.Configuration.UsePostgreSqlStorage(configAction) |> ignore
-    
     services.AddSingleton<Services>() |> ignore
-    services.AddHangfire(fun c -> ()) |> ignore
+    services.AddHangfire(fun c -> c.UseMemoryStorage() |> ignore) |> ignore
     services.AddHangfireServer() |> ignore
 
     TimeFunctions.nowFunc <- fun () ->
