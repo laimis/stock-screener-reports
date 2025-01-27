@@ -181,6 +181,7 @@ module Cycles =
             let cycleFilterFunc = fun (_, cycle:MarketCycle) -> 
                 cycle.age.TotalDays <= maximumAge &&
                 cycle.currentPointValue >= minimumValue &&
+                cycle.currentPointValue <= maximumValue &&
                 cycle.currentPointValue - cycle.startPointValue >= minimumChange &&
                 cycle.rateOfChange >= minimumRateOfChange &&
                 cycle.highPointAge.TotalDays <= maximumHighAge
