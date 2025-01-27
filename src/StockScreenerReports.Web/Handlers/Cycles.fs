@@ -14,13 +14,15 @@ module Cycles =
     [<Literal>]
     let private minimumValueParam = "minimumValue"
     [<Literal>]
+    let private maximumValueParam = "maximumValue"
+    [<Literal>]
     let private minimumChangeParam = "minimumChange"
     [<Literal>]
     let private minimumRateOfChangeParam = "minimumRateOfChange"
     [<Literal>]
     let private maximumHighAgeParam = "maximumHighAge"
 
-    let private generateFilterSectionForm maximumAge minimumValue minimumChange minimumRateOfChange maximumHighAge =
+    let private generateFilterSectionForm maximumAge minimumValue maximumValue minimumChange minimumRateOfChange maximumHighAge =
 
         form [] [
             div [ _class "columns"] [
@@ -44,6 +46,15 @@ module Cycles =
                         _name minimumValueParam
                         _class "input"
                         _value (minimumValue.ToString())
+                    ]
+                ]
+                div [ _class "field column" ] [
+                    label [ _for maximumValueParam ] [ str "Maximum Value" ]
+                    input [
+                        _type "number"
+                        _name maximumValueParam
+                        _class "input"
+                        _value (maximumValue.ToString())
                     ]
                 ]
                 div [ _class "field column" ] [
@@ -90,9 +101,9 @@ module Cycles =
             ]
         ]
 
-    let private generateCyclesSection maximumAge minimumValue minimumChange minimumRateOfChange maximumHighAge (cycles:list<IndustryWithCycle>) =
+    let private generateCyclesSection maximumAge minimumValue maximumValue minimumChange minimumRateOfChange maximumHighAge (cycles:list<IndustryWithCycle>) =
         
-        let filterSection = generateFilterSectionForm maximumAge minimumValue minimumChange minimumRateOfChange maximumHighAge
+        let filterSection = generateFilterSectionForm maximumAge minimumValue maximumValue minimumChange minimumRateOfChange maximumHighAge
 
         let rows =
             cycles
@@ -152,11 +163,12 @@ module Cycles =
 
         let maximumAge = parseParam maximumAgeParam System.Int32.TryParse System.Int32.MaxValue
         let minimumValue = parseParam minimumValueParam System.Decimal.TryParse 0m
+        let maximumValue = parseParam maximumValueParam System.Decimal.TryParse System.Decimal.MaxValue
         let minimumChange = parseParam minimumChangeParam System.Decimal.TryParse 0m
         let minimumRateOfChange = parseParam minimumRateOfChangeParam System.Decimal.TryParse 0m
         let maximumHighAge = parseParam maximumHighAgeParam System.Int32.TryParse System.Int32.MaxValue
 
-        (maximumAge, minimumValue, minimumChange, minimumRateOfChange, maximumHighAge)
+        (maximumAge, minimumValue, maximumValue, minimumChange, minimumRateOfChange, maximumHighAge)
 
     let handler : HttpHandler  =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
@@ -165,7 +177,7 @@ module Cycles =
             
             let dateFilterSection = generateFilterSection [] dateRange 
             
-            let maximumAge, minimumValue, minimumChange, minimumRateOfChange, maximumHighAge = getQueryParams ctx
+            let maximumAge, minimumValue, maximumValue, minimumChange, minimumRateOfChange, maximumHighAge = getQueryParams ctx
             let cycleFilterFunc = fun (_, cycle:MarketCycle) -> 
                 cycle.age.TotalDays <= maximumAge &&
                 cycle.currentPointValue >= minimumValue &&
@@ -204,7 +216,7 @@ module Cycles =
 
             let cycleTableSection =
                 filteredCycles
-                |> generateCyclesSection maximumAge minimumValue minimumChange minimumRateOfChange maximumHighAge
+                |> generateCyclesSection maximumAge minimumValue maximumValue minimumChange minimumRateOfChange maximumHighAge
 
             let view = [
                 warningSection
