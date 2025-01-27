@@ -66,6 +66,7 @@ let configureApp (app : IApplicationBuilder) =
         .UseStaticFiles()
         .UseAuthentication()
         .UseAuthorization()
+        .UseHangfireDashboard()
         .UseGiraffe(Router.routes)
         
     configureJobs app 
