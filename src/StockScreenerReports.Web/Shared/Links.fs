@@ -7,6 +7,8 @@ module Links =
     // external links
     let tradingViewLink ticker =
         $"https://tradingview.com/chart/kQn4rgoA/?symbol={ticker}"
+        
+    let ngtdLink ticker = $"https://app.nightingaletrading.com/stocks/{ticker}"
 
     let bulmaCssLink = "https://cdn.jsdelivr.net/npm/bulma@1.0.0/css/bulma.min.css"
 
