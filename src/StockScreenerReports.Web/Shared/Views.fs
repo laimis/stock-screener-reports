@@ -488,8 +488,8 @@ module Views =
             "industry"
             "country"
             "market cap"
-            "chart"
             "NGTD"
+            "chart"
         ]
 
         stocks
@@ -502,8 +502,8 @@ module Views =
                 LinkColumn(stock.industry, stock.industry |> Links.industryLink) |> toTd
                 LinkColumn(stock.country, stock.country |> Links.countryLink) |> toTd
                 StringColumn(stock.marketCap |> marketCapOptionFormatted) |> toTd
-                LinkNewTabColumn("chart", stock.ticker |> StockTicker.value |> Links.tradingViewLink) |> toTd
                 LinkNewTabColumn("NGTD", stock.ticker |> StockTicker.value |> Links.ngtdLink) |> toTd
+                LinkNewTabColumn("chart", stock.ticker |> StockTicker.value |> Links.tradingViewLink) |> toTd
             ]
         )
         |> fullWidthTableWithSortableHeaderCells stockTableHeaders
