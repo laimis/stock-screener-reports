@@ -36,6 +36,7 @@ module ScreenerResults =
             StringColumn(result.price |> dollarFormatted) |> toTd
             StringColumn(result.change |> percentFormatted) |> toTd
             StringColumn(result.volume |> volumeFormatted) |> toTd
+            LinkNewTabColumn("NGTD", result.ticker |> Links.ngtdLink) |> toTd
             LinkNewTabColumn("chart", result.ticker |> Links.tradingViewLink) |> toTd
         ]
     
@@ -69,6 +70,7 @@ module ScreenerResults =
             "Price"
             "Change"
             "Volume"
+            "NGTD"
             "Chart"
         ]
 
@@ -229,8 +231,8 @@ module ScreenerResults =
                     getLatestScreenerResults()
                     |> List.filter (fun r -> r.screenerid = id)
                     |> List.head
-                    |> (fun r -> r.date)
-                | _ -> System.DateTime.Parse(dateStr)
+                    |> fun r -> r.date
+                | _ -> System.DateTime.Parse dateStr
                     
             let dateBefore = (Utils.subtractDaysToClosestBusinessDay date 1)
 
