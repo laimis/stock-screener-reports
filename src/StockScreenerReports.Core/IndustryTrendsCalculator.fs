@@ -84,12 +84,23 @@ namespace StockScreenerReports.Core
                 smaBreakdowns
                 |> List.fold folder None
 
-            match trendCycleOption.Value.trend.streak with
-            | 0 -> {
-                    cycle = trendCycleOption.Value.cycle;
-                    trend = {trendCycleOption.Value.trend with streak = 1}
+            match trendCycleOption with
+            | None -> 
+                {
+                    cycle = {
+                        startPoint = {date = System.DateTime.MinValue; value = 0m};
+                        highPoint = {date = System.DateTime.MinValue; value = 0m};
+                        currentPoint = {date = System.DateTime.MinValue; value = 0m};
+                    };
+                    trend = {streak = 0; direction = Up; change = 0m; value = 0m}
                 }
-            | _ -> trendCycleOption.Value
+            | Some trendCycleOption ->
+                match trendCycleOption.trend.streak with
+                | 0 -> {
+                        cycle = trendCycleOption.cycle;
+                        trend = {trendCycleOption.trend with streak = 1}
+                    }
+                | _ -> trendCycleOption
 
         let calculateForIndustry (smaBreakdowns:list<IndustrySMABreakdown>) =
             let justBreakdowns = smaBreakdowns |> List.map _.breakdown
