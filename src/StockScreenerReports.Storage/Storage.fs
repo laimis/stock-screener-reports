@@ -368,6 +368,10 @@ module Storage =
         
         deleteScreenerResults screener date |> ignore
 
+        // Note: This could be further optimized with a batch upsert for stocks
+        // and batch insert for screener results in a single transaction,
+        // but would require restructuring to collect all stock data first,
+        // then execute as a single batch operation
         results
         |> Seq.map (fun (result:ScreenerResult) ->
             let stock = saveStock result.ticker result.company result.sector result.industry result.country result.marketCap
@@ -661,6 +665,16 @@ module Storage =
         let insertPointSql = @"INSERT INTO industrysequencepoints (sequenceid, date, value)
                                VALUES (@sequenceid, @date, @value)"
 
+        // Use a single transaction for all operations
+        let pointInserts = 
+            sequence.values
+            |> Seq.map (fun pt -> [
+                "@sequenceid", Sql.int64 0L; // Will be replaced below
+                "@date", Sql.timestamp pt.date;
+                "@value", Sql.decimal pt.value
+            ])
+            |> Seq.toList
+
         let sequenceId =
             cnnString
             |> Sql.connect
@@ -673,27 +687,34 @@ module Storage =
                 "@open", Sql.bool sequence.open'
             ]
             |> Sql.executeRow (fun reader -> reader.int64 "id")
-            
-        cnnString
-        |> Sql.connect
-        |> Sql.query deletePointsSql
-        |> Sql.parameters [
-            "@sequenceid", Sql.int64 sequenceId
-        ]
-        |> Sql.executeNonQuery |> ignore
         
-        sequence.values
-        |> Seq.iter (fun pt ->
+        // Build transaction operations: delete + all inserts
+        let deleteOp = (deletePointsSql, [["@sequenceid", Sql.int64 sequenceId]])
+        
+        let insertOps = 
+            pointInserts
+            |> List.map (fun paramList -> 
+                let updatedParams = paramList |> List.map (fun (name, _) -> 
+                    if name = "@sequenceid" then ("@sequenceid", Sql.int64 sequenceId)
+                    else List.find (fun (n, _) -> n = name) paramList
+                )
+                (insertPointSql, [updatedParams])
+            )
+        
+        // Execute all in a single transaction
+        if not (List.isEmpty insertOps) then
             cnnString
             |> Sql.connect
-            |> Sql.query insertPointSql
-            |> Sql.parameters [
-                "@sequenceid", Sql.int64 sequenceId;
-                "@date", Sql.timestamp pt.date;
-                "@value", Sql.decimal pt.value
-            ]
-            |> Sql.executeNonQuery |> ignore
-        )
+            |> Sql.executeTransaction (deleteOp :: insertOps)
+            |> ignore
+        else
+            // Just delete if no points to insert
+            cnnString
+            |> Sql.connect
+            |> Sql.query deletePointsSql
+            |> Sql.parameters ["@sequenceid", Sql.int64 sequenceId]
+            |> Sql.executeNonQuery
+            |> ignore
     
     let private getIndustrySequencesWithQuery querySql queryParams =
         
@@ -706,10 +727,14 @@ module Storage =
             )
 
         let pointMapper (reader:RowReader) =
-            {
-                date = reader.dateTime "date";
-                value = reader.decimal "value"
-            }
+            (
+                reader.int64 "sequenceid",
+                {
+                    date = reader.dateTime "date";
+                    value = reader.decimal "value"
+                }
+            )
+
 
         let sequences =
             cnnString
@@ -718,24 +743,38 @@ module Storage =
             |> Sql.parameters queryParams
             |> Sql.execute sequenceMapper
 
-        let pointSql = "SELECT * FROM industrysequencepoints WHERE sequenceid = @sequenceid ORDER BY id"
+        // If no sequences, return early
+        if List.isEmpty sequences then
+            []
+        else
+            // Fetch all points for all sequences in a single query
+            let sequenceIds = sequences |> List.map (fun (id, _, _, _) -> id) |> List.toArray
+            let pointSql = "SELECT sequenceid, date, value FROM industrysequencepoints WHERE sequenceid = ANY(@sequenceids) ORDER BY sequenceid, id"
 
-        sequences
-        |> List.map (fun (sequenceId, industry, sequenceType, open') ->
-            let points =
+            let allPoints =
                 cnnString
                 |> Sql.connect
                 |> Sql.query pointSql
-                |> Sql.parameters ["@sequenceid", Sql.int64 sequenceId]
+                |> Sql.parameters ["@sequenceids", Sql.int64Array sequenceIds]
                 |> Sql.execute pointMapper
+                |> List.groupBy fst
+                |> Map.ofList
 
-            {
-                industry = industry
-                type' = sequenceType |> sequenceTypeFromString
-                values = points
-                open' = open' 
-            }
-        )
+            sequences
+            |> List.map (fun (sequenceId, industry, sequenceType, open') ->
+                let points = 
+                    allPoints 
+                    |> Map.tryFind sequenceId 
+                    |> Option.defaultValue []
+                    |> List.map snd
+
+                {
+                    industry = industry
+                    type' = sequenceType |> sequenceTypeFromString
+                    values = points
+                    open' = open' 
+                }
+            )
         
     let getIndustrySequencesForIndustry industry =
         let sequenceSql = "SELECT * FROM industrysequences WHERE industry = @industry ORDER BY startdate DESC"
