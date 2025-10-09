@@ -18,7 +18,7 @@ let getCorporateActions() =
     
     let tableRows =
         doc.DocumentNode.Descendants("table")
-        |> Seq.find (_.HasClass("svelte-2d4szo"))
+        |> Seq.find (_.HasClass("svelte-1swpzu1"))
         |> _.Descendants("tbody")
         |> Seq.head
         |> _.Descendants("tr")
