@@ -9,14 +9,16 @@ open StockScreenerReports.Web.Shared
 module Router =
     let requiresAuthentication : HttpHandler =
         fun (next : HttpFunc) (ctx : HttpContext) ->
-            if ctx.User.Identity.IsAuthenticated then
-                next ctx
-            else
-                // capture the path that was requested
-                let path = ctx.Request.Path.ToString() |> System.Web.HttpUtility.UrlEncode
-                
-                ctx.SetStatusCode 401
-                redirectTo false $"/login?returnUrl={path}" next ctx
+            // Always allow access - authentication disabled
+            next ctx
+            
+            // Original code (keep for reference):
+            // if ctx.User.Identity.IsAuthenticated then
+            //     next ctx
+            // else
+            //     let path = ctx.Request.Path.ToString() |> System.Web.HttpUtility.UrlEncode
+            //     ctx.SetStatusCode 401
+            //     redirectTo false $"/login?returnUrl={path}" next ctx
             
     let routes : HttpHandler =
         choose [
