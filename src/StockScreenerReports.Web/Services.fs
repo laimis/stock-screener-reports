@@ -1,10 +1,9 @@
 namespace StockScreenerReports.Web
 
-open StockScreenerReports.Storage
 open Microsoft.Extensions.Logging
 open StockScreenerReports.Core
 open StockScreenerReports.FinvizClient
-open System
+open StockScreenerReports.Storage
 open System.Collections.Generic
 
 type Services(logger:ILogger<Services>) = 
@@ -24,10 +23,10 @@ type Services(logger:ILogger<Services>) =
         let fetchScreenerResults (input:Screener) =
             logger.LogInformation $"Running screener %s{input.name}"
             let results = FinvizClient.getResults input.url
-            (input,results)
+            input,results
 
         let saveToDb (screenerResults:list<Screener * 'a>) =
-            logger.LogInformation("Saving results to db")
+            logger.LogInformation "Saving results to db"
             let date = Utils.getRunDate()
             screenerResults
             |> List.iter (fun x -> Storage.saveScreenerResults date x)
@@ -44,17 +43,16 @@ type Services(logger:ILogger<Services>) =
             let status, message =
                 match emptyResults with
                 | [] ->
-                    (
-                        Success,
-                        $"Ran {results.Length} screeners successfully"
-                    )
+                    Success,
+                    $"Ran {results.Length} screeners successfully"
                 | _ ->
-                    let screenerNamesWithNoResults = emptyResults |> List.map (fun (screener,_) -> screener.name) |> String.concat ", "
+                    let screenerNamesWithNoResults =
+                        emptyResults
+                        |> List.map (fun (screener,_) -> screener.name)
+                        |> String.concat ", "
                     
-                    (
-                        Warning,
-                        $"Ran {results.Length} screeners successfully, but {screenerNamesWithNoResults} screener(s) had no results"
-                    )
+                    Warning,
+                    $"Ran {results.Length} screeners successfully, but {screenerNamesWithNoResults} screener(s) had no results"
             
             Storage.saveJobStatus ScreenerJob (ReportsConfig.nowUtcNow()) status message |> ignore
             
@@ -151,9 +149,12 @@ type Services(logger:ILogger<Services>) =
             
             // let's load industry sequences and see if there are any recent ones
             let sequenceAlerts =
-                IndustryAlertGenerator.industrySequenceAlerts (ReportsConfig.now()) industriesWithSequences
-                |> List.map Storage.saveAlert
-                |> List.sum
+                match ReportsConfig.sequenceAlertsEnabled with
+                | false -> 0
+                | true ->
+                    IndustryAlertGenerator.industrySequenceAlerts (ReportsConfig.now()) industriesWithSequences
+                    |> List.map Storage.saveAlert
+                    |> List.sum
                 
             // see if there are corporate actions one might take a look at
             let! corporateActions = ReportsConfig.now() |> Storage.getCorporateActionsForDate

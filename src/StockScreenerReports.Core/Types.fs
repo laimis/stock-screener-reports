@@ -191,6 +191,8 @@ type ReportsConfig =
     static member includeCountryInScans countryName =
         countryName <> "United States" && countryName <> "Costa Rica"
 
+    static member sequenceAlertsEnabled = false
+
 type ScreenerResult = {
     ticker:StockTicker.T;
     company:string;

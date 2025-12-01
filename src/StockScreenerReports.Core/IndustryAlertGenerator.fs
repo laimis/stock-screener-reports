@@ -104,7 +104,7 @@ let industrySequenceAlerts (referenceDate:System.DateTime) (industryTrends:Map<s
         |> List.map( fun (sequence:IndustrySequence) ->
             {
                 date = referenceDate.Date
-                alertType = IndustryAlert(sequence.industry)
+                alertType = IndustryAlert sequence.industry
                 acknowledged = false
                 description = $"{sequence.industry} has entered {sequence.type'} sequence"
                 sentiment = match sequence.type' with | High -> Positive | Low -> Negative

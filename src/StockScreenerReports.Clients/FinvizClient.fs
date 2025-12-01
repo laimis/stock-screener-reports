@@ -35,7 +35,7 @@ module FinvizClient =
             // whenever a new page is requested. When total results is something like 20 or 40
             // we don't know that this is the end and just keep fetching
             let isLastPage = page.Length = 1 && offset > 1
-            let index = results |> List.tryFindIndex (fun r -> r.ticker.Equals(page.Item(0).ticker))
+            let index = results |> List.tryFindIndex (fun r -> page.Length > 0 && r.ticker.Equals(page[0].ticker))
 
             if index.IsSome && isLastPage then
                 results
