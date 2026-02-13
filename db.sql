@@ -254,5 +254,8 @@ CREATE TABLE corporateactions
     UNIQUE (date, symbol, type)
 );
 
-ALTER TABLE alerts ADD COLUMN ticker TEXT NULL;
-ALTER TABLE alerts ADD COLUMN corporateactiontype TEXT NULL;
+ALTER TABLE screeners ADD COLUMN IF NOT EXISTS generatetickeralerts BOOLEAN NOT NULL DEFAULT false;
+
+ALTER TABLE alerts ADD COLUMN IF NOT EXISTS corporateactiontype TEXT NULL;
+ALTER TABLE alerts ADD COLUMN IF NOT EXISTS ticker TEXT NULL;
+ALTER TABLE alerts ADD COLUMN IF NOT EXISTS appeared BOOLEAN NULL;

@@ -11,6 +11,7 @@ type IndustryAlertGeneratorTests() =
         id = 1
         name = "name"
         url = "url"
+        generateTickerAlerts = false
     }
     
     let generateScreenerResultForIndustry industry : ScreenerResultReportItem =

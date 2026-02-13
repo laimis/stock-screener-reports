@@ -17,6 +17,7 @@ module ScreenerManagement =
         {
             name: string
             url: string
+            generateTickerAlerts: bool
         }
     
     [<CLIMutable>]
@@ -75,7 +76,7 @@ module ScreenerManagement =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
             task {
                 let! input = ctx.BindFormAsync<CreateScreenerInput>()
-                Storage.createScreener input.name input.url |> ignore
+                Storage.createScreener input.name input.url input.generateTickerAlerts |> ignore
                 return! redirectTo false Links.screeners next ctx
             }
 
@@ -140,6 +141,12 @@ module ScreenerManagement =
                         div [] [screener.url |> generateHrefNewTab screener.url]
                     ]
                     td [] [
+                        if screener.generateTickerAlerts then
+                            span [ _class "tag is-success" ] [ str "Enabled" ]
+                        else
+                            span [ _class "tag is-light" ] [ str "Disabled" ]
+                    ]
+                    td [] [
                         
                         generateHrefWithAttr
                             "Results"
@@ -176,6 +183,7 @@ module ScreenerManagement =
             tr [] [
                 "Id" |> toHeaderCell
                 th [ _width "400" ] [ str "Name" ]
+                "Ticker Alerts" |> toHeaderCell
                 "" |> toHeaderCell
             ]
                 
@@ -201,6 +209,16 @@ module ScreenerManagement =
                         _type "text"
                         _name "url"
                         _class "input"
+                    ]
+                ]
+                div [ _class "field" ] [
+                    label [ _class "checkbox" ] [
+                        input [
+                            _type "checkbox"
+                            _name "generateTickerAlerts"
+                            _class "mr-2"
+                        ]
+                        str "Generate alerts for new/removed tickers"
                     ]
                 ]
                 // submit button

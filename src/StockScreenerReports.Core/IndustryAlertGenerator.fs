@@ -137,3 +137,53 @@ let industrySequenceAlerts (referenceDate:System.DateTime) (industryTrends:Map<s
         
     startAlerts @ endAlerts
     
+
+let tickerScreenerAlerts (screenersWithCurrentAndPreviousResults: list<Screener * ScreenerResultReportItem list * ScreenerResultReportItem list>) =
+    
+    screenersWithCurrentAndPreviousResults
+    |> List.filter (fun (screener, _, _) -> screener.generateTickerAlerts)
+    |> List.map (fun (screener, currentResults, previousResults) ->
+        
+        let currentTickers = currentResults |> List.map (fun r -> r.ticker) |> Set.ofList
+        let previousTickers = previousResults |> List.map (fun r -> r.ticker) |> Set.ofList
+        
+        let newTickers = Set.difference currentTickers previousTickers
+        let removedTickers = Set.difference previousTickers currentTickers
+        
+        let date = 
+            match currentResults with
+            | [] -> System.DateTime.Now.Date
+            | head::_ -> head.date.Date
+        
+        let newTickerAlerts =
+            newTickers
+            |> Set.toList
+            |> List.map (fun ticker ->
+                {
+                    date = date
+                    alertType = TickerScreenerAlert(ticker, screener.id, true)
+                    acknowledged = false
+                    description = $"{ticker} appeared in screener '{screener.name}'"
+                    sentiment = Positive
+                    strength = 1.0m
+                }
+            )
+        
+        let removedTickerAlerts =
+            removedTickers
+            |> Set.toList
+            |> List.map (fun ticker ->
+                {
+                    date = date
+                    alertType = TickerScreenerAlert(ticker, screener.id, false)
+                    acknowledged = false
+                    description = $"{ticker} disappeared from screener '{screener.name}'"
+                    sentiment = Negative
+                    strength = 1.0m
+                }
+            )
+        
+        newTickerAlerts @ removedTickerAlerts
+    )
+    |> List.concat
+    

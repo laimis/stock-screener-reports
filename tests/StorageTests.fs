@@ -92,7 +92,7 @@ type StorageTests(output:ITestOutputHelper) =
 
         screenerName |> Storage.getScreenerByName |> should equal None
 
-        let screener = Storage.createScreener screenerName screenerUrl
+        let screener = Storage.createScreener screenerName screenerUrl false
 
         screener.id |> should be (greaterThan 0)
         screener.name |> should equal screenerName
@@ -129,7 +129,7 @@ type StorageTests(output:ITestOutputHelper) =
         let screenerName = generateScreener()
         let ticker = generateTicker()
 
-        let screener = Storage.createScreener screenerName screenerUrl
+        let screener = Storage.createScreener screenerName screenerUrl false
 
         let date = Utils.getRunDate()
 
@@ -160,7 +160,7 @@ type StorageTests(output:ITestOutputHelper) =
         let screenerName = generateScreener()
         let ticker = generateTicker()
 
-        let screener = Storage.createScreener screenerName screenerUrl
+        let screener = Storage.createScreener screenerName screenerUrl false
 
         let date = Utils.getRunDate()
 

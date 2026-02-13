@@ -124,12 +124,22 @@ type Services(logger:ILogger<Services>) =
             let dateRange = ReportsConfig.dateRangeAsStrings()
                 
             let screenerDate = dateRange |> snd |> Reports.getScreenerResultsLastKnownDateAsOf |> Utils.convertToDateString
+            let previousScreenerDate = screenerDate |> System.DateTime.Parse |> (fun date -> Utils.subtractDaysToClosestBusinessDay date 1) |> Utils.convertToDateString
             
             // load latest screener hits for each screener
             let screenersWithResults =
                 screeners
                 |> List.map (fun s ->
                     s, screenerDate |> Reports.getScreenerResults s.id
+                )
+            
+            // load previous day's results for ticker comparison
+            let screenersWithCurrentAndPreviousResults =
+                screeners
+                |> List.map (fun s ->
+                    let currentResults = screenerDate |> Reports.getScreenerResults s.id
+                    let previousResults = previousScreenerDate |> Reports.getScreenerResults s.id
+                    s, currentResults, previousResults
                 )
                 
             let industrySize = industries |> List.map (fun industry ->
@@ -138,6 +148,12 @@ type Services(logger:ILogger<Services>) =
             
             let screenerAlerts = 
                 IndustryAlertGenerator.screenerAlerts industrySize screenersWithResults
+                |> List.map Storage.saveAlert
+                |> List.sum
+            
+            // Generate ticker-level screener alerts for screeners with the flag enabled
+            let tickerScreenerAlerts =
+                IndustryAlertGenerator.tickerScreenerAlerts screenersWithCurrentAndPreviousResults
                 |> List.map Storage.saveAlert
                 |> List.sum
             
@@ -188,7 +204,7 @@ type Services(logger:ILogger<Services>) =
             |> List.map Storage.saveAlert
             |> ignore
                     
-            let message = $"Generated {screenerAlerts} screener alerts, {sequenceAlerts} sequence alerts, and {alerts.Length} corporate action alerts"
+            let message = $"Generated {screenerAlerts} industry screener alerts, {tickerScreenerAlerts} ticker screener alerts, {sequenceAlerts} sequence alerts, and {alerts.Length} corporate action alerts"
             
             logger.LogInformation(message)
             

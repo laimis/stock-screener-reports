@@ -257,6 +257,7 @@ type Screener = {
     id: int;
     name: string;
     url: string;
+    generateTickerAlerts: bool;
 }
 
 type SMABreakdown =
@@ -448,6 +449,7 @@ type AlertType =
     | ScreenerAlert of int
     | IndustryScreenerAlert of string * int
     | CorporateActionAlert of string
+    | TickerScreenerAlert of ticker: string * screenerId: int * appeared: bool
     
 type Alert =
     {
@@ -467,6 +469,9 @@ type Alert =
                 | IndustryScreenerAlert(industry,screenerId) -> $"{nameof(IndustryScreenerAlert)}_{industry}_{screenerId}"
                 | ScreenerAlert screenerId -> $"{nameof(ScreenerAlert)}_{screenerId}"
                 | CorporateActionAlert ticker -> $"{nameof(CorporateActionAlert)}_{ticker}"
+                | TickerScreenerAlert(ticker, screenerId, appeared) -> 
+                    let action = if appeared then "appeared" else "disappeared"
+                    $"{nameof(TickerScreenerAlert)}_{ticker}_{screenerId}_{action}"
                 
             let datePart = this.date.ToString("yyyy-MM-dd")
             
@@ -482,6 +487,7 @@ type Alert =
             match alert.alertType with
             | ScreenerAlert id -> Some id
             | IndustryScreenerAlert(_,id) -> Some id
+            | TickerScreenerAlert(_,id,_) -> Some id
             | _ -> None
             
 

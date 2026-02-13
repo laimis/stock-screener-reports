@@ -260,25 +260,28 @@ module Storage =
             id = reader.int "id";
             name = reader.string "name";
             url = reader.string "url";
+            generateTickerAlerts = reader.boolOrNone "generatetickeralerts" |> Option.defaultValue false;
         }
 
-    let createScreener name url =
+    let createScreener name url generateTickerAlerts =
         cnnString
             |> Sql.connect
-            |> Sql.query "INSERT INTO screeners (name,url) VALUES (@name,@url) RETURNING *"
+            |> Sql.query "INSERT INTO screeners (name,url,generatetickeralerts) VALUES (@name,@url,@generatetickeralerts) RETURNING *"
             |> Sql.parameters [
                 "@name", Sql.string name;
-                "@url", Sql.string url
+                "@url", Sql.string url;
+                "@generatetickeralerts", Sql.bool generateTickerAlerts
             ]
             |> Sql.executeRow screenerMapper
             
-    let updateScreener id name url =
+    let updateScreener id name url generateTickerAlerts =
         cnnString
         |> Sql.connect
-        |> Sql.query "UPDATE screeners SET name = @name, url = @url WHERE id = @id RETURNING *"
+        |> Sql.query "UPDATE screeners SET name = @name, url = @url, generatetickeralerts = @generatetickeralerts WHERE id = @id RETURNING *"
         |> Sql.parameters [
             "@name", Sql.string name;
             "@url", Sql.string url;
+            "@generatetickeralerts", Sql.bool generateTickerAlerts;
             "@id", Sql.int id
         ]
         |> Sql.executeRow screenerMapper
@@ -286,13 +289,13 @@ module Storage =
     let getScreeners() =
         cnnString
         |> Sql.connect
-        |> Sql.query "SELECT id,name,url FROM screeners ORDER BY id"
+        |> Sql.query "SELECT id,name,url,generatetickeralerts FROM screeners ORDER BY id"
         |> Sql.execute screenerMapper
             
     let getScreenerByName name = 
         cnnString 
         |> Sql.connect
-        |> Sql.query "SELECT id,name,url FROM screeners WHERE name = @name"
+        |> Sql.query "SELECT id,name,url,generatetickeralerts FROM screeners WHERE name = @name"
         |> Sql.parameters [ "@name", Sql.string name ]
         |> Sql.execute screenerMapper
         |> singleOrThrow "More than one screener with the same name"
@@ -300,7 +303,7 @@ module Storage =
     let getScreenerById id = 
         cnnString 
         |> Sql.connect
-        |> Sql.query "SELECT id,name,url FROM screeners WHERE id = @id"
+        |> Sql.query "SELECT id,name,url,generatetickeralerts FROM screeners WHERE id = @id"
         |> Sql.parameters [ "@id", Sql.int id ]
         |> Sql.execute screenerMapper
         |> singleOrThrow "More than one screener with the same id"
@@ -360,7 +363,7 @@ module Storage =
         let screenerOption = getScreenerByName screener.name
         match screenerOption with
             | Some screener -> screener
-            | None -> createScreener screener.name screener.url
+            | None -> createScreener screener.name screener.url screener.generateTickerAlerts
 
     let saveScreenerResults date (input:Screener,results:seq<ScreenerResult>) =
         
@@ -862,12 +865,12 @@ WHERE
         | _ -> failwith $"Unknown sentiment: {str}"
         
     let saveAlert (alert:Alert) =
-        let alertSql = @"INSERT INTO alerts (identifier, alerttype, industry, screenerid, date, sentiment, description, strength, ticker)
-                     VALUES (@identifier, @alerttype, @industry, @screenerid, @date, @sentiment::sentiment, @description, @strength, @ticker)
+        let alertSql = @"INSERT INTO alerts (identifier, alerttype, industry, screenerid, date, sentiment, description, strength, ticker, appeared)
+                     VALUES (@identifier, @alerttype, @industry, @screenerid, @date, @sentiment::sentiment, @description, @strength, @ticker, @appeared)
                      ON CONFLICT (identifier) DO UPDATE
                      SET alerttype = @alerttype, industry = @industry, screenerid = @screenerid,
                          date = @date, sentiment = @sentiment::sentiment, description = @description, strength = @strength,
-                         ticker = @ticker"
+                         ticker = @ticker, appeared = @appeared"
 
         let acknowledgementSql = @"INSERT INTO alert_acknowledgements (alert_identifier, acknowledged)
                                VALUES (@identifier, @acknowledged)
@@ -882,6 +885,7 @@ WHERE
         let screenerId =
             match alert.alertType with
             | IndustryScreenerAlert (_,screenerId) -> screenerId |> Sql.int
+            | TickerScreenerAlert (_,screenerId,_) -> screenerId |> Sql.int
             | _ -> Sql.dbnull
             
         let alertType =
@@ -890,10 +894,17 @@ WHERE
             | ScreenerAlert _ -> nameof(ScreenerAlert)
             | IndustryScreenerAlert _ -> nameof(IndustryScreenerAlert)
             | CorporateActionAlert _ -> nameof(CorporateActionAlert)
+            | TickerScreenerAlert _ -> nameof(TickerScreenerAlert)
             
         let ticker =
             match alert.alertType with
             | CorporateActionAlert ticker -> ticker |> Sql.string
+            | TickerScreenerAlert (ticker,_,_) -> ticker |> Sql.string
+            | _ -> Sql.dbnull
+            
+        let appeared =
+            match alert.alertType with
+            | TickerScreenerAlert (_,_,appeared) -> appeared |> Sql.bool
             | _ -> Sql.dbnull
             
             
@@ -908,6 +919,7 @@ WHERE
             "@strength", alert.strength |> Sql.decimal
             "@acknowledged", alert.acknowledged |> Sql.bool
             "@ticker", ticker
+            "@appeared", appeared
         ]
 
         cnnString
@@ -920,7 +932,7 @@ WHERE
 
     let getAlerts() =
         let sql = @"SELECT a.alerttype, a.industry, a.screenerid, a.date, a.sentiment, a.description, a.strength,
-                       COALESCE(ack.acknowledged, false) AS acknowledged, a.ticker
+                       COALESCE(ack.acknowledged, false) AS acknowledged, a.ticker, a.appeared
                 FROM alerts a
                 LEFT JOIN alert_acknowledgements ack ON a.identifier = ack.alert_identifier
                 WHERE acknowledged = false"
@@ -932,6 +944,8 @@ WHERE
                 | Some (nameof(ScreenerAlert)) -> ScreenerAlert (reader.int "screenerid")
                 | Some (nameof(IndustryScreenerAlert)) -> IndustryScreenerAlert (reader.string "industry", reader.int "screenerid")
                 | Some (nameof(CorporateActionAlert)) -> CorporateActionAlert (reader.string "ticker")
+                | Some (nameof(TickerScreenerAlert)) -> 
+                    TickerScreenerAlert (reader.string "ticker", reader.int "screenerid", reader.boolOrNone "appeared" |> Option.defaultValue true)
                 | _ -> failwith "Unknown alert type"
             {
                 date = reader.dateTime "date"
