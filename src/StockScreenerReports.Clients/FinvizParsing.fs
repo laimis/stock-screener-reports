@@ -59,15 +59,25 @@ module FinvizParsing =
                 | "-" -> 0m // sometimes when it does know know cap, it returns -
                 | _ ->
                     let lastChar = value[value.Length - 1]
-                    let numericPortion = 
-                        match value.Substring(0, value.Length - 1) with
-                        | Decimal dec -> dec
-                        | _ -> raise (new System.Exception("fromCap numeric conversion failed for " + value))
+                    
+                    // Check if last character is a letter (suffix) or digit (plain number)
+                    if System.Char.IsDigit(lastChar) then
+                        // Plain number without suffix - treat as millions (implicit M)
+                        match value with
+                        | Decimal dec -> dec * 1000000m
+                        | _ -> raise (new System.Exception("fromCap plain number conversion failed for " + value))
+                    else
+                        // Has a suffix character
+                        let numericPortion = 
+                            match value.Substring(0, value.Length - 1) with
+                            | Decimal dec -> dec
+                            | _ -> raise (new System.Exception("fromCap numeric conversion failed for " + value))
 
-                    match lastChar with
-                    | 'M' -> numericPortion * 1000000m
-                    | 'B' -> numericPortion * 1000000000m
-                    | _   -> raise (new System.Exception("Cap to decimal conversion failed for " + value))
+                        match lastChar with
+                        | 'M' -> numericPortion * 1000000m
+                        | 'B' -> numericPortion * 1000000000m
+                        | 'K' -> numericPortion * 1000m
+                        | _   -> raise (new System.Exception("Cap to decimal conversion failed for " + value))
 
             let toInt str =
                 try
