@@ -61,6 +61,11 @@ module FinvizParsing =
             //   "100M"  -> 100,000,000 (M = millions)
             //   "5.5B"  -> 5,500,000,000 (B = billions)
             //   "500K"  -> 500,000 (K = thousands)
+            // 
+            // Note: Plain numbers without suffix are interpreted as millions based on 
+            // observed Finviz behavior. This appears to be used for very small market caps
+            // where the value is less than typical suffixed values (e.g., 1.75 means $1.75M).
+            // This interpretation was added to fix the error: "Cap to decimal conversion failed for 1.75"
             let fromCapToDecimal (value:string) =
                 match value with
                 | "-" -> 0m // sometimes when it does know know cap, it returns -
@@ -70,6 +75,7 @@ module FinvizParsing =
                     // Check if last character is a letter (suffix) or digit (plain number)
                     if System.Char.IsDigit(lastChar) then
                         // Plain number without suffix - treat as millions (implicit M)
+                        // This handles cases where Finviz returns small market caps like "1.75"
                         match value with
                         | Decimal dec -> dec * 1000000m
                         | _ -> raise (new System.Exception("fromCap plain number conversion failed for " + value))
@@ -83,7 +89,7 @@ module FinvizParsing =
                         match lastChar with
                         | 'M' -> numericPortion * 1000000m
                         | 'B' -> numericPortion * 1000000000m
-                        | 'K' -> numericPortion * 1000m
+                        | 'K' -> numericPortion * 1000m  // Added to support thousand-scale market caps
                         | _   -> raise (new System.Exception("Cap to decimal conversion failed for " + value))
 
             let toInt str =
