@@ -54,6 +54,13 @@ module FinvizParsing =
                 | Decimal dec -> dec
                 | _ -> raise (new System.Exception("toDecimal conversion failed for " + str))
 
+            // Converts market cap string to decimal value
+            // Supported formats:
+            //   "-"     -> 0 (unknown market cap)
+            //   "1.75"  -> 1,750,000 (plain number treated as millions)
+            //   "100M"  -> 100,000,000 (M = millions)
+            //   "5.5B"  -> 5,500,000,000 (B = billions)
+            //   "500K"  -> 500,000 (K = thousands)
             let fromCapToDecimal (value:string) =
                 match value with
                 | "-" -> 0m // sometimes when it does know know cap, it returns -
