@@ -46,8 +46,11 @@ module FinvizClient =
 
         fetchPage 1 []
 
-    let getResultCount url =
-        url |> fetchUrl |> FinvizParsing.parseResultCount
+    let getResultCount (url:string) =
+        try
+            url |> fetchUrl |> FinvizParsing.parseResultCount
+        with ex ->
+            raise (System.Exception($"Failed to get result count for url {url}: {ex.Message}", ex))
 
     let getResultCountForIndustryAboveAndBelowSMA (sma:SMA) industry =
         let cleaned = industry |> Utils.cleanIndustry
@@ -56,7 +59,10 @@ module FinvizClient =
         
         let fetchCountWithTA ta =
             let url = $"https://finviz.com/screener.ashx?v=111&f=ind_{cleaned},{ta}"
-            url |> getResultCount
+            try
+                url |> getResultCount
+            with ex ->
+                raise (System.Exception($"Industry '{industry}' (cleaned: '{cleaned}'): {ex.Message}", ex))
         
         let above = $"ta_sma%i{days}_pa" |> fetchCountWithTA
         let below = $"ta_sma%i{days}_pb" |> fetchCountWithTA
@@ -75,7 +81,10 @@ module FinvizClient =
         
         let fetchCountWithTA ta =
             let url = $"https://finviz.com/screener.ashx?v=111&f=geo_{cleaned},{ta}"
-            url |> getResultCount
+            try
+                url |> getResultCount
+            with ex ->
+                raise (System.Exception($"Country '{country}' (cleaned: '{cleaned}'): {ex.Message}", ex))
             
         let interval = sma.Interval
         

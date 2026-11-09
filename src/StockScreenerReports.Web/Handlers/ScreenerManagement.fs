@@ -17,7 +17,7 @@ module ScreenerManagement =
         {
             name: string
             url: string
-            generateTickerAlerts: bool
+            generateTickerAlerts: string
         }
     
     [<CLIMutable>]
@@ -75,8 +75,9 @@ module ScreenerManagement =
     let createHandler : HttpHandler =
         fun (next : HttpFunc) (ctx : Microsoft.AspNetCore.Http.HttpContext) ->
             task {
+                System.Console.WriteLine("Creating screener...")
                 let! input = ctx.BindFormAsync<CreateScreenerInput>()
-                Storage.createScreener input.name input.url input.generateTickerAlerts |> ignore
+                Storage.createScreener input.name input.url (input.generateTickerAlerts = "on") |> ignore
                 return! redirectTo false Links.screeners next ctx
             }
 

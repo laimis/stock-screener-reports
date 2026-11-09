@@ -13,7 +13,7 @@ module ScreenerDashboard =
         {
             name: string
             url: string
-            generateTickerAlerts: bool
+            generateTickerAlerts: string
         }
 
     let private generateBreakdowsElementsForDays screenerId dateRange days =
@@ -146,7 +146,7 @@ module ScreenerDashboard =
                 let screener = Storage.getScreenerById screenerId
                 match screener with
                 | Some _ ->
-                    Storage.updateScreener screenerId input.name input.url input.generateTickerAlerts |> ignore
+                    Storage.updateScreener screenerId input.name input.url (input.generateTickerAlerts = "on") |> ignore
                     return! redirectTo false (screenerId |> Links.screenerLink) next ctx
                 | None ->
                     return! (Views.notFound "Screener not found") next ctx
