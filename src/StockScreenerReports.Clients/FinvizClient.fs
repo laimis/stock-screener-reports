@@ -30,19 +30,30 @@ module FinvizClient =
                 |> FinvizParsing.parseScreenerHtml
                 |> Seq.toList
 
-            // check if the page has only one element and offset is greater than one
-            // this potentially could be repeated result, finviz just returns the last result
-            // whenever a new page is requested. When total results is something like 20 or 40
-            // we don't know that this is the end and just keep fetching
-            let isLastPage = page.Length = 1 && offset > 1
-            let index = results |> List.tryFindIndex (fun r -> page.Length > 0 && r.ticker.Equals(page[0].ticker))
+            if page.IsEmpty && offset = 1 then
+                let title =
+                    match htmlDoc.DocumentNode.SelectSingleNode("//title") with
+                    | null -> "<no title>"
+                    | t -> t.InnerText.Trim()
+                outputFunc $"No rows parsed from first page of {urlToFetch} (page title: '{title}', length: {htmlDoc.DocumentNode.OuterLength})"
 
-            if index.IsSome && isLastPage then
-                results
+            // finviz returns the last page again whenever a page past the end is requested
+            // (e.g. total of 27, r=41 returns rows 21-27 again; with a total of 40 it returns a full page of 20).
+            // Also, when sorting by something live like change, a ticker can move between pages while we are
+            // fetching and show up twice. So only keep tickers we have not seen, and stop when a page adds nothing new.
+            let seen = results |> List.map (fun r -> r.ticker) |> Set.ofList
+
+            let newRows =
+                page
+                |> List.filter (fun r -> seen.Contains r.ticker |> not)
+                |> List.distinctBy (fun r -> r.ticker)
+
+            let combined = List.append results newRows
+
+            if newRows.IsEmpty || page.Length < 20 then
+                combined
             else
-                match page with 
-                    | c when c.Length = 20 -> fetchPage (offset + 20) (List.append results page)
-                    | _ -> (List.append results page)
+                fetchPage (offset + 20) combined
 
         fetchPage 1 []
 

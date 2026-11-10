@@ -343,7 +343,8 @@ module Storage =
         let sql = @"INSERT INTO screenerresults
             (screenerid,date,stockId,marketcap,price,change,volume)
             VALUES
-            (@screenerId,date(@date),@stockId,@marketcap,@price,@change,@volume)"
+            (@screenerId,date(@date),@stockId,@marketcap,@price,@change,@volume)
+            ON CONFLICT (screenerid,stockid,date) DO NOTHING"
 
         cnnString
         |> Sql.connect
