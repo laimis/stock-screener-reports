@@ -30,6 +30,9 @@
     <PackageReference Update="FSharp.Core" Version="9.0.100" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="fixtures\**" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\src\StockScreenerReports.Storage\StockScreenerReports.Storage.fsproj" />
     <ProjectReference Include="..\src\StockScreenerReports.Core\StockScreenerReports.Core.fsproj" />
     <ProjectReference Include="..\src\StockScreenerReports.Clients\StockScreenerReports.Clients.fsproj" />

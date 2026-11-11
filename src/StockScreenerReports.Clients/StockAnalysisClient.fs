@@ -12,16 +12,38 @@ let private fetchUrl (url:string) =
         let web = HtmlAgilityPack.HtmlWeb()
         web.Load(url)
         
-let getCorporateActions() =
-        
-    let doc = fetchUrl "https://stockanalysis.com/actions/"
-    
+// The site is built with Svelte, whose scoped css classes (e.g. "svelte-77tdkt") are hashes
+// that change on every redeploy. Never rely on them, find the table by its header columns instead.
+let private findActionsTable (doc: HtmlAgilityPack.HtmlDocument) =
+    let tables = doc.DocumentNode.Descendants("table") |> Seq.toList
+
+    let headersOf (table: HtmlAgilityPack.HtmlNode) =
+        table.Descendants("th")
+        |> Seq.map (fun th -> th.InnerText.Trim().ToLowerInvariant())
+        |> Seq.toList
+
+    let isActionsTable table =
+        let headers = headersOf table
+        ["date"; "symbol"; "type"; "action"] |> List.forall (fun h -> headers |> List.contains h)
+
+    match tables |> List.tryFind isActionsTable with
+    | Some table -> table
+    | None ->
+        // most likely cause is a changed page or a bot challenge (e.g. Cloudflare "Just a moment...")
+        let title =
+            doc.DocumentNode.SelectSingleNode("//title")
+            |> Option.ofObj
+            |> Option.map (fun n -> n.InnerText.Trim())
+            |> Option.defaultValue "<no title>"
+        failwith $"Corporate actions table not found (tables on page: {tables.Length}, page title: '{title}')"
+
+let parseCorporateActions (doc: HtmlAgilityPack.HtmlDocument) =
+
     let tableRows =
-        doc.DocumentNode.Descendants("table")
-        |> Seq.find (_.HasClass("svelte-1swpzu1"))
-        |> _.Descendants("tbody")
-        |> Seq.head
+        findActionsTable doc
         |> _.Descendants("tr")
+        // header row has th cells only, skip anything that is not a full data row
+        |> Seq.filter (fun row -> (row.Descendants("td") |> Seq.length) >= 4)
 
     tableRows
     |> Seq.map (fun row ->
@@ -69,3 +91,6 @@ let getCorporateActions() =
             Action = action
         })
     |> Seq.toList
+
+let getCorporateActions() =
+    fetchUrl "https://stockanalysis.com/actions/" |> parseCorporateActions

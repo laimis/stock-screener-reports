@@ -67,6 +67,34 @@ type ParsingTests(output: ITestOutputHelper) =
         below |> should be (greaterThan 0)
 
     [<Fact>]
+    let corporateActionsParsedFromSavedPage() =
+        // offline test against a saved copy of https://stockanalysis.com/actions/
+        // site uses hashed svelte css classes that change on redeploy, parser must not depend on them
+        let doc = HtmlAgilityPack.HtmlDocument()
+        doc.Load(System.IO.Path.Combine("fixtures", "stockanalysis-actions.html"))
+
+        let actions = StockAnalysisClient.parseCorporateActions doc
+
+        actions |> should not' (be Empty)
+
+        let arai = actions |> List.find (fun a -> a.Symbol = "ARAI")
+        arai.Date |> should be (equal (System.DateTime(2026, 11, 12)))
+        match arai.Type with
+        | StockSplit (oldShares, newShares) ->
+            oldShares |> should be (equal 48m)
+            newShares |> should be (equal 1m)
+        | _ -> failwith "Invalid type"
+
+    [<Fact>]
+    let corporateActionsMissingTableGivesClearError() =
+        let doc = HtmlAgilityPack.HtmlDocument()
+        doc.LoadHtml("<html><head><title>Just a moment...</title></head><body></body></html>")
+
+        let ex = Assert.Throws<System.Exception>(fun () -> StockAnalysisClient.parseCorporateActions doc |> ignore)
+
+        ex.Message |> should haveSubstring "Just a moment..."
+
+    [<Fact>]
     let corporateActions() =
 
         let content = StockAnalysisClient.getCorporateActions ()
